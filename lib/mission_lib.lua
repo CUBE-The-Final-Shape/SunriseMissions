@@ -15,7 +15,7 @@ function lib.list(...)
     return values
 end
 
--- One shared key space: 64 variables, 32 timers, 63 bytes a key. Keep tags short.
+-- All scopes share the native mission variable and timer stores.
 local Scope = {}
 Scope.__index = Scope
 
@@ -62,18 +62,7 @@ end
 
 --- @return True when the event names this slot.
 function lib.is_slot(context, event, slot)
-    local target = context:slot(slot)
-    return event.registry_key == target.registry_key
-        and event.slot_type == target.slot_type
-        and event.slot_index == target.slot_index
-end
-
---- @return True when the event is this trigger firing on this volume.
-function lib.is_trigger(context, event, slot, volume)
-    return lib.is_slot(context, event, slot)
-        and event.volume_registry_key == volume.registry_key
-        and event.volume_slot_type == volume.slot_type
-        and event.volume_slot_index == volume.slot_index
+    return event.slot ~= nil and event.slot.id == context:slot(slot).id
 end
 
 function lib.place_all(context, squads, mode)
@@ -92,52 +81,6 @@ end
 function lib.play_idles(context, idles)
     for _, idle in ipairs(idles) do
         context:slot(idle.sensor):play_performance{state = idle.state}
-    end
-end
-
--- The host takes one head row plus 63 more.
-local OBJECT_RUN = 64
-
--- A run may not mix objects. One tag is one group.
-local SLOT_PREFIX = "slot/"
-local TAG_FIRST = #SLOT_PREFIX + 1
-local TAG_LAST = TAG_FIRST + 7
-
-local function object_tag(slot)
-    if string.sub(slot, 1, #SLOT_PREFIX) ~= SLOT_PREFIX then
-        return slot
-    end
-    return string.sub(slot, TAG_FIRST, TAG_LAST)
-end
-
--- First-appearance order keeps the authored lists readable.
-local function group_by_tag(slots)
-    local order, by_tag = {}, {}
-    for _, slot in ipairs(slots) do
-        local tag = object_tag(slot)
-        local group = by_tag[tag]
-        if group == nil then
-            group = {}
-            by_tag[tag] = group
-            order[#order + 1] = group
-        end
-        group[#group + 1] = slot
-    end
-    return order
-end
-
-function lib.activate_objects(context, slots)
-    for _, group in ipairs(group_by_tag(slots)) do
-        local index = 1
-        while index <= #group do
-            local last = math.min(index + OBJECT_RUN - 1, #group)
-            local with = {}
-            for member = index + 1, last do
-                with[#with + 1] = group[member]
-            end
-            context:slot(group[index]):set_object_active{active = true, with = with}
-            index = last + 1
-        end
     end
 end
 

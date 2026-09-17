@@ -163,9 +163,7 @@ return function(mission)
     end
 
     local function set_reward_visible(context, site, visible)
-        for _, slot in ipairs(site.reward) do
-            context:slot(slot):set_object_active{active = visible}
-        end
+        context:activate_objects{slots = site.reward, active = visible}
     end
 
     local function start_event(context, scope, site)
@@ -195,6 +193,7 @@ return function(mission)
 
     return {
         tag = "p",
+        state = STATE,
 
         -- State first: the squads and events bind under its lease.
         enter = function(context, scope, salt)

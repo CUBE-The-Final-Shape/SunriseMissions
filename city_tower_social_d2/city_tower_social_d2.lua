@@ -459,7 +459,6 @@ local BUBBLES = {
 
 -- A reattach reopens this script in a fresh VM, so the mark lives in mission state.
 local BUILT_PREFIX = "built_"
-local HELD_KEY = "held_region"
 
 local function bubble_for_region(region)
     for _, bubble in ipairs(BUBBLES) do
@@ -488,19 +487,15 @@ local function enter_bubble(context, state, bubble)
         }
     end
     context:select_state(bubble.state, SEED_OMIT)
-    lib.activate_objects(context, bubble.objects)
+    context:activate_objects{slots = bubble.objects, active = true}
     lib.activate_scenes(context, bubble.scenes)
     lib.play_idles(context, bubble.idles)
 end
 
 return {
-    on_event_client_state_changed = function(context, state, event)
-        -- Only the held region says where the client is. The pending leg is a precache.
-        local standing = bubble_for_region(event.held_region_index)
-        if standing == nil or state:variable(HELD_KEY) == standing.state.region_index then
-            return
-        end
-        context:set_variable(HELD_KEY, standing.state.region_index)
+    on_event_region_changed = function(context, state, event)
+        local standing = bubble_for_region(event.region_index)
+        if standing == nil then return end
         enter_bubble(context, state, standing)
     end,
 }

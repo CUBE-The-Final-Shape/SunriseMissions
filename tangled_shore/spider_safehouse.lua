@@ -23,7 +23,7 @@ return function(mission, state)
     -- State first: the objects and squads bind under its lease.
     return function(context)
         context:select_state(state)
-        lib.activate_objects(context, objects)
+        context:activate_objects{slots = objects, active = true}
         lib.place_all(context, squads, context.sdk.squad_modes.reinforce)
         lib.play_idles(context, idles)
     end
