@@ -1,6 +1,7 @@
 -- Step chain shared by the campaign mission drafts.
--- A step shows its goal when the previous step ends. It ends on its own trigger, kill, ghost link
--- or interaction, and, unless a barrier holds the player, on any later step's trigger.
+-- A step shows its goal when the previous step ends. It ends on its own trigger, monitor, kill,
+-- ghost link, interaction or scene, and, unless a barrier holds the player, on any later step's
+-- trigger or monitor.
 local lib = require("lib.mission_lib")
 local flow = require("lib.flow")
 
@@ -17,6 +18,17 @@ end
 --- A dialogue cue and the volume the client holds it for.
 function campaign.line(cue, filter)
     return {cue = lib.one(cue, "dialogue cue"), filter = filter}
+end
+
+--- A generator seed that changes with the attempt and never reaches zero.
+--- The sandbox has no random source, so the attempt the host owns is the only varying number.
+--- @param context Callback context.
+--- @return A positive 31-bit integer.
+function campaign.run_seed(context)
+    local attempt = tonumber(context.attempt_generation) or 1
+    local seed = attempt % 0x7FFFFFFF
+    if seed == 0 then return 1 end
+    return seed
 end
 
 --- Moves each device slot with one transition.
@@ -79,6 +91,11 @@ local function arm_trigger(context, id)
     context:slot(id):fire_trigger()
 end
 
+-- A type-30 monitor reports its own entered edge and needs no disarm. One player is enough.
+local function watch_monitor(context, id)
+    context:slot(id):set_occupancy_condition{value = 1}
+end
+
 local function disarm_reported(context, state, event)
     local id = event.slot ~= nil and event.slot.id or nil
     if id ~= nil and state:variable(armed_key(id)) == true then
@@ -98,6 +115,7 @@ local function begin(content, step)
         if ends.interact ~= nil then
             context:slot(ends.interact):set_interactable_object{used = true}
         end
+        if step.scene ~= nil then context:scene(step.scene):activate{} end
         if step.directive ~= nil then show(content, context, step) end
         speak(content, context, step)
         -- Arming again reports a player who is already inside the volume.
@@ -148,16 +166,26 @@ local function check(content)
     lib.one(content.directive_sensor, "directive sensor")
     assert(#lib.one(content.legs, "campaign legs") > 0, "a campaign needs a leg")
     assert(#lib.one(content.steps, "campaign steps") > 0, "a campaign needs a step")
-    local armed = {}
+    local armed, watched = {}, {}
     for _, leg in ipairs(content.legs) do
         lib.one(leg.state, lib.one(leg.id, "leg id") .. " state")
         for _, trigger in ipairs(leg.arm or {}) do armed[trigger] = leg.id end
+        for _, monitor in ipairs(leg.watch or {}) do watched[monitor] = leg.id end
     end
     for _, step in ipairs(content.steps) do
         lib.one(step.id, "step id")
         if step.lines ~= nil then lib.one(content.dialogue_sensor, "dialogue sensor") end
         for _, trigger in ipairs(list((step.ends or {}).trigger)) do
             assert(armed[trigger], step.id .. " ends on a trigger no leg arms")
+        end
+        for _, monitor in ipairs(list((step.ends or {}).monitor)) do
+            assert(watched[monitor], step.id .. " ends on a monitor no leg watches")
+        end
+        local hurt = (step.ends or {}).health
+        if hurt ~= nil then
+            lib.one(hurt.slot, step.id .. " health slot")
+            assert(type(hurt.at) == "number" and hurt.at >= 0 and hurt.at <= 1,
+                step.id .. " health fraction must be between zero and one")
         end
     end
     for index, cut in ipairs(content.intro or {}) do
@@ -172,11 +200,15 @@ local function check(content)
         if encounter.trigger ~= nil then
             assert(armed[encounter.trigger], encounter.id .. " waits on a trigger no leg arms")
         end
+        if encounter.monitor ~= nil then
+            assert(watched[encounter.monitor], encounter.id .. " waits on a monitor no leg watches")
+        end
     end
 end
 
 --- Builds the mission table from a content declaration.
---- @param content Table with key, sensors, legs with their trigger lists, steps and encounters,
+--- @param content Table with key, sensors, legs with their trigger and monitor lists, steps and
+--- encounters,
 --- an optional intro list of {state, cinematic} cutscenes played before the first leg, and an
 --- optional spawn_set naming the launch points the client filters its spawn by.
 --- @return The table the runtime loads: initial_state, on_start, on_load and event handlers.
@@ -238,6 +270,7 @@ function campaign.new(content)
                 watch(trigger)
             end
         end
+        for _, monitor in ipairs(list(ends.monitor)) do watch(monitor) end
         if ends.ghost_link ~= nil then
             local link, started = ends.ghost_link, step.id .. ".scan"
             facts[#facts + 1] = {id = started, observe = function(context, state, event)
@@ -264,16 +297,36 @@ function campaign.new(content)
                     and lib.is_slot(context, event, object)
             end}
         end
+        -- The type-2 Sense carries the combatant's health as a fraction, so a phase gate needs no
+        -- client read. An unknown pool reports below zero and never ends a step.
+        if ends.health ~= nil then
+            local target, at = ends.health.slot, ends.health.at
+            facts[#facts + 1] = {id = step.id .. ".hurt", observe = function(context, state, event)
+                return graph:started(context, state, step.id)
+                    and lib.is_slot(context, event, target)
+                    and type(event.health) == "number" and event.health >= 0
+                    and event.health <= at
+            end}
+        end
+        -- A scene may have played before; only a report after its step counts.
+        if ends.scene ~= nil then
+            local scene = ends.scene
+            facts[#facts + 1] = {id = step.id .. ".played",
+                observe = function(context, state, event)
+                return graph:started(context, state, step.id)
+                    and lib.is_slot(context, event, scene)
+            end}
+        end
     end
     -- Encounters live in a second graph, so each graph stays inside the step and fact limits.
     local encounter_facts, encounter_fact, encounter_graph = {}, {}, nil
     for _, encounter in ipairs(content.encounters or {}) do
-        local trigger = encounter.trigger
-        if trigger ~= nil and encounter_fact[trigger] == nil then
+        local source = encounter.trigger or encounter.monitor
+        if source ~= nil and encounter_fact[source] == nil then
             local id = "t" .. (#encounter_facts + 1)
-            encounter_fact[trigger] = id
+            encounter_fact[source] = id
             encounter_facts[#encounter_facts + 1] = {id = id, observe = function(context, _, event)
-                return lib.is_slot(context, event, trigger)
+                return lib.is_slot(context, event, source)
             end}
         end
     end
@@ -295,10 +348,13 @@ function campaign.new(content)
         for number, trigger in ipairs(list(ends.trigger)) do
             options[#options + 1] = step.revisit and fresh(step, number) or watch(trigger)
         end
+        for _, monitor in ipairs(list(ends.monitor)) do options[#options + 1] = watch(monitor) end
         if ends.region ~= nil then options[#options + 1] = flow.fact("leg." .. ends.region) end
         if ends.clear ~= nil then options[#options + 1] = cleared(list(ends.clear)) end
         if ends.ghost_link ~= nil then options[#options + 1] = flow.fact(step.id .. ".scanned") end
         if ends.interact ~= nil then options[#options + 1] = flow.fact(step.id .. ".used") end
+        if ends.scene ~= nil then options[#options + 1] = flow.fact(step.id .. ".played") end
+        if ends.health ~= nil then options[#options + 1] = flow.fact(step.id .. ".hurt") end
         if ends.destroyed ~= nil then
             local all = {}
             for number = 1, #ends.destroyed do
@@ -319,6 +375,9 @@ function campaign.new(content)
                 for _, trigger in ipairs(steps[later].revisit and {} or list(ends.trigger)) do
                     options[#options + 1] = watch(trigger)
                 end
+                for _, monitor in ipairs(list(ends.monitor)) do
+                    options[#options + 1] = watch(monitor)
+                end
                 if ends.region ~= nil then
                     options[#options + 1] = flow.fact("leg." .. ends.region)
                 end
@@ -333,15 +392,16 @@ function campaign.new(content)
     -- Trigger facts latch, so an encounter whose trigger fired early places once its step starts.
     local placements = {}
     for _, encounter in ipairs(content.encounters or {}) do
-        local after, trigger = encounter.after or "arrival", encounter.trigger
+        local after = encounter.after or "arrival"
+        local source = encounter.trigger or encounter.monitor
         -- The arrival step is waiting from the start, so arrival itself must have happened.
         local function begun(context, state)
             if after == "arrival" then return graph:fact(context, state, "arrival") end
             return graph:started(context, state, after)
         end
         local when = function(context, state)
-            return begun(context, state) and (trigger == nil
-                or encounter_graph:fact(context, state, encounter_fact[trigger]))
+            return begun(context, state) and (source == nil
+                or encounter_graph:fact(context, state, encounter_fact[source]))
         end
         placements[#placements + 1] = {id = encounter.id, when = when, run = function(context)
             populate(content, context, encounter)
@@ -369,6 +429,10 @@ function campaign.new(content)
                 for _, trigger in ipairs(leg.arm or {}) do
                     arm_trigger(context, trigger)
                     objects[object_of(trigger) or trigger] = true
+                end
+                for _, monitor in ipairs(leg.watch or {}) do
+                    watch_monitor(context, monitor)
+                    objects[object_of(monitor) or monitor] = true
                 end
             end
         end
@@ -496,6 +560,10 @@ function campaign.new(content)
             disarm_reported(context, state, event)
             handle(context, state, event)
         end,
+        -- A watched monitor reports here, not through the player-trigger event.
+        on_event_trigger_entered = handle,
+        on_event_scene_finished = handle,
+        on_event_damage_state = handle,
         on_event_squad_state = handle,
         on_event_device_state = handle,
         on_event_object_interacted = handle,
