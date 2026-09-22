@@ -6,8 +6,6 @@ local Slot, Squad, Scene, Directive = mission.Slot, mission.Squad, mission.Scene
 local sensor = mission.Slot.M_DIRECTIVE_SENSOR
 local cues = mission.DialogueCue.M_DIALOG_SENSOR
 
-local HEROIC = false
-
 local INTRO_REGION = mission.states.STATE_81538016_0000_0000_8153800E.region_index -- 
 local PLAZA = mission.states.STATE_81538016_0006_0000_81538014.region_index -- 48
 local HANGAR = mission.states.STATE_81538016_0005_0000_81538013.region_index -- 40
@@ -17,15 +15,81 @@ local VENTILATION = mission.states.STATE_81538016_0002_0000_81538010.region_inde
 local VAULT = mission.states.STATE_81538016_0004_0000_81538012.region_index -- 32
 local OUTRO_REGION = mission.states.STATE_81538016_0001_0000_8153800F.region_index -- 8
 
-local BLVD_ARENA = {Squad.SQ_A_WAVE_ONE_8153806D, Squad.SQ_B_WAVE_ONE_8153806D, Squad.SQ_C_WAVE_ONE_8153806D, Squad.SQ_D_WAVE_ONE_8153806D, Squad.SQ_E_WAVE_ONE_8153806D, Squad.SQ_F_WAVE_ONE_8153806D}
-local PLAZA_ARENA = {Squad.SQ_A_WAVE_ONE_815385C6, Squad.SQ_B_WAVE_ONE_815385C6, Squad.SQ_C_WAVE_ONE_815385C6, Squad.SQ_D_WAVE_ONE_815385C6, Squad.SQ_E_WAVE_ONE_815385C6, Squad.SQ_SNIPER_A, Squad.SQ_SNIPER_B, Squad.SQ_BOSS_C_815385C6, Squad.SQ_BOSS_A_815385C6, Squad.SQ_BOSS_B_815385C6, Squad.SQ_SNIPER_C}
-local MILITARY_A_ARENA_WAVE_ONE = {Squad.SQ_A_WAVE_ONE_8153855C, Squad.SQ_B_WAVE_ONE_8153855C, Squad.SQ_C_WAVE_ONE_8153855C, Squad.SQ_D_WAVE_ONE_8153855C, Squad.SQ_E_WAVE_ONE_8153855C}
-local MILITARY_A_ARENA = {Squad.SQ_SNIPE_A_WAVE_ONE, Squad.SQ_SNIPE_B_WAVE_ONE, Squad.SQ_CATWALK_A_WAVE_ONE, Squad.SQ_CATWALK_B_WAVE_ONE, Squad.SQ_CATWALK_C_WAVE_ONE, Squad.SQ_CATWALK_D_WAVE_ONE, Squad.SQ_TANK_WAVE_ONE, Squad.SQ_TANK_SERVITOR_A, Squad.SQ_TANK_SERVITOR_B, Squad.SQ_TANK_SERVITOR_C, Squad.SQ_TANK_SERVITOR_D}
-local MILITARY_INDOOR_ARENA = {Squad.SQ_A_AMBUSH, Squad.SQ_B_AMBUSH, Squad.SQ_C_AMBUSH, Squad.SQ_A_INDOOR, Squad.SQ_B_INDOOR, Squad.SQ_C_INDOOR, Squad.SQ_D_INDOOR, Squad.SQ_E_INDOOR, Squad.SQ_F_INDOOR, Squad.SQ_HEAVY_INDOOR}
-local UNDERWATCH_ARENA = {Squad.SQ_A_HALL, Squad.SQ_D_HALL, Squad.SQ_B_HALL, Squad.SQ_C_HALL, Squad.SQ_A_PVP, Squad.SQ_B_PVP, Squad.SQ_C_PVP, Squad.SQ_A_RETREAT, Squad.SQ_B_RETREAT, Squad.SQ_C_RETREAT}
+local BLVD_ARENA = {
+					Squad.SQ_A_WAVE_ONE_8153806D,
+					Squad.SQ_B_WAVE_ONE_8153806D,
+					Squad.SQ_C_WAVE_ONE_8153806D,
+					Squad.SQ_D_WAVE_ONE_8153806D,
+					Squad.SQ_E_WAVE_ONE_8153806D,
+					Squad.SQ_F_WAVE_ONE_8153806D
+					}
+					
+local PLAZA_ARENA = {
+					Squad.SQ_A_WAVE_ONE_815385C6,
+					Squad.SQ_B_WAVE_ONE_815385C6,
+					Squad.SQ_C_WAVE_ONE_815385C6,
+					Squad.SQ_D_WAVE_ONE_815385C6,
+					Squad.SQ_E_WAVE_ONE_815385C6,
+					Squad.SQ_SNIPER_A,
+					Squad.SQ_SNIPER_B,
+					Squad.SQ_SNIPER_C,
+					Squad.SQ_BOSS_A_815385C6,
+					Squad.SQ_BOSS_B_815385C6,
+					Squad.SQ_BOSS_C_815385C6
+					}
+					
+local MILITARY_A_ARENA_WAVE_ONE = {
+					Squad.SQ_A_WAVE_ONE_8153855C,
+					Squad.SQ_B_WAVE_ONE_8153855C,
+					Squad.SQ_C_WAVE_ONE_8153855C,
+					Squad.SQ_D_WAVE_ONE_8153855C,
+					Squad.SQ_E_WAVE_ONE_8153855C
+					}
+					
+local MILITARY_A_ARENA = {
+					Squad.SQ_SNIPE_A_WAVE_ONE,
+					Squad.SQ_SNIPE_B_WAVE_ONE,
+					Squad.SQ_CATWALK_A_WAVE_ONE,
+					Squad.SQ_CATWALK_B_WAVE_ONE,
+					Squad.SQ_CATWALK_C_WAVE_ONE,
+					Squad.SQ_CATWALK_D_WAVE_ONE,
+					Squad.SQ_TANK_WAVE_ONE,
+					Squad.SQ_TANK_SERVITOR_A,
+					Squad.SQ_TANK_SERVITOR_B,
+					Squad.SQ_TANK_SERVITOR_C,
+					Squad.SQ_TANK_SERVITOR_D
+					}
+					
+local MILITARY_INDOOR_ARENA = {
+					Squad.SQ_A_AMBUSH,
+					Squad.SQ_B_AMBUSH,
+					Squad.SQ_C_AMBUSH,
+					Squad.SQ_A_INDOOR,
+					Squad.SQ_B_INDOOR,
+					Squad.SQ_C_INDOOR,
+					Squad.SQ_D_INDOOR,
+					Squad.SQ_E_INDOOR,
+					Squad.SQ_F_INDOOR,
+					Squad.SQ_HEAVY_INDOOR
+					}
+					
+local UNDERWATCH_ARENA = {
+					Squad.SQ_A_HALL,
+					Squad.SQ_D_HALL,
+					Squad.SQ_B_HALL, 
+					Squad.SQ_C_HALL,
+					Squad.SQ_A_PVP,
+					Squad.SQ_C_PVP,
+					Squad.SQ_B_PVP,
+					Squad.SQ_A_RETREAT,
+					Squad.SQ_B_RETREAT,
+					Squad.SQ_C_RETREAT
+					}
 
 -- local OUTRO_ARENA = {}
 
+-- Possibly implement state changes in certain arenas to arm the change before the new area is reached
+-- context:select_state(mission.states.STATE_X)
 local ARENAS = {
     {
         id = "blvd",
@@ -55,6 +119,7 @@ local ARENAS = {
 	{
         id = "outro_arena",
         squads = PLAZA_ARENA,
+		doors = {Slot.D_EMITTER_UNDERWATCH, Slot.D_SHIELD_UNDERWATCH},
     },
 }
 
@@ -68,6 +133,10 @@ local function place_squads(context, arena_squads)
 	end
 end
 
+local function is_heroic(context)
+    return context.activity_id == "act/0078/a2caefda"
+end
+
 return {
     initial_state = {
         region_index = INTRO_REGION,
@@ -76,19 +145,19 @@ return {
 
     -- Runs once, when the mission starts for the first time.
     on_start = function(context, state)
-        context:set_variable("mission_zero_hour_script", "started")
-		context:start_timer("arena_checker", 2000)
+        context:set_variable("zero_hour_script", "started")
+		--context:start_timer("arena_checker", 2000)
     end,
 
     on_load = function(context, state)
         context:set_variable("reloaded", true)
 		
-		context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
-		context:squad(mission.Squad.SQ_FRIENDLY_81538177):place{}
+		--context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
+		--context:squad(mission.Squad.SQ_FRIENDLY_81538177):place{}
 		--context:squad(mission.Squad.SQ_SKIFF):place{}
 		--context:squad(mission.Squad.SQ_SKIFF_PILOT):place{}
-        context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0xdf24c893}
-		context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0xa703a771}
+        --context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0xdf24c893}
+		--context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0xa703a771}
 		--0xa703a771 despawn
 		--0xdf24c893 outro_trigger
 		--0xCF0F2A72 2.combat_1.fa_shanks_boss_rush
@@ -100,6 +169,7 @@ return {
         context:set_variable("regions_seen", seen + 1)
 
         if event.region_index == PLAZA then
+
 			if not state:variable("plaza_visited.armed") then
 				context:set_variable("plaza_visited.armed", true)
 				local squad_slots = {
@@ -109,11 +179,11 @@ return {
 					Slot.SQ_D_WAVE_ONE_815385C6,
 					Slot.SQ_E_WAVE_ONE_815385C6,
 					Slot.SQ_SNIPER_A,
-					Slot.SQ_SNIPER_B, -- Missing in arena report nr.6
-					Slot.SQ_BOSS_C_815385C6,
-					Slot.SQ_BOSS_A_815385C6, -- Missing in arena report nr.8
-					Slot.SQ_BOSS_B_815385C6, -- Missing in arena report nr.9
+					Slot.SQ_SNIPER_B,
 					Slot.SQ_SNIPER_C,
+					Slot.SQ_BOSS_A_815385C6,
+					Slot.SQ_BOSS_B_815385C6,
+					Slot.SQ_BOSS_C_815385C6,
 				}
 
 				for i, squad_slot in ipairs(squad_slots) do
@@ -128,6 +198,7 @@ return {
         end
 		
 		if event.region_index == HANGAR then
+
 			if not state:variable("hangar_visited.armed") then
 				--context:slot(Slot.PLAZA_MIL_DANGER):fire_trigger()
 				--context:slot(Slot.MPT_MILITARY):fire_trigger()
@@ -205,6 +276,7 @@ return {
 		end
 		
 		if event.region_index == TOWER_WATCH then
+		
 			if not state:variable("tower_watch_visited.armed") then 
 				context:set_variable("tower_watch_visited.armed", true)
 				local underwatch_squad_slots = {
@@ -213,25 +285,17 @@ return {
 					Slot.SQ_B_HALL,
 					Slot.SQ_C_HALL,
 					Slot.SQ_A_PVP,
-					Slot.SQ_B_PVP,
 					Slot.SQ_C_PVP,
+					Slot.SQ_B_PVP,
 					Slot.SQ_A_RETREAT,
 					Slot.SQ_B_RETREAT,
 					Slot.SQ_C_RETREAT,
 				}
 
 				for i, squad_slot in ipairs(underwatch_squad_slots) do
-					local group
-
-					if i <= 2 then
-						group = 1
-					else
-						group = i - 1
-					end
-
 					context:slot(squad_slot):assign_combat_objective{
 						objective = context:slot(Slot.OBJ_UNDERWATCH),
-						task_group = mission.TaskGroup.OBJ_UNDERWATCH["GROUP_" .. group],
+						task_group = mission.TaskGroup.OBJ_UNDERWATCH["GROUP_" .. (i - 1)],
 					}
 				end
 				
@@ -241,7 +305,8 @@ return {
 		end
 		
 		if event.region_index == PASSAGE then
-			if HEROIC then
+		
+			if is_heroic(context) then
 				context:slot(Slot.O_NORMAL_TOP_BLOCK_A):set_object_active{active = true}
 				context:slot(Slot.O_NORMAL_TOP_BLOCK_B):set_object_active{active = true}
 				context:slot(Slot.O_NORMAL_FANS_BLOCK):set_object_active{active = true}
@@ -260,6 +325,7 @@ return {
 		end
 		
 		if event.region_index == VENTILATION then
+
 			if not state:variable("ventilation_visited.armed") then
 				context:set_variable("ventilation_visited.armed", true)
 				--context:slot(Slot.MPT_ENTER_STAIRWELL):fire_trigger()
@@ -268,6 +334,7 @@ return {
 		end
 		
 		if event.region_index == VAULT then
+
 			for i = 0, 29 do
 				context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
 			end
@@ -284,6 +351,7 @@ return {
 		end
 		
 		if event.region_index == OUTRO_REGION then
+		
 			if not state:variable("outro_region_visited.armed") then
 				context:set_variable("outro_region_visited.armed", true)
 				context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
@@ -346,9 +414,9 @@ return {
     end,
 
     on_event_timer_elapsed = function(context, state, event)
-		if event.timer_name == "arena_checker" then
-			context:start_timer("arena_checker", 2000)
-		end
+		--if event.timer_name == "arena_checker" then
+			--context:start_timer("arena_checker", 2000)
+		--end
     end,
 	
     on_event_squad_state = function(context, state, event)
@@ -394,22 +462,21 @@ return {
 					if not state:variable(key) and arena_cleared(context, arena) then
 						context:set_variable(key, true)
 						
-						if arena.doors then
-							for _, door in ipairs(arena.doors) do
-								context:slot(door):transition{
-									transition = context.sdk.device_transitions.open,
-								}
-							end
+						for _, door in ipairs(arena.doors) do
+							context:slot(door):transition{
+								transition = context.sdk.device_transitions.open,
+							}
 						end
 					end
-			end
+		end
     end,
 	
+	
 	on_event_object_interacted = function(context, state, event)
-    if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
-        context:set_variable("security_disabled", true)
-    end
-end,
+		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
+			context:set_variable("security_disabled", true)
+		end
+	end,
 }
 
 --[[
