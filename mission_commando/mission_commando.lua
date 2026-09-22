@@ -26,74 +26,6 @@ local UNDERWATCH_ARENA = {Squad.SQ_A_HALL, Squad.SQ_D_HALL, Squad.SQ_B_HALL, Squ
 
 -- local OUTRO_ARENA = {}
 
--- Squads that share a spawn rule (and anchor) with another squad. Placing both
--- in the same tick seems to make one of them fail sometimes, so the later
--- squad is placed only after its twin has reported in:
---   when = "alive"   -> as soon as the twin is seen alive (both end up in play)
---   when = "cleared" -> once the twin is cleared
--- `after` is the variable that says the arena has started.
-local LATE = {
-    {id = "blvd_c",         after = "intro.sent",          when = "alive",
-        twin = Squad.SQ_B_WAVE_ONE_8153806D, twin_slot = Slot.SQ_B_WAVE_ONE_8153806D,
-        squad = Squad.SQ_C_WAVE_ONE_8153806D},
-    {id = "plaza_boss_a",   after = "plaza_visited.armed", when = "cleared",
-        twin = Squad.SQ_D_WAVE_ONE_815385C6, twin_slot = Slot.SQ_D_WAVE_ONE_815385C6,
-        squad = Squad.SQ_BOSS_A_815385C6},
-    {id = "plaza_boss_b",   after = "plaza_visited.armed", when = "cleared",
-        twin = Squad.SQ_E_WAVE_ONE_815385C6, twin_slot = Slot.SQ_E_WAVE_ONE_815385C6,
-        squad = Squad.SQ_BOSS_B_815385C6},
-    {id = "plaza_sniper_b", after = "plaza_visited.armed", when = "alive",
-        twin = Squad.SQ_SNIPER_A, twin_slot = Slot.SQ_SNIPER_A,
-        squad = Squad.SQ_SNIPER_B},
-}
-
--- Shared-rule groups with more than two squads (or in other arenas) are held
--- back as a chain: each squad is placed once the one before it is seen alive.
-local function chain(id, after, names)
-	for i = 2, #names do
-		assert(Squad[names[i - 1]] and Squad[names[i]], "unknown squad in chain " .. id)
-		LATE[#LATE + 1] = {
-			id = id .. "_" .. names[i], after = after, when = "alive",
-			twin = Squad[names[i - 1]], twin_slot = Slot[names[i - 1]],
-			squad = Squad[names[i]],
-		}
-	end
-end
-
-chain("mil_wave", "hangar_visited.armed", {"SQ_A_WAVE_ONE_8153855C", "SQ_B_WAVE_ONE_8153855C", "SQ_C_WAVE_ONE_8153855C", "SQ_D_WAVE_ONE_8153855C", "SQ_E_WAVE_ONE_8153855C"})
-chain("mil_snipe", "hangar_visited.armed", {"SQ_SNIPE_A_WAVE_ONE", "SQ_SNIPE_B_WAVE_ONE"})
-chain("mil_catwalk", "hangar_visited.armed", {"SQ_CATWALK_A_WAVE_ONE", "SQ_CATWALK_B_WAVE_ONE", "SQ_CATWALK_C_WAVE_ONE", "SQ_CATWALK_D_WAVE_ONE"})
-chain("mil_ambush", "hangar_visited.armed", {"SQ_A_AMBUSH", "SQ_B_AMBUSH", "SQ_C_AMBUSH"})
-chain("mil_indoor", "hangar_visited.armed", {"SQ_A_INDOOR", "SQ_B_INDOOR", "SQ_C_INDOOR", "SQ_D_INDOOR", "SQ_E_INDOOR", "SQ_F_INDOOR"})
-chain("hall", "tower_watch_visited.armed", {"SQ_A_HALL", "SQ_D_HALL"})
-chain("pvp", "tower_watch_visited.armed", {"SQ_A_PVP", "SQ_C_PVP"})
-
-local LATE_SQUADS = {}
-local LATE_BY_SQUAD = {}
-for _, late in ipairs(LATE) do
-	LATE_SQUADS[late.squad] = true
-	LATE_BY_SQUAD[late.squad] = late
-end
-
--- A squad waiting on a twin that never reports in is placed anyway after this
--- many ticks of the arena_checker timer (2 s each). Only for when = "alive".
-local LATE_TIMEOUT_TICKS = 5
-
--- True once the squad this one waits on has itself been placed.
-local function twin_placed(state, late)
-	local prior = LATE_BY_SQUAD[late.twin]
-	return prior == nil or state:variable("late_placed." .. prior.id)
-end
-
--- Place every squad in the list except the ones held back in LATE.
-local function place_now(context, arena_squads)
-	for _, sq in ipairs(arena_squads) do
-		if not LATE_SQUADS[sq] then
-			context:squad(sq):place{}
-		end
-	end
-end
-
 local ARENAS = {
     {
         id = "blvd",
@@ -150,6 +82,16 @@ return {
 
     on_load = function(context, state)
         context:set_variable("reloaded", true)
+		
+		context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
+		context:squad(mission.Squad.SQ_FRIENDLY_81538177):place{}
+		--context:squad(mission.Squad.SQ_SKIFF):place{}
+		--context:squad(mission.Squad.SQ_SKIFF_PILOT):place{}
+        context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0xdf24c893}
+		context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0xa703a771}
+		--0xa703a771 despawn
+		--0xdf24c893 outro_trigger
+		--0xCF0F2A72 2.combat_1.fa_shanks_boss_rush
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -181,7 +123,7 @@ return {
 					}
 				end
 				
-				place_now(context, PLAZA_ARENA)
+				place_squads(context, PLAZA_ARENA)
 			end
         end
 		
@@ -255,9 +197,9 @@ return {
 					}
 				end
 				
-				place_now(context, MILITARY_A_ARENA_WAVE_ONE)
-				place_now(context, MILITARY_A_ARENA)
-				place_now(context, MILITARY_INDOOR_ARENA)
+				place_squads(context, MILITARY_A_ARENA_WAVE_ONE)
+				place_squads(context, MILITARY_A_ARENA)
+				place_squads(context, MILITARY_INDOOR_ARENA)
 			end
 			
 		end
@@ -293,7 +235,7 @@ return {
 					}
 				end
 				
-				place_now(context, UNDERWATCH_ARENA)
+				place_squads(context, UNDERWATCH_ARENA)
 			end
 			
 		end
@@ -334,7 +276,7 @@ return {
 			context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
 			context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_interactable_object{used = true}
 			
-			if not not state:variable("vault_visited.armed") then
+			if not state:variable("vault_visited.armed") then
 				context:set_variable("vault_visited.armed", true)
 				--context:slot(Slot.MPT_VAULT):fire_trigger()
 				--context:slot(Slot.MPT_VAULT_END):fire_trigger()
@@ -380,7 +322,7 @@ return {
 				}
 			end
 			
-			place_now(context, BLVD_ARENA)
+			place_squads(context, BLVD_ARENA)
         end
     end,
 
@@ -420,41 +362,11 @@ return {
 						end
 					end
 			end
-			-- Fallback for chains stuck on a twin that never reported in.
-			for _, late in ipairs(LATE) do
-				local key = "late_placed." .. late.id
-				if late.when == "alive" and state:variable(late.after)
-					and not state:variable(key) and twin_placed(state, late) then
-					local wkey = "late_wait." .. late.id
-					local waited = (state:variable(wkey) or 0) + 1
-					context:set_variable(wkey, waited)
-					if waited >= LATE_TIMEOUT_TICKS then
-						context:set_variable(key, true)
-						context:squad(late.squad):place{}
-					end
-				end
-			end
-
 			context:start_timer("arena_checker", 2000)
 		end
     end,
 	
     on_event_squad_state = function(context, state, event)
-		for _, late in ipairs(LATE) do
-			local key = "late_placed." .. late.id
-			if state:variable(late.after) and not state:variable(key) then
-				local ready = context:cohort{squads = {late.twin}}.cleared
-				if late.when == "alive" and lib.is_slot(context, event, late.twin_slot)
-					and event.alive_count > 0 then
-					ready = true
-				end
-				if ready then
-					context:set_variable(key, true)
-					context:squad(late.squad):place{}
-				end
-			end
-		end
-
 		for i, sq in ipairs(BLVD_ARENA) do
 			if context:cohort{squads = {sq}}.cleared then
 				context:set_variable("blvd.dbg." .. i-1, true)
