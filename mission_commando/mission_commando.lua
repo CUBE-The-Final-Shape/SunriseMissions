@@ -347,21 +347,6 @@ return {
 
     on_event_timer_elapsed = function(context, state, event)
 		if event.timer_name == "arena_checker" then
-			for _, arena in ipairs(ARENAS) do
-					local key = arena.id .. ".arena_cleared"
-
-					if not state:variable(key) and arena_cleared(context, arena) then
-						context:set_variable(key, true)
-						
-						if arena.doors then
-							for _, door in ipairs(arena.doors) do
-								context:slot(door):transition{
-									transition = context.sdk.device_transitions.open,
-								}
-							end
-						end
-					end
-			end
 			context:start_timer("arena_checker", 2000)
 		end
     end,
@@ -402,6 +387,22 @@ return {
 				context:set_variable("underwatch.dbg." .. i-1, true)
 			end
 		end
+		
+		for _, arena in ipairs(ARENAS) do
+					local key = arena.id .. ".arena_cleared"
+
+					if not state:variable(key) and arena_cleared(context, arena) then
+						context:set_variable(key, true)
+						
+						if arena.doors then
+							for _, door in ipairs(arena.doors) do
+								context:slot(door):transition{
+									transition = context.sdk.device_transitions.open,
+								}
+							end
+						end
+					end
+			end
     end,
 	
 	on_event_object_interacted = function(context, state, event)
