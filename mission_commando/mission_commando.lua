@@ -6,7 +6,7 @@ local Slot, Squad, Scene, Directive = mission.Slot, mission.Squad, mission.Scene
 local sensor = mission.Slot.M_DIRECTIVE_SENSOR
 local cues = mission.DialogueCue.M_DIALOG_SENSOR
 
-local INTRO_REGION = mission.states.STATE_81538016_0000_0000_8153800E.region_index -- 
+local INTRO_REGION = mission.states.STATE_81538016_0000_0000_8153800E.region_index -- 0
 local PLAZA = mission.states.STATE_81538016_0006_0000_81538014.region_index -- 48
 local HANGAR = mission.states.STATE_81538016_0005_0000_81538013.region_index -- 40
 local TOWER_WATCH = mission.states.STATE_81538016_0007_0000_81538015.region_index -- 56
@@ -105,20 +105,20 @@ local ENGAGEMENT_SENSORS = {
 local BLVD_ARENA = {
 					{squad = Squad.SQ_A_WAVE_ONE_8153806D, count = 2},
 					{squad = Squad.SQ_B_WAVE_ONE_8153806D, count = 3},
-					{squad = Squad.SQ_C_WAVE_ONE_8153806D, count = 2},
+					{squad = Squad.SQ_C_WAVE_ONE_8153806D, count = 3},
 					{squad = Squad.SQ_D_WAVE_ONE_8153806D, count = 2},
 					{squad = Squad.SQ_E_WAVE_ONE_8153806D, count = 1},
 					{squad = Squad.SQ_F_WAVE_ONE_8153806D, count = 1}
 					}
-					
+		
 local PLAZA_ARENA = {
 					{squad = Squad.SQ_A_WAVE_ONE_815385C6, count = 3},
 					{squad = Squad.SQ_B_WAVE_ONE_815385C6, count = 3},
 					{squad = Squad.SQ_C_WAVE_ONE_815385C6, count = 3},
-					{squad = Squad.SQ_D_WAVE_ONE_815385C6, count = 1},
-					{squad = Squad.SQ_E_WAVE_ONE_815385C6, count = 1},
-					{squad = Squad.SQ_SNIPER_B, count = 1},
+					{squad = Squad.SQ_D_WAVE_ONE_815385C6, count = 2},
+					{squad = Squad.SQ_E_WAVE_ONE_815385C6, count = 2},
 					{squad = Squad.SQ_SNIPER_A, count = 1},
+					{squad = Squad.SQ_SNIPER_B, count = 1},
 					{squad = Squad.SQ_SNIPER_C, count = 1},
 					{squad = Squad.SQ_BOSS_A_815385C6, count = 1},
 					{squad = Squad.SQ_BOSS_B_815385C6, count = 1},
@@ -126,7 +126,7 @@ local PLAZA_ARENA = {
 					}
 					
 local MILITARY_A_ARENA_WAVE_ONE = {
-					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 1},
+					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 1}, 
 					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 1},
 					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 1},
 					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 1},
@@ -136,10 +136,10 @@ local MILITARY_A_ARENA_WAVE_ONE = {
 local MILITARY_A_ARENA = {
 					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1},
 					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 1},
+					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2},
+					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2},
+					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2},
+					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 2},
 					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1},
 					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1},
 					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1},
@@ -148,8 +148,8 @@ local MILITARY_A_ARENA = {
 					}
 					
 local MILITARY_INDOOR_ARENA = {
-					{squad = Squad.SQ_A_AMBUSH, count = 1},
-					{squad = Squad.SQ_B_AMBUSH, count = 1},
+					{squad = Squad.SQ_A_AMBUSH, count = 2},
+					{squad = Squad.SQ_B_AMBUSH, count = 2},
 					{squad = Squad.SQ_C_AMBUSH, count = 1},
 					{squad = Squad.SQ_A_INDOOR, count = 1},
 					{squad = Squad.SQ_B_INDOOR, count = 1},
@@ -168,8 +168,8 @@ local UNDERWATCH_ARENA = {
 					{squad = Squad.SQ_A_PVP, count = 1},
 					{squad = Squad.SQ_C_PVP, count = 1},
 					{squad = Squad.SQ_B_PVP, count = 1},
-					{squad = Squad.SQ_A_RETREAT, count = 1},
-					{squad = Squad.SQ_B_RETREAT, count = 1},
+					{squad = Squad.SQ_A_RETREAT, count = 2},
+					{squad = Squad.SQ_B_RETREAT, count = 2},
 					{squad = Squad.SQ_C_RETREAT, count = 1}
 					}
 
@@ -331,7 +331,6 @@ return {
 
 			if not state:variable("plaza_visited.armed") then
 				context:set_variable("plaza_visited.armed", true)
-				
 				set_directive(context, "plaza_entered")
 				
 				local squad_slots = {
@@ -340,8 +339,8 @@ return {
 					Slot.SQ_C_WAVE_ONE_815385C6,
 					Slot.SQ_D_WAVE_ONE_815385C6,
 					Slot.SQ_E_WAVE_ONE_815385C6,
-					Slot.SQ_SNIPER_A,
 					Slot.SQ_SNIPER_B,
+					Slot.SQ_SNIPER_A,
 					Slot.SQ_BOSS_C_815385C6,
 					Slot.SQ_BOSS_A_815385C6,
 					Slot.SQ_BOSS_B_815385C6,
@@ -356,6 +355,8 @@ return {
 				end
 				
 				place_squads(context, PLAZA_ARENA)
+				
+				context:select_state(mission.states.STATE_81538016_0006_0000_81538014)
 			end
         end
 		
@@ -370,29 +371,51 @@ return {
 				
 				set_directive(context, "hangar_entered")
 				
+				-- 9 slots total to work with
+				
+				-- group 0 tank
+				-- group 1 snipe A
+				-- group 2 snipe B
+				-- group 3 servitor B
+				-- group 4 servitor C
+				-- group 5 servitor A
+				-- group 6 servitor D
+				-- group 7 CATWALK
+				-- group 8 WAVE_ONE
+				
 				local military_squad_slots = {
+					Slot.SQ_TANK_WAVE_ONE,
+					Slot.SQ_SNIPE_A_WAVE_ONE,
+					Slot.SQ_SNIPE_B_WAVE_ONE,
+					Slot.SQ_TANK_SERVITOR_B,
+					Slot.SQ_TANK_SERVITOR_C,
+					Slot.SQ_TANK_SERVITOR_A,
+					Slot.SQ_TANK_SERVITOR_D,
+					
+					Slot.SQ_CATWALK_A_WAVE_ONE,
+					Slot.SQ_CATWALK_B_WAVE_ONE,
+					Slot.SQ_CATWALK_C_WAVE_ONE,
+					Slot.SQ_CATWALK_D_WAVE_ONE,
+					
 					Slot.SQ_A_WAVE_ONE_8153855C,
 					Slot.SQ_B_WAVE_ONE_8153855C,
 					Slot.SQ_C_WAVE_ONE_8153855C,
 					Slot.SQ_D_WAVE_ONE_8153855C,
 					Slot.SQ_E_WAVE_ONE_8153855C,
-					Slot.SQ_SNIPE_A_WAVE_ONE,
-					Slot.SQ_SNIPE_B_WAVE_ONE,
-					Slot.SQ_CATWALK_A_WAVE_ONE,
-					Slot.SQ_CATWALK_B_WAVE_ONE,
-					Slot.SQ_CATWALK_C_WAVE_ONE,
-					Slot.SQ_CATWALK_D_WAVE_ONE,
-					Slot.SQ_TANK_WAVE_ONE,
-					Slot.SQ_TANK_SERVITOR_A,
-					Slot.SQ_TANK_SERVITOR_B,
-					Slot.SQ_TANK_SERVITOR_C,
-					Slot.SQ_TANK_SERVITOR_D,
 				}
-
+				
 				for i, squad_slots in ipairs(military_squad_slots) do
+					if i >= 12 then
+						group = 8
+					elseif i >= 8 then
+						group = 7
+					else
+						group = i
+					end
+					
 					context:slot(squad_slots):assign_combat_objective{
 						objective = context:slot(Slot.OBJ_MILITARY),
-						task_group = mission.TaskGroup.OBJ_MILITARY["GROUP_" .. (i - 1)],
+						task_group = mission.TaskGroup.OBJ_MILITARY["GROUP_" .. group],
 					}
 				end
 				
@@ -410,9 +433,17 @@ return {
 				}
 				
 				for i, squad_slots in ipairs(military_indoors_squad_slots) do
+					local group
+
+					if i <= 3 then
+						group = 0
+					else
+						group = i - 3
+					end
+				
 					context:slot(squad_slots):assign_combat_objective{
 						objective = context:slot(Slot.OBJ_MILITARY_INDOOR),
-						task_group = mission.TaskGroup.OBJ_MILITARY_INDOOR["GROUP_" .. (i - 1)],
+						task_group = mission.TaskGroup.OBJ_MILITARY_INDOOR["GROUP_" .. group],
 					}
 				end
 				
@@ -513,6 +544,11 @@ return {
 				context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
 				
 				set_directive(context, "outro_entered")
+				
+				-- Enemy OBJ for outro fight
+				-- OBJ_BOSS, OBJ_ADDS, OBJ_INTRO
+				
+				context:complete_mission{}
 			end
 		end
     end,
@@ -576,46 +612,9 @@ return {
 		end
     end,
 	
-    on_event_squad_state = function(context, state, event)
-		for i, sq in ipairs(BLVD_ARENA) do
-			if context:cohort{squads = {sq.squad}}.cleared then
-				context:set_variable("blvd.dbg." .. i-1, true)
-			end
-		end
-
-		for i, sq in ipairs(PLAZA_ARENA) do
-			if context:cohort{squads = {sq.squad}}.cleared then
-				context:set_variable("plaza.dbg." .. i-1, true)
-			end
-		end
-
-		for i, sq in ipairs(MILITARY_A_ARENA_WAVE_ONE) do
-			if context:cohort{squads = {sq.squad}}.cleared then
-				context:set_variable("mili_a_w_1.dbg." .. i-1, true)
-			end
-		end
-
-		for i, sq in ipairs(MILITARY_A_ARENA) do
-			if context:cohort{squads = {sq.squad}}.cleared then
-				context:set_variable("mili_a.dbg." .. i-1, true)
-			end
-		end
-
-		for i, sq in ipairs(MILITARY_INDOOR_ARENA) do
-			if context:cohort{squads = {sq.squad}}.cleared then
-				context:set_variable("mili_indoor.dbg." .. i-1, true)
-			end
-		end
-
-		for i, sq in ipairs(UNDERWATCH_ARENA) do
-			if context:cohort{squads = {sq.squad}}.cleared then
-				context:set_variable("underwatch.dbg." .. i-1, true)
-			end
-		end
-		
+	--[[    on_event_squad_state = function(context, state, event)
 		check_arena_doors(context, state)
-    end,
-	
+    end,]]
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
