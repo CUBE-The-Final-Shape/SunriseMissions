@@ -18,17 +18,17 @@ local OUTRO_REGION = mission.states.STATE_81538016_0001_0000_8153800F.region_ind
 local ARENAS = {
     {
         id = "blvd",
+		objective = "OBJ_BLVD",
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153806D,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538079,
-		objective = Slot.OBJ_BLVD,
 		doors = {Slot.D_EMITTER_BOULEVARD, Slot.D_SHIELD_BOULEVARD},
         squads = {
-					{squad = Squad.SQ_A_WAVE_ONE_8153806D, count = 2},
-					{squad = Squad.SQ_B_WAVE_ONE_8153806D, count = 3},
-					{squad = Squad.SQ_C_WAVE_ONE_8153806D, count = 3},
-					{squad = Squad.SQ_D_WAVE_ONE_8153806D, count = 2},
-					{squad = Squad.SQ_E_WAVE_ONE_8153806D, count = 1},
-					{squad = Squad.SQ_F_WAVE_ONE_8153806D, count = 1}
+					{squad = Squad.SQ_A_WAVE_ONE_8153806D, count = 2, default_group = 0},
+					{squad = Squad.SQ_B_WAVE_ONE_8153806D, count = 3, default_group = 1},
+					{squad = Squad.SQ_C_WAVE_ONE_8153806D, count = 3, default_group = 2},
+					{squad = Squad.SQ_D_WAVE_ONE_8153806D, count = 2, default_group = 3},
+					{squad = Squad.SQ_E_WAVE_ONE_8153806D, count = 1, default_group = 4},
+					{squad = Squad.SQ_F_WAVE_ONE_8153806D, count = 1, default_group = 5}
 				},
 		squad_slots = {
 					Slot.SQ_A_WAVE_ONE_8153806D,
@@ -49,23 +49,22 @@ local ARENAS = {
     },
     {
         id = "plaza",
-		sensor_id = "plaza_cleared",
+		objective = "OBJ_PLAZA",
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_815385C6,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_815385D0,
-		objective = Slot.OBJ_PLAZA,
         doors = {Slot.D_EMITTER_PLAZA, Slot.D_SHIELD_PLAZA},
         squads = {
-					{squad = Squad.SQ_A_WAVE_ONE_815385C6, count = 3},
-					{squad = Squad.SQ_B_WAVE_ONE_815385C6, count = 3},
-					{squad = Squad.SQ_C_WAVE_ONE_815385C6, count = 3},
-					{squad = Squad.SQ_SNIPER_A, count = 1},
-					{squad = Squad.SQ_SNIPER_C, count = 1},
-					{squad = Squad.SQ_BOSS_A_815385C6, count = 1},
-					{squad = Squad.SQ_BOSS_B_815385C6, count = 1},
-					{squad = Squad.SQ_BOSS_C_815385C6, count = 1},
-					{squad = Squad.SQ_D_WAVE_ONE_815385C6, count = 1},
-					{squad = Squad.SQ_E_WAVE_ONE_815385C6, count = 2},
-					{squad = Squad.SQ_SNIPER_B, count = 1}
+					{squad = Squad.SQ_A_WAVE_ONE_815385C6, count = 3, default_group = 0},
+					{squad = Squad.SQ_B_WAVE_ONE_815385C6, count = 3, default_group = 1},
+					{squad = Squad.SQ_C_WAVE_ONE_815385C6, count = 3, default_group = 2},
+					{squad = Squad.SQ_SNIPER_A, count = 1, default_group = 8},
+					{squad = Squad.SQ_SNIPER_C, count = 1, default_group = 9},
+					{squad = Squad.SQ_BOSS_A_815385C6, count = 1, default_group = 5},
+					{squad = Squad.SQ_BOSS_B_815385C6, count = 1, default_group = 6},
+					{squad = Squad.SQ_BOSS_C_815385C6, count = 1, default_group = 4},
+					{squad = Squad.SQ_D_WAVE_ONE_815385C6, count = 1, default_group = 3},
+					{squad = Squad.SQ_E_WAVE_ONE_815385C6, count = 2, default_group = 7},
+					{squad = Squad.SQ_SNIPER_B, count = 1, default_group = 10}
 				},
 		squad_slots = {
 					Slot.SQ_A_WAVE_ONE_815385C6,
@@ -96,26 +95,26 @@ local ARENAS = {
     },
 	{
         id = "military_a",
-		objective = Slot.OBJ_MILITARY,
+		objective = "OBJ_MILITARY",
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153855C,
 		doors = {Slot.D_EMITTER_MILITARY_A, Slot.D_SHIELD_MILITARY_A},
         squads = {
-					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1},
-					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1},
-					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 2}, -- Shank
-					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1},
-					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 3}, -- Shank
-					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 2}, -- Marauder
-					{squad = Squad.SQ_TANK_SERVITOR_C, count = 1},
-					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 4}, -- Shank
-					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 2}, -- Marauder
-					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2},
-					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2},
-					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2},
-					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 2}
+					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1, default_group = 0},
+					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1, default_group = 1},
+					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1, default_group = 1},
+					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 2, default_group = 2}, -- Shank
+					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1, default_group = 2},
+					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1, default_group = 2},
+					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1, default_group = 3},
+					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 3, default_group = 3}, -- Shank
+					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 2, default_group = 3}, -- Marauder
+					{squad = Squad.SQ_TANK_SERVITOR_C, count = 1, default_group = 4},
+					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 4, default_group = 4}, -- Shank
+					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 2, default_group = 4}, -- Marauder
+					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2, default_group = 5},
+					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2, default_group = 6},
+					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2, default_group = 7},
+					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 2, default_group = 8}
 				},
 		squad_slots = {
 					Slot.SQ_TANK_WAVE_ONE, -- Slot 0
@@ -149,19 +148,19 @@ local ARENAS = {
     },
 	{
         id = "military_indoor",
+		objective = "OBJ_MILITARY_INDOOR",
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_8153856C,
-		objective = Slot.OBJ_MILITARY_INDOOR,
 		doors = {Slot.D_EMITTER_MILITARY_B, Slot.D_SHIELD_MILITARY_B},
         squads = {
-					{squad = Squad.SQ_A_AMBUSH, count = 2},
-					{squad = Squad.SQ_B_AMBUSH, count = 2},
-					{squad = Squad.SQ_C_AMBUSH, count = 1},
-					{squad = Squad.SQ_A_INDOOR, count = 1},
-					{squad = Squad.SQ_B_INDOOR, count = 1},
-					{squad = Squad.SQ_C_INDOOR, count = 1},
-					{squad = Squad.SQ_D_INDOOR, count = 1},
-					{squad = Squad.SQ_E_INDOOR, count = 1},
-					{squad = Squad.SQ_F_INDOOR, count = 1},
+					{squad = Squad.SQ_A_AMBUSH, count = 2, default_group = 0},
+					{squad = Squad.SQ_B_AMBUSH, count = 2, default_group = 0},
+					{squad = Squad.SQ_C_AMBUSH, count = 1, default_group = 0},
+					{squad = Squad.SQ_A_INDOOR, count = 1, default_group = 1},
+					{squad = Squad.SQ_B_INDOOR, count = 1, default_group = 2},
+					{squad = Squad.SQ_C_INDOOR, count = 1, default_group = 3},
+					{squad = Squad.SQ_D_INDOOR, count = 1, default_group = 4},
+					{squad = Squad.SQ_E_INDOOR, count = 1, default_group = 5},
+					{squad = Squad.SQ_F_INDOOR, count = 1, default_group = 6},
 					{squad = Squad.SQ_HEAVY_INDOOR, count = 1}
 					},
 		squad_slots = {
@@ -189,21 +188,21 @@ local ARENAS = {
     },
 	{
         id = "underwatch",
+		objective = "OBJ_UNDERWATCH",
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153862D,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538637,
-		objective = Slot.OBJ_UNDERWATCH,
 		doors = {Slot.D_EMITTER_UNDERWATCH, Slot.D_SHIELD_UNDERWATCH},
         squads = {
-					{squad = Squad.SQ_A_HALL, count = 1},
-					{squad = Squad.SQ_D_HALL, count = 1},
-					{squad = Squad.SQ_B_HALL, count = 1},
-					{squad = Squad.SQ_C_HALL, count = 1},
-					{squad = Squad.SQ_A_PVP, count = 1},
-					{squad = Squad.SQ_C_PVP, count = 1},
-					{squad = Squad.SQ_B_PVP, count = 1},
-					{squad = Squad.SQ_A_RETREAT, count = 2},
-					{squad = Squad.SQ_B_RETREAT, count = 2},
-					{squad = Squad.SQ_C_RETREAT, count = 1}
+					{squad = Squad.SQ_A_HALL, count = 1, default_group = 0},
+					{squad = Squad.SQ_D_HALL, count = 1, default_group = 1},
+					{squad = Squad.SQ_B_HALL, count = 1, default_group = 2},
+					{squad = Squad.SQ_C_HALL, count = 1, default_group = 3},
+					{squad = Squad.SQ_A_PVP, count = 1, default_group = 4},
+					{squad = Squad.SQ_C_PVP, count = 1, default_group = 5},
+					{squad = Squad.SQ_B_PVP, count = 1, default_group = 6},
+					{squad = Squad.SQ_A_RETREAT, count = 2, default_group = 7},
+					{squad = Squad.SQ_B_RETREAT, count = 2, default_group = 8},
+					{squad = Squad.SQ_C_RETREAT, count = 1, default_group = 9}
 					},
 		squad_slots = {
 					Slot.SQ_A_HALL,
@@ -232,9 +231,9 @@ local ARENAS = {
     },
 	{
         id = "outro_arena",
-		intro_objective = Slot.OBJ_INTRO,
-		boss_objective = Slot.OBJ_BOSS,
-		adds_objective = Slot.OBJ_ADDS,
+		intro_objective = "OBJ_INTRO",
+		adds_objective = "OBJ_ADDS",
+		boss_objective = "OBJ_BOSS",
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_81538177,
         squads = {
 					{squad = Squad.SQ_A_HALL, count = 1},
@@ -242,13 +241,61 @@ local ARENAS = {
     },
 }
 
+local toaster_path = {
+					{
+						id = "arc",
+						mode = "normal",
+						path = {3,5,6,7,8,10,15,17,18,19,20,21,22,24,29},
+					},
+					{
+						id = "arc",
+						mode = "heroic",
+						path = {0,5,6,7,8,13,18,20,21,22,23,25},
+					},
+					{
+						id = "void",
+						mode = "normal",
+						path = {0,5,7,8,9,10,11,12,14,19,20,21,22,23,24,25},
+					},
+					{
+						id = "void",
+						mode = "heroic",
+						path = {0,5,10,12,13,14,15,17,19,20,21,22,24,29},
+					},
+					{
+						id = "solar",
+						mode = "normal",
+						path = {2,7,10,11,12,15,20,21,22,23,24,29},
+					},
+					{
+						id = "solar",
+						mode = "heroic",
+						path = {0,5,6,11,12,13,14,19,21,22,23,24,26},
+					},
+					}
+					
+local function set_maze_pattern(context)
+	for i = 0, 29 do
+		context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
+	end
+end
+
 local function is_heroic(context)
     return context.activity_id == "act/0078/a2caefda"
 end
 
+local function vault_puzzle_burn(context, state)
+	if state:variable("security_disabled") ~= true then
+		context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
+			transition = context.sdk.device_transitions.open,
+		}
+		context:start_timer("end_burn", 5000)
+	end
+end
+
 local function set_directive(context, sensor)
 	context:slot(Slot.M_DIRECTIVE_SENSOR):set_directive{
-			directive = Directive.UNNAMED,
+			directive = Directive.ENEMY_TARGET_EXFILTRATION,
 			audience = context:slot(sensor),
 	}
 end
@@ -259,7 +306,8 @@ local function place_squads(context, arena_data)
 		local counts = squad:counts()
 		counts:set(1, sq.count)
 		context:slot(arena_data.squad_slots[i]):assign_combat_objective{
-		objective = context:slot(arena_data.objective),
+			objective = context:slot(Slot[arena_data.objective]),
+			task_group = mission.TaskGroup[arena_data.objective]["GROUP_" .. sq.default_group]
 		}
 		squad:place{counts = counts}
 	end
@@ -280,12 +328,12 @@ local function place_boss_squads(context, arena_data)
 end
 
 local function update_task_groups(context, state, event)
-	for i, arena_data in ipairs(ARENAS) do
+	for _, arena_data in ipairs(ARENAS) do
 		for _, squad_slot in ipairs(arena_data.squad_slots) do
 			if not lib.is_slot(context, event, squad_slot) or event.alive_count <= 0 then
 				return
 			end
-			local objective = context:slot(arena_data.objective)
+			local objective = context:slot(Slot[arena_data.objective])
 			local current, assigned = event:task_group{objective = objective}
 			if not assigned then return end
 			local best, known = combat.lowest_cost(event, arena_data.groups, current)
@@ -366,6 +414,7 @@ return {
 		counts:set(1, 1)
 		squad:place{counts = counts}
 		]]
+		context:slot(Slot.MPT_MILITARY):fire_trigger()
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -444,10 +493,6 @@ return {
 		end
 		
 		if event.region_index == VAULT then
-			for i = 0, 29 do
-				context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
-			end
-			
 			if not state:variable("vault_visited.armed") then
 				context:set_variable("vault_visited.armed", true)
 				
@@ -455,6 +500,11 @@ return {
 				--context:slot(Slot.MPT_VAULT_END):fire_trigger()
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381D9)
+				context:set_variable("security_disabled", false)
+				
+				for i = 0, 29 do
+					context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
+				end
 				
 				-- Vault: Spawns switch that toggles security and makes it interactable. (No functionality has been assigned for now)
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
@@ -482,12 +532,12 @@ return {
             and not state:variable("intro.sent") then
 
             context:set_variable("intro.sent", true)
-            set_directive(context, "blvd_entered")
 
             context:squad(mission.Squad.SQ_DREG_TARGET):place{}
             context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):activate{}
 
             context:slot(Slot.PT_ENTRY):fire_trigger()
+			set_directive(context, ARENAS[1].enter_sensor)
         end
     end,
 
@@ -506,10 +556,12 @@ return {
 		
 		if lib.is_slot(context, event, Slot.MPT_MILITARY) then
 			context:slot(Slot.MPT_MILITARY):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
 		end
 		
 		if lib.is_slot(context, event, Slot.MPT_ITS_A_TRAP) then
 			context:slot(Slot.MPT_ITS_A_TRAP):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 2}
 		end
 		
 		if lib.is_slot(context, event, Slot.PT_BOSS_SPAWN) then
@@ -523,6 +575,12 @@ return {
 			--check_arena_doors(context, state)
 			context:start_timer("arena_checker", 2000)
 		end
+		
+		if event.timer_name == "end_burn" then
+			context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
+				transition = context.sdk.device_transitions.close,
+			}
+		end
     end,
 	
 	on_event_squad_state = function(context, state, event)
@@ -534,15 +592,28 @@ return {
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
 			context:set_variable("security_disabled", true)
 			-- This enables burn mode. No damage, Evil switch >:)
+			--[[
 			context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
-				transition = context.sdk.device_transitions.open,
-			}
+				transition = context.sdk.device_transitions.close,
+			}]]
 		end
 	end,
 	
 	on_event_trigger_entered = function(context, state, event)
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA) then
 			-- event.member_count, event.all_inside
+		end
+		
+		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_PM_MAZE_TILES_2) then
+			-- event.member_count, event.all_inside
+			context:set_variable("tile2.tile_entered", true)
+			vault_puzzle_burn(context, state)
+		end
+	end,
+	
+	on_event_trigger_exited = function(context, state, event)
+		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_PM_MAZE_TILES_2) then
+			-- Placeholder
 		end
 	end,
 }
