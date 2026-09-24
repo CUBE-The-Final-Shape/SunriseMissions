@@ -273,33 +273,16 @@ local toaster_path = {
 						path = {0,5,6,11,12,13,14,19,21,22,23,24,26},
 					},
 					}
-					
-local function set_maze_pattern(context)
-	if is_heroic(context) then
-		local maze_pattern = toaster_path[2]
-	else
-		local maze_pattern = toaster_path[1]
-	end
-	for i = 0, 29 do
-		for _, safe_tiles in ipairs(maze_pattern) do
-			if i ~= safe_tiles then
-				context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
-			end
-		end
-	end
-end
 
 local function is_heroic(context)
     return context.activity_id == "act/0078/a2caefda"
 end
 
 local function vault_puzzle_burn(context, state)
-	if state:variable("security_disabled") ~= true then
-		context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
-			transition = context.sdk.device_transitions.open,
-		}
-		context:start_timer("end_burn", 5000)
-	end
+	context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
+		transition = context.sdk.device_transitions.open,
+	}
+	context:start_timer("end_burn", 5000)
 end
 
 local function set_directive(context, sensor)
@@ -406,6 +389,7 @@ return {
     on_start = function(context, state)
         context:set_variable("zero_hour_script", "started")
 		context:slot(Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = false}
+		context:set_variable("is_heroic", is_heroic(context))
     end,
 
     on_load = function(context, state)
@@ -423,7 +407,7 @@ return {
 		counts:set(1, 1)
 		squad:place{counts = counts}
 		]]
-		context:slot(Slot.MPT_MILITARY):fire_trigger()
+		context:set_variable("burn_enabled", false)
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -478,7 +462,7 @@ return {
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381BA)
 				
 				-- Passage: Spawns different blockades depending on the mission difficulty
-				if is_heroic(context) then
+				if state:variable("is_heroic") == true then
 					context:slot(Slot.O_NORMAL_TOP_BLOCK_A):set_object_active{active = true}
 					context:slot(Slot.O_NORMAL_TOP_BLOCK_B):set_object_active{active = true}
 					context:slot(Slot.O_NORMAL_FANS_BLOCK):set_object_active{active = true}
@@ -510,8 +494,13 @@ return {
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381D9)
 				context:set_variable("security_disabled", false)
+				context:set_variable("burn_enabled", false)
 				
-				set_maze_pattern(context)
+				for i = 0, 29 do
+					context:slot(
+						Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]
+					):set_occupancy_condition{value = 1}
+				end
 				
 				-- Vault: Spawns switch that toggles security and makes it interactable. (No functionality has been assigned for now)
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
@@ -587,6 +576,7 @@ return {
 			context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
 				transition = context.sdk.device_transitions.close,
 			}
+			context:set_variable("burn_enabled", false)
 		end
     end,
 	
@@ -597,7 +587,7 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
-			context:set_variable("security_disabled", true)
+			-- context:set_variable("security_disabled", true)
 			-- This enables burn mode. No damage, Evil switch >:)
 			--[[
 			context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
@@ -611,10 +601,40 @@ return {
 			-- event.member_count, event.all_inside
 		end
 		
-		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_PM_MAZE_TILES_2) then
-			-- event.member_count, event.all_inside
-			context:set_variable("tile2.tile_entered", true)
-			vault_puzzle_burn(context, state)
+		local maze_pattern
+
+		if state:variable("is_heroic") == true then
+			maze_pattern = toaster_path[2].path
+		else
+			maze_pattern = toaster_path[1].path
+		end
+
+		for i = 0, 29 do
+			if lib.is_slot(
+				context,
+				event,
+				Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]
+			) then
+
+				local is_safe = false
+
+				for _, safe_tile in ipairs(maze_pattern) do
+					if i == safe_tile then
+						is_safe = true
+						break
+					end
+				end
+
+				if not is_safe
+					and state:variable("burn_enabled") == false
+					and state:variable("security_disabled") == false then
+
+					context:set_variable("burn_enabled", true)
+					vault_puzzle_burn(context, state)
+				end
+
+				return
+			end
 		end
 	end,
 	
