@@ -160,22 +160,22 @@ local ARENAS = {
 		objective = Slot.OBJ_MILITARY,
 		doors = {Slot.D_EMITTER_MILITARY_A, Slot.D_SHIELD_MILITARY_A},
         squads = {
-					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 2}, -- Shank
-					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 3}, -- Shank
-					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 3}, -- Shank
-					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 2}, -- Marauder
-					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 2}, -- Marauder
-					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1},
-					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2},
-					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2},
-					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2},
-					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 2},
 					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1},
 					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1},
+					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1},
+					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 2}, -- Shank
+					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1},
+					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1},
 					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1},
+					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 3}, -- Shank
+					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 2}, -- Marauder
 					{squad = Squad.SQ_TANK_SERVITOR_C, count = 1},
-					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1}
+					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 3}, -- Shank
+					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 1}, -- Marauder
+					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2},
+					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2},
+					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2},
+					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 2}
 				},
 		squad_slots = {
 					Slot.SQ_TANK_WAVE_ONE, -- Slot 0
@@ -319,13 +319,12 @@ local function place_squads(context, arena_data)
 	for i, sq in ipairs(arena_data.squads) do
 		local squad = context:squad(sq.squad) 
 		local counts = squad:counts()
-		counts:set(1, sq.count) 
+		counts:set(1, sq.count)
 		context:slot(arena_data.squad_slots[i]):assign_combat_objective{
 		objective = context:slot(arena_data.objective),
 		}
 		squad:place{counts = counts}
 	end
-	context:set_variable("arena_" .. arena_data.id .. "_ready", true)
 end
 
 local function update_task_groups(context, state, event)
