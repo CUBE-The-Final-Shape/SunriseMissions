@@ -15,74 +15,11 @@ local VENTILATION = mission.states.STATE_81538016_0002_0000_81538010.region_inde
 local VAULT = mission.states.STATE_81538016_0004_0000_81538012.region_index -- 32
 local OUTRO_REGION = mission.states.STATE_81538016_0001_0000_8153800F.region_index -- 8
 
-local ENGAGEMENT_SENSORS = {
-							{
-							id = "blvd_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_8153806D,
-							},
-							{
-							id = "blvd_cleared",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_81538079,
-							},
-							
-							{
-							id = "plaza_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_815385C6,
-							},
-							{
-							id = "plaza_cleared",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_815385D0,
-							},
-							
-							{
-							id = "hangar_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_8153855C,
-							},
-							{
-							id = "hangar_cleared",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_8153856C,
-							},
-							
-							{
-							id = "uw_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_8153862D,
-							},
-							{
-							id = "uw_cleared",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_81538637,
-							},
-							
-							{
-							id = "passage_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_815381BA,
-							},
-							
-							{
-							id = "ventilation_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_8153818A,
-							},
-							
-							{
-							id = "vault_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_815381D9,
-							},
-							{
-							id = "vault_cleared",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_815384B7,
-							},
-							
-							{
-							id = "outro_entered",
-							sensor = Slot.M_ENGAGEMENT_SENSOR_81538177,
-							},
-						}
-
--- local OUTRO_ARENA = {}
-
 local ARENAS = {
     {
         id = "blvd",
-		sensor_id = "blvd_cleared",
+		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153806D,
+		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538079,
 		objective = Slot.OBJ_BLVD,
 		doors = {Slot.D_EMITTER_BOULEVARD, Slot.D_SHIELD_BOULEVARD},
         squads = {
@@ -113,6 +50,8 @@ local ARENAS = {
     {
         id = "plaza",
 		sensor_id = "plaza_cleared",
+		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_815385C6,
+		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_815385D0,
 		objective = Slot.OBJ_PLAZA,
         doors = {Slot.D_EMITTER_PLAZA, Slot.D_SHIELD_PLAZA},
         squads = {
@@ -158,6 +97,7 @@ local ARENAS = {
 	{
         id = "military_a",
 		objective = Slot.OBJ_MILITARY,
+		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153855C,
 		doors = {Slot.D_EMITTER_MILITARY_A, Slot.D_SHIELD_MILITARY_A},
         squads = {
 					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1},
@@ -170,8 +110,8 @@ local ARENAS = {
 					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 3}, -- Shank
 					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 2}, -- Marauder
 					{squad = Squad.SQ_TANK_SERVITOR_C, count = 1},
-					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 3}, -- Shank
-					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 1}, -- Marauder
+					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 4}, -- Shank
+					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 2}, -- Marauder
 					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2},
 					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2},
 					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2},
@@ -209,7 +149,7 @@ local ARENAS = {
     },
 	{
         id = "military_indoor",
-		sensor_id = "hangar_cleared",
+		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_8153856C,
 		objective = Slot.OBJ_MILITARY_INDOOR,
 		doors = {Slot.D_EMITTER_MILITARY_B, Slot.D_SHIELD_MILITARY_B},
         squads = {
@@ -249,7 +189,8 @@ local ARENAS = {
     },
 	{
         id = "underwatch",
-		sensor_id = "uw_cleared",
+		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153862D,
+		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538637,
 		objective = Slot.OBJ_UNDERWATCH,
 		doors = {Slot.D_EMITTER_UNDERWATCH, Slot.D_SHIELD_UNDERWATCH},
         squads = {
@@ -291,11 +232,13 @@ local ARENAS = {
     },
 	{
         id = "outro_arena",
+		intro_objective = Slot.OBJ_INTRO,
+		boss_objective = Slot.OBJ_BOSS,
+		adds_objective = Slot.OBJ_ADDS,
+		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_81538177,
         squads = {
 					{squad = Squad.SQ_A_HALL, count = 1},
 				},
-		doors = {Slot.D_EMITTER_UNDERWATCH, Slot.D_SHIELD_UNDERWATCH},
-		sensor_id = "outro_entered",
     },
 }
 
@@ -303,16 +246,11 @@ local function is_heroic(context)
     return context.activity_id == "act/0078/a2caefda"
 end
 
-local function set_directive(context, sensor_id)
-	for _, sensor_obj in ipairs(ENGAGEMENT_SENSORS) do
-		if sensor_obj.id == sensor_id then
-			context:set_variable("current_engage_sensor", sensor_obj.id)
-			context:slot(Slot.M_DIRECTIVE_SENSOR):set_directive{
-					directive = Directive.UNNAMED,
-					audience = context:slot(sensor_obj.sensor),
-			}
-		end
-	end
+local function set_directive(context, sensor)
+	context:slot(Slot.M_DIRECTIVE_SENSOR):set_directive{
+			directive = Directive.UNNAMED,
+			audience = context:slot(sensor),
+	}
 end
 
 local function place_squads(context, arena_data)
@@ -325,6 +263,20 @@ local function place_squads(context, arena_data)
 		}
 		squad:place{counts = counts}
 	end
+end
+
+local function place_boss_squads(context, arena_data)
+--[[
+	for i, sq in ipairs(arena_data.squads) do
+		local squad = context:squad(sq.squad) 
+		local counts = squad:counts()
+		counts:set(1, sq.count)
+		context:slot(arena_data.squad_slots[i]):assign_combat_objective{
+		objective = context:slot(arena_data.objective),
+		}
+		squad:place{counts = counts}
+	end
+]]
 end
 
 local function update_task_groups(context, state, event)
@@ -358,6 +310,7 @@ local function check_arena_doors(context, state)
     for _, arena in ipairs(ARENAS) do
         local key = arena.id .. ".arena_cleared"
 		
+		-- Debug code that logs if a squad counts as cleared
 		for i, sq in ipairs(arena.squads) do
 			if context:cohort{squads = {sq.squad}}.cleared then
 				context:set_variable(arena.id .. ".dbg." .. i-1, true)
@@ -366,17 +319,22 @@ local function check_arena_doors(context, state)
 		
         if not state:variable(key) and arena_cleared(context, arena) then
             context:set_variable(key, true)
-            
-            for _, door in ipairs(arena.doors) do
-                context:slot(door):transition{
-                    transition = context.sdk.device_transitions.open,
-                }
-            end
 			
-			if arena.sensor_id then
-				set_directive(context, arena.sensor_id)
+			if arena.id == outro_arena then
+				context:complete_mission{}
+			end
+            
+			if arena.doors then
+				for _, door in ipairs(arena.doors) do
+					context:slot(door):transition{
+						transition = context.sdk.device_transitions.open,
+					}
+				end
 			end
 			
+			if arena.clear_sensor then
+				set_directive(context, arena.clear_sensor)
+			end		
         end
     end
 end
@@ -416,7 +374,7 @@ return {
         if event.region_index == PLAZA then
 			if not state:variable("plaza_visited.armed") then
 				context:set_variable("plaza_visited.armed", true)
-				set_directive(context, "plaza_entered")
+				set_directive(context, ARENAS[2].enter_sensor)
 				place_squads(context, ARENAS[2])
 			end
         end
@@ -429,7 +387,7 @@ return {
 				--context:slot(Slot.MPT_MILITARY):fire_trigger()
 				--context:slot(Slot.MPT_ITS_A_TRAP):fire_trigger()
 				
-				set_directive(context, "hangar_entered")
+				set_directive(context, ARENAS[3].enter_sensor)
 				place_squads(context, ARENAS[3])
 				place_squads(context, ARENAS[4])
 			end
@@ -439,7 +397,7 @@ return {
 		if event.region_index == TOWER_WATCH then
 			if not state:variable("tower_watch_visited.armed") then 
 				context:set_variable("tower_watch_visited.armed", true)
-				set_directive(context, "uw_entered")
+				set_directive(context, ARENAS[5].enter_sensor)
 				place_squads(context, ARENAS[5])
 			end
 			
@@ -459,7 +417,7 @@ return {
 				-- context:slot(Slot.MPT_THE_FANS):fire_trigger()
 				-- context:slot(Slot.NORMAL_SHORT_TOP_VENT):fire_trigger()
 				
-				set_directive(context, "passage_entered")
+				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381BA)
 				
 				-- Passage: Spawns different blockades depending on the mission difficulty
 				if is_heroic(context) then
@@ -481,7 +439,7 @@ return {
 				--context:slot(Slot.MPT_T_R_E_V_O_R):fire_trigger()
 				--context:slot(Slot.MPT_ESCAPE_THE_VENTS):fire_trigger()
 				
-				set_directive(context, "ventilation_entered")
+				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_8153818A)
 			end
 		end
 		
@@ -496,12 +454,14 @@ return {
 				--context:slot(Slot.MPT_VAULT):fire_trigger()
 				--context:slot(Slot.MPT_VAULT_END):fire_trigger()
 				
-				set_directive(context, "vault_entered")
+				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381D9)
 				
 				-- Vault: Spawns switch that toggles security and makes it interactable. (No functionality has been assigned for now)
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_interactable_object{used = true}
 				context:slot(Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA):set_occupancy_condition{value = 1, filter = context:slot(Slot.CRYPTARCH_MAZE_1_OF_KILL_AREA)}
+				
+				-- set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815384B7) | Presumed Vault cleared. Might be tied to the puzzle
 			end
 		end
 		
@@ -509,12 +469,7 @@ return {
 			if not state:variable("outro_region_visited.armed") then
 				context:set_variable("outro_region_visited.armed", true)
 				
-				context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
-				
-				set_directive(context, "outro_entered")
-				
-				-- Enemy OBJ for outro fight
-				-- OBJ_BOSS, OBJ_ADDS, OBJ_INTRO
+				-- context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
 				
 				-- context:complete_mission{}
 			end
@@ -555,6 +510,11 @@ return {
 		
 		if lib.is_slot(context, event, Slot.MPT_ITS_A_TRAP) then
 			context:slot(Slot.MPT_ITS_A_TRAP):disarm_trigger()
+		end
+		
+		if lib.is_slot(context, event, Slot.PT_BOSS_SPAWN) then
+			context:slot(Slot.PT_BOSS_SPAWN):disarm_trigger()
+			place_boss_squads(context, ARENAS[6])
 		end
     end,
 
