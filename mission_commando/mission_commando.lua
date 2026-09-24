@@ -161,7 +161,7 @@ local ARENAS = {
 					{squad = Squad.SQ_D_INDOOR, count = 1, default_group = 4},
 					{squad = Squad.SQ_E_INDOOR, count = 1, default_group = 5},
 					{squad = Squad.SQ_F_INDOOR, count = 1, default_group = 6},
-					{squad = Squad.SQ_HEAVY_INDOOR, count = 1}
+					{squad = Squad.SQ_HEAVY_INDOOR, count = 1, default_group = 7}
 					},
 		squad_slots = {
 					Slot.SQ_A_AMBUSH,
@@ -198,7 +198,7 @@ local ARENAS = {
 					{squad = Squad.SQ_B_HALL, count = 1, default_group = 2},
 					{squad = Squad.SQ_C_HALL, count = 1, default_group = 3},
 					{squad = Squad.SQ_A_PVP, count = 1, default_group = 4},
-					{squad = Squad.SQ_C_PVP, count = 1, default_group = 5},
+					{squad = Squad.SQ_C_PVP, count = 1, default_group = 5},	
 					{squad = Squad.SQ_B_PVP, count = 1, default_group = 6},
 					{squad = Squad.SQ_A_RETREAT, count = 2, default_group = 7},
 					{squad = Squad.SQ_B_RETREAT, count = 2, default_group = 8},
@@ -275,8 +275,17 @@ local toaster_path = {
 					}
 					
 local function set_maze_pattern(context)
+	if is_heroic(context) then
+		local maze_pattern = toaster_path[2]
+	else
+		local maze_pattern = toaster_path[1]
+	end
 	for i = 0, 29 do
-		context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
+		for _, safe_tiles in ipairs(maze_pattern) do
+			if i ~= safe_tiles then
+				context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
+			end
+		end
 	end
 end
 
@@ -502,9 +511,7 @@ return {
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381D9)
 				context:set_variable("security_disabled", false)
 				
-				for i = 0, 29 do
-					context:slot(Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]):set_occupancy_condition{value = 1}
-				end
+				set_maze_pattern(context)
 				
 				-- Vault: Spawns switch that toggles security and makes it interactable. (No functionality has been assigned for now)
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
@@ -551,7 +558,7 @@ return {
             context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0x7d465556}
 			
 			place_squads(context, ARENAS[1])
-			context:start_timer("arena_checker", 2000)
+			--context:start_timer("arena_checker", 2000)
         end
 		
 		if lib.is_slot(context, event, Slot.MPT_MILITARY) then
@@ -573,7 +580,7 @@ return {
     on_event_timer_elapsed = function(context, state, event)
 		if event.timer_name == "arena_checker" then
 			--check_arena_doors(context, state)
-			context:start_timer("arena_checker", 2000)
+			--context:start_timer("arena_checker", 2000)
 		end
 		
 		if event.timer_name == "end_burn" then
