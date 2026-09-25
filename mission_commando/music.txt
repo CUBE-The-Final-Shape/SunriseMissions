@@ -1,0 +1,34 @@
+0 = on_load, speakers_landing
+1 = blvd_cleared, first_shield_drop -- no music
+2 = plaza_entered, tower_plaza_combat
+3 = plaza_cleared, second_shield_drop -- no music
+4 = MPT_MILITARY, hanger_combat
+5 = MPT_ITS_A_TRAP, its_a_trap
+6 = hangar_cleared, hanger_clear -- no music
+7 = uw_entered, round_the_corner
+8 = uw_cleared, rooms_clear -- no music
+9 = MPT_A_SHIP, a_ship
+10 = MPT_A_SHIP (heroic?), same_ship_different_path
+11 = MPT_LONG_WAY_DOWN, long_way_down
+12 = MPT_LWD_END, lwd_end
+13 = MPT_VENTS_TO_PUZZLES, vents_to_puzzles
+14 = MPT_TO_THE_OUTSIDE, to_the_outside
+15 = MPT_VERTIGO, vertigo
+16 = MPT_VERTIGO_END, vertigo_end
+17 = MPT_THE_FANS, the_fans
+18 = MPT_ENTER_STAIRWELL, enter_stairwell
+19 = MPT_T_R_E_V_O_R, figure_it_out
+20 = MPT_ESCAPE_THE_VENTS, escape_the_vents
+21 = MPT_VAULT, the_vault
+22 = MPT_VAULT_END, vault_end
+23 = outro_entered, final_battle
+24 = tank_spawn, final_tanks
+25 = third_phase, victory_fail
+
+
+figure_it_out
+
+escape_the_vents
+
+	MPT_ESCAPE_THE_VENTS
+    MPT_T_R_E_V_O_R = mission.trigger_volumes[9],

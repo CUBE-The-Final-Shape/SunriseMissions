@@ -19,6 +19,7 @@ local ARENAS = {
     {
         id = "blvd",
 		objective = "OBJ_BLVD",
+		-- clear_music_section = 1, -- first_shield_drop
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153806D,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538079,
 		doors = {Slot.D_EMITTER_BOULEVARD, Slot.D_SHIELD_BOULEVARD},
@@ -50,6 +51,7 @@ local ARENAS = {
     {
         id = "plaza",
 		objective = "OBJ_PLAZA",
+		-- clear_music_section = 3, -- second_shield_drop
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_815385C6,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_815385D0,
         doors = {Slot.D_EMITTER_PLAZA, Slot.D_SHIELD_PLAZA},
@@ -100,9 +102,9 @@ local ARENAS = {
 		doors = {Slot.D_EMITTER_MILITARY_A, Slot.D_SHIELD_MILITARY_A},
         squads = {
 					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1, default_group = 0},
-					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1, default_group = 1},
-					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1, default_group = 1},
-					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 2, default_group = 2}, -- Shank
+					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1, default_group = 0},
+					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1, default_group = 0},
+					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 2, default_group = 1}, -- Shank
 					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1, default_group = 2},
 					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1, default_group = 2},
 					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1, default_group = 3},
@@ -118,9 +120,9 @@ local ARENAS = {
 				},
 		squad_slots = {
 					Slot.SQ_TANK_WAVE_ONE, -- Slot 0
-					Slot.SQ_TANK_SERVITOR_A, -- Slot 1
-					Slot.SQ_TANK_SERVITOR_D, -- Slot 1
-					Slot.SQ_A_WAVE_ONE_8153855C, -- Slot 2 Resilient Solar Shield Shank x 2
+					Slot.SQ_TANK_SERVITOR_A, -- Slot 0
+					Slot.SQ_TANK_SERVITOR_D, -- Slot 0
+					Slot.SQ_A_WAVE_ONE_8153855C, -- Slot 1 Resilient Solar Shield Shank x 2
 					Slot.SQ_SNIPE_A_WAVE_ONE, -- Slot 2
 					Slot.SQ_SNIPE_B_WAVE_ONE, -- Slot 2
 					Slot.SQ_TANK_SERVITOR_B, -- Slot 3
@@ -149,6 +151,7 @@ local ARENAS = {
 	{
         id = "military_indoor",
 		objective = "OBJ_MILITARY_INDOOR",
+		-- clear_music_section = 6, -- hanger_clear
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_8153856C,
 		doors = {Slot.D_EMITTER_MILITARY_B, Slot.D_SHIELD_MILITARY_B},
         squads = {
@@ -189,6 +192,7 @@ local ARENAS = {
 	{
         id = "underwatch",
 		objective = "OBJ_UNDERWATCH",
+		-- clear_music_section = 8, -- rooms_clear
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153862D,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538637,
 		doors = {Slot.D_EMITTER_UNDERWATCH, Slot.D_SHIELD_UNDERWATCH},
@@ -238,6 +242,44 @@ local ARENAS = {
         squads = {
 					{squad = Squad.SQ_A_HALL, count = 1},
 				},
+		--[[
+			SQ_VANDAL_A
+			SQ_VANDAL_B
+			SQ_VANDAL_C
+			SQ_VANDAL_D
+			SQ_A_WAVE_ONE_81538177
+			SQ_B_WAVE_ONE_81538177
+			SQ_C_WAVE_ONE_81538177
+			SQ_D_WAVE_ONE_81538177
+			SQ_E_WAVE_ONE_81538177
+			SQ_F_WAVE_ONE_81538177
+			SQ_G_WAVE_ONE
+			SQ_H_WAVE_ONE
+			SQ_VOID_SHANK_A
+			SQ_VOID_SHANK_B
+			SQ_VOID_SHANK_C
+			SQ_VOID_SHANK_D
+			SQ_ARC_SHANK_A
+			SQ_ARC_SHANK_B
+			SQ_ARC_SHANK_C
+			SQ_ARC_SHANK_D
+			SQ_SOLAR_SHANK_A
+			SQ_SOLAR_SHANK_B
+			SQ_SOLAR_SHANK_C
+			SQ_SOLAR_SHANK_D
+			SQ_BOSS_A_81538177
+			SQ_BOSS_B_81538177
+			SQ_BOSS_C_81538177
+			SQ_VANDAL_FINAL_A
+			SQ_VANDAL_FINAL_B
+			SQ_MARAUDER_FINAL_A
+			SQ_MARAUDER_FINAL_B
+			SQ_MARAUDER_FINAL_C
+			SQ_ARC_SHANK_FINAL_A
+			SQ_ARC_SHANK_FINAL_B
+			SQ_TANK_A
+			SQ_TANK_B
+		]]
     },
 }
 
@@ -272,7 +314,7 @@ local toaster_path = {
 						mode = "heroic",
 						path = {0,5,6,11,12,13,14,19,21,22,23,24,26},
 					},
-					}
+				}
 
 local function is_heroic(context)
     return context.activity_id == "act/0078/a2caefda"
@@ -294,7 +336,8 @@ end
 
 local function set_directive(context, sensor)
 	context:slot(Slot.M_DIRECTIVE_SENSOR):set_directive{
-			--directive = Directive.ENEMY_TARGET_EXFILTRATION,
+			-- If you added my patch I am fairly certain time remaining would be the aux1= variable
+			-- directive = Directive.ENEMY_TARGET_EXFILTRATION,
 			directive = Directive.UNNAMED,
 			audience = context:slot(sensor),
 	}
@@ -415,7 +458,8 @@ return {
 		counts:set(1, 1)
 		squad:place{counts = counts}
 		]]
-		context:set_variable("burn_enabled", false)
+		--context:set_variable("burn_enabled", false)
+		context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -424,6 +468,7 @@ return {
         if event.region_index == PLAZA then
 			if not state:variable("plaza_visited.armed") then
 				context:set_variable("plaza_visited.armed", true)
+				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 2} -- tower_plaza_combat
 				set_directive(context, ARENAS[2].enter_sensor)
 				place_squads(context, ARENAS[2])
 			end
@@ -434,8 +479,8 @@ return {
 				context:set_variable("hangar_visited.armed", true)
 				
 				--context:slot(Slot.PLAZA_MIL_DANGER):fire_trigger()
-				--context:slot(Slot.MPT_MILITARY):fire_trigger()
-				--context:slot(Slot.MPT_ITS_A_TRAP):fire_trigger()
+				context:slot(Slot.MPT_MILITARY):fire_trigger()
+				context:slot(Slot.MPT_ITS_A_TRAP):fire_trigger()
 				
 				set_directive(context, ARENAS[3].enter_sensor)
 				place_squads(context, ARENAS[3])
@@ -449,6 +494,7 @@ return {
 				context:set_variable("tower_watch_visited.armed", true)
 				set_directive(context, ARENAS[5].enter_sensor)
 				place_squads(context, ARENAS[5])
+				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 6} -- round_the_corner
 			end
 			
 		end
@@ -457,14 +503,14 @@ return {
 			if not state:variable("passage_visited.armed") then
 				context:set_variable("passage_visited.armed", true)
 				
-				-- context:slot(Slot.MPT_A_SHIP):fire_trigger()
-				-- context:slot(Slot.MPT_LONG_WAY_DOWN):fire_trigger()
-				-- context:slot(Slot.MPT_LWD_END):fire_trigger()
-				-- context:slot(Slot.MPT_VENTS_TO_PUZZLES):fire_trigger()
-				-- context:slot(Slot.MPT_TO_THE_OUTSIDE):fire_trigger()
-				-- context:slot(Slot.MPT_VERTIGO):fire_trigger()
-				-- context:slot(Slot.MPT_VERTIGO_END):fire_trigger()
-				-- context:slot(Slot.MPT_THE_FANS):fire_trigger()
+				context:slot(Slot.MPT_A_SHIP):fire_trigger()
+				context:slot(Slot.MPT_LONG_WAY_DOWN):fire_trigger()
+				context:slot(Slot.MPT_LWD_END):fire_trigger()
+				context:slot(Slot.MPT_VENTS_TO_PUZZLES):fire_trigger()
+				context:slot(Slot.MPT_TO_THE_OUTSIDE):fire_trigger()
+				context:slot(Slot.MPT_VERTIGO):fire_trigger()
+				context:slot(Slot.MPT_VERTIGO_END):fire_trigger()
+				context:slot(Slot.MPT_THE_FANS):fire_trigger()
 				-- context:slot(Slot.NORMAL_SHORT_TOP_VENT):fire_trigger()
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381BA)
@@ -485,9 +531,9 @@ return {
 			if not state:variable("ventilation_visited.armed") then
 				context:set_variable("ventilation_visited.armed", true)
 				
-				--context:slot(Slot.MPT_ENTER_STAIRWELL):fire_trigger()
-				--context:slot(Slot.MPT_T_R_E_V_O_R):fire_trigger()
-				--context:slot(Slot.MPT_ESCAPE_THE_VENTS):fire_trigger()
+				context:slot(Slot.MPT_ENTER_STAIRWELL):fire_trigger()
+				context:slot(Slot.MPT_T_R_E_V_O_R):fire_trigger()
+				context:slot(Slot.MPT_ESCAPE_THE_VENTS):fire_trigger()
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_8153818A)
 			end
@@ -497,8 +543,8 @@ return {
 			if not state:variable("vault_visited.armed") then
 				context:set_variable("vault_visited.armed", true)
 				
-				--context:slot(Slot.MPT_VAULT):fire_trigger()
-				--context:slot(Slot.MPT_VAULT_END):fire_trigger()
+				context:slot(Slot.MPT_VAULT):fire_trigger()
+				context:slot(Slot.MPT_VAULT_END):fire_trigger()
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381D9)
 				context:set_variable("security_disabled", false)
@@ -527,7 +573,7 @@ return {
 			if not state:variable("outro_region_visited.armed") then
 				context:set_variable("outro_region_visited.armed", true)
 				
-				-- context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
+				context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
 				
 				-- context:complete_mission{}
 			end
@@ -546,6 +592,7 @@ return {
 
             context:slot(Slot.PT_ENTRY):fire_trigger()
 			set_directive(context, ARENAS[1].enter_sensor)
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 0}
         end
     end,
 
@@ -564,17 +611,86 @@ return {
 		
 		if lib.is_slot(context, event, Slot.MPT_MILITARY) then
 			context:slot(Slot.MPT_MILITARY):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 4} -- hanger_combat
 		end
 		
 		if lib.is_slot(context, event, Slot.MPT_ITS_A_TRAP) then
 			context:slot(Slot.MPT_ITS_A_TRAP):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 2}
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 5} -- its_a_trap
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_A_SHIP) then
+			context:slot(Slot.MPT_A_SHIP):disarm_trigger()
+			if state:variable("is_heroic") == true then
+				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 10} -- same_ship_different_path
+			else
+				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 9} -- a_ship
+			end
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_LONG_WAY_DOWN) then
+			context:slot(Slot.MPT_LONG_WAY_DOWN):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 11} -- long_way_down
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_LWD_END) then
+			context:slot(Slot.MPT_LWD_END):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 12} -- lwd_end
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_VENTS_TO_PUZZLES) then
+			context:slot(Slot.MPT_VENTS_TO_PUZZLES):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 13} -- vents_to_puzzles
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_TO_THE_OUTSIDE) then
+			context:slot(Slot.MPT_TO_THE_OUTSIDE):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 14} -- to_the_outside
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_VERTIGO) then
+			context:slot(Slot.MPT_VERTIGO):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 15} -- vertigo
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_VERTIGO_END) then
+			context:slot(Slot.MPT_VERTIGO_END):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 16} -- vertigo_end
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_THE_FANS) then
+			context:slot(Slot.MPT_THE_FANS):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 17} -- the_fans
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_ENTER_STAIRWELL) then
+			context:slot(Slot.MPT_ENTER_STAIRWELL):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 18} -- enter_stairwell
+		end
+		if lib.is_slot(context, event, Slot.MPT_T_R_E_V_O_R) then
+			context:slot(Slot.MPT_T_R_E_V_O_R):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 19} -- figure_it_out
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_ESCAPE_THE_VENTS) then
+			context:slot(Slot.MPT_ESCAPE_THE_VENTS):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 20} -- escape_the_vents
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_VAULT) then
+			context:slot(Slot.MPT_VAULT):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 21} -- the_vault
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_VAULT_END) then
+			context:slot(Slot.MPT_VAULT_END):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 22} -- vault_end
 		end
 		
 		if lib.is_slot(context, event, Slot.PT_BOSS_SPAWN) then
 			context:slot(Slot.PT_BOSS_SPAWN):disarm_trigger()
-			place_boss_squads(context, ARENAS[6])
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 23} -- final_battle
+			-- place_boss_squads(context, ARENAS[6])
 		end
     end,
 
