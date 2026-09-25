@@ -282,12 +282,20 @@ local function vault_puzzle_burn(context, state)
 	context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
 		transition = context.sdk.device_transitions.open,
 	}
-	context:start_timer("end_burn", 5000)
+	local var_revision = state:variable("revision")
+	context:slot(Slot.CRYPTARCH_MAZE_1_HO_KILL):set_mission_effect{
+		filter = context:slot(Slot.CRYPTARCH_MAZE_1_OF_KILL_AREA),
+		enabled = true,
+		revision = var_revision
+	}
+	context:set_variable("revision", var_revision + 1)
+	context:start_timer("end_burn", 3000)
 end
 
 local function set_directive(context, sensor)
 	context:slot(Slot.M_DIRECTIVE_SENSOR):set_directive{
-			directive = Directive.ENEMY_TARGET_EXFILTRATION,
+			--directive = Directive.ENEMY_TARGET_EXFILTRATION,
+			directive = Directive.UNNAMED,
 			audience = context:slot(sensor),
 	}
 end
@@ -494,7 +502,9 @@ return {
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381D9)
 				context:set_variable("security_disabled", false)
+				context:set_variable("in_kill_area", false)
 				context:set_variable("burn_enabled", false)
+				context:set_variable("revision", 1)
 				
 				for i = 0, 29 do
 					context:slot(
@@ -505,8 +515,10 @@ return {
 				-- Vault: Spawns switch that toggles security and makes it interactable. (No functionality has been assigned for now)
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_interactable_object{used = true}
-				context:slot(Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA):set_occupancy_condition{value = 1, filter = context:slot(Slot.CRYPTARCH_MAZE_1_OF_KILL_AREA)}
 				
+				context:slot(Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA):set_occupancy_condition{value = 1}
+				
+				context:slot(Slot.CRYPTARCH_MAZE_1_OF_KILL_AREA):set_object_filter{players = true, inside = context:slot(Slot.CRYPTARCH_MAZE_1_TV_KILL_AREA)}
 				-- set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815384B7) | Presumed Vault cleared. Might be tied to the puzzle
 			end
 		end
@@ -576,6 +588,13 @@ return {
 			context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
 				transition = context.sdk.device_transitions.close,
 			}
+			local var_revision = state:variable("revision")
+			
+			context:slot(Slot.CRYPTARCH_MAZE_1_HO_KILL):set_mission_effect{
+				enabled = false,
+				revision = var_revision
+			}
+			context:set_variable("revision", var_revision + 1)
 			context:set_variable("burn_enabled", false)
 		end
     end,
@@ -598,7 +617,7 @@ return {
 	
 	on_event_trigger_entered = function(context, state, event)
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA) then
-			-- event.member_count, event.all_inside
+			context:set_variable("in_kill_area", true)
 		end
 		
 		local maze_pattern
@@ -639,8 +658,8 @@ return {
 	end,
 	
 	on_event_trigger_exited = function(context, state, event)
-		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_PM_MAZE_TILES_2) then
-			-- Placeholder
+		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA) then
+			context:set_variable("in_kill_area", false)
 		end
 	end,
 }
