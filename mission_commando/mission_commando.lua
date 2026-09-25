@@ -19,7 +19,7 @@ local ARENAS = {
     {
         id = "blvd",
 		objective = "OBJ_BLVD",
-		-- clear_music_section = 1, -- first_shield_drop
+		clear_music_section = 1, -- first_shield_drop
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153806D,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538079,
 		doors = {Slot.D_EMITTER_BOULEVARD, Slot.D_SHIELD_BOULEVARD},
@@ -51,7 +51,7 @@ local ARENAS = {
     {
         id = "plaza",
 		objective = "OBJ_PLAZA",
-		-- clear_music_section = 3, -- second_shield_drop
+		clear_music_section = 3, -- second_shield_drop
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_815385C6,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_815385D0,
         doors = {Slot.D_EMITTER_PLAZA, Slot.D_SHIELD_PLAZA},
@@ -151,7 +151,7 @@ local ARENAS = {
 	{
         id = "military_indoor",
 		objective = "OBJ_MILITARY_INDOOR",
-		-- clear_music_section = 6, -- hanger_clear
+		clear_music_section = 6, -- hanger_clear
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_8153856C,
 		doors = {Slot.D_EMITTER_MILITARY_B, Slot.D_SHIELD_MILITARY_B},
         squads = {
@@ -192,7 +192,7 @@ local ARENAS = {
 	{
         id = "underwatch",
 		objective = "OBJ_UNDERWATCH",
-		-- clear_music_section = 8, -- rooms_clear
+		clear_music_section = 8, -- rooms_clear
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153862D,
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538637,
 		doors = {Slot.D_EMITTER_UNDERWATCH, Slot.D_SHIELD_UNDERWATCH},
@@ -423,6 +423,10 @@ local function check_arena_doors(context, state)
 				end
 			end
 			
+			if arena.clear_music_section then
+				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = arena.clear_music_section}
+			end
+			
 			if arena.clear_sensor then
 				set_directive(context, arena.clear_sensor)
 			end		
@@ -494,7 +498,7 @@ return {
 				context:set_variable("tower_watch_visited.armed", true)
 				set_directive(context, ARENAS[5].enter_sensor)
 				place_squads(context, ARENAS[5])
-				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 6} -- round_the_corner
+				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 7} -- round_the_corner
 			end
 			
 		end
