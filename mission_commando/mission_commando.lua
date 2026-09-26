@@ -201,6 +201,56 @@ local ARENAS = {
 			{squad = Squad.SQ_BOSS_A_81538177, slot = Slot.SQ_BOSS_A_81538177, count = 1, default_group = 0, actor = Slot.SQ_BOSS_A_ULTRA},
 			{squad = Squad.SQ_BOSS_B_81538177, slot = Slot.SQ_BOSS_B_81538177, count = 1, default_group = 3, actor = Slot.SQ_BOSS_B_ULTRA},
 		},
+		--[[
+		OBJ_INTRO
+		Group 0 left tank vandal
+		Group 1 left tank vandal
+		Group 2 right tank vandal
+		Group 3 right tank vandal
+		Group 4 front right of front
+		Group 5 front left of front
+		Group 6 front, right box
+		Group 7 front, left box
+		Group 8 front, close left box
+		Group 9 front
+		Group 10 front
+		Group 11 front, close right box
+		
+		-----
+		
+		OBJ_ADDS, a.k.a shanks
+		Group 0 Flying, front | left
+		Group 1 Flying, front | left
+		Group 2 Flying, front | right
+		Group 3 Flying, front | right
+		Group 4 Flying, back
+		Group 5 Flying, back
+		Group 6 Flying, back
+		Group 7 Flying, back
+		Group 8 Flying, left
+		Group 9 Flying, left
+		Group 10 Flying, right
+		Group 11 Flying, right
+		
+		-----
+		
+		OBJ_BOSS
+		Group 0 Hovering in air at front
+		Group 1 Slow walk round front
+		Group 2 TP left
+		Group 3 TP back
+		Group 4 TP right
+		Group 5 TP tank right
+		Group 6 TP tank left
+		Group 7 Front of front
+		Group 8 Front of front
+		Group 9 Front of front
+		Group 10 Static back left of front
+		Group 11 Static back right of front
+		Group 12 No movement
+		Group 13 No normal movement, tp's round front
+		location order Front = -1 --> Left = 0.95  --> Back = 0.90 --> Right = 0.85 --> Front = 0.80
+		]]
 		squads = {
 			wave_one = {
 				{squad = Squad.SQ_VANDAL_A, count = 1, default_objective = "OBJ_INTRO", default_group = 0}, -- cleared
@@ -306,7 +356,8 @@ local ARENAS = {
     },
 }
 
-local toaster_path = {
+local toaster_path = { -- I don't think there is a way to read the current elemental singe yet.
+					   -- When it's implemented into Sunrise all old vault layouts can be implmented
 					{
 						id = "arc",
 						mode = "normal",
@@ -359,7 +410,9 @@ end
 
 local function set_directive(context, sensor)
 	context:slot(Slot.M_DIRECTIVE_SENSOR):set_directive{
-			-- If you added my patch I am fairly certain time remaining would be the aux1= variable
+			-- Some sdk builders names the directive to ENEMY_TARGET_EXFILTRATION.
+			-- The one I've been using names it UNNAMED
+			
 			-- directive = Directive.ENEMY_TARGET_EXFILTRATION,
 			directive = Directive.UNNAMED,
 			audience = context:slot(sensor),
@@ -367,8 +420,11 @@ local function set_directive(context, sensor)
 end
 
 local function place_squads(context, arena_data)
+	-- This function goes through the squads in a given arena.
+	-- It prepares them by giveing them an objective and a group slot.
+	-- They are spawned once the preparation is done.
 	for i, sq in ipairs(arena_data.squads) do
-		local squad = context:squad(sq.squad) 
+		local squad = context:squad(sq.squad)
 		local counts = squad:counts()
 		counts:set(1, sq.count)
 		context:slot(arena_data.squad_slots[i]):assign_combat_objective{
@@ -380,6 +436,8 @@ local function place_squads(context, arena_data)
 end
 
 local function place_boss_squads(context, arena_data, wave) -- wave is a string with the same name as the wave you want to spawn
+	-- This is essentially the same as place_squads() but modfied
+	-- to work with the unique structure of the outro_arena.
 	for i, sq in ipairs(arena_data.squads[wave]) do
 		local squad = context:squad(sq.squad) 
 		local counts = squad:counts()
@@ -393,6 +451,10 @@ local function place_boss_squads(context, arena_data, wave) -- wave is a string 
 end
 
 local function place_boss_actors(context, arena_data, wave, index)
+		-- The bosses in the outro arena have corresponding actor slots. This is an alternative way of spawning enemies
+		-- that is needed in this mission in order to make the bosses health values monitorable.
+		-- Without this it's impossible to script encounters react to specified health criteria.
+		-- The health values can be monitored in on_event_damage_state by watching for events hat the actors send when damaged.
 		context:slot(arena_data.actor_squads[index].actor):bind_combatant_to_squad()
 
 		context:slot(arena_data.actor_squads[index].actor):run_atoms{
@@ -437,7 +499,7 @@ local function arena_squad_entries(arena)
     return entries
 end
 
-local function arena_cleared(context, arena)
+local function check_cleared_status(context, arena)
     local entries = arena_squad_entries(arena)
     if #entries == 0 then
         return false
@@ -453,7 +515,7 @@ end
 
 local function play_outro_scene(context)
 	context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
-	-- Add code to clear directive here
+	context:slot(Slot.M_DIRECTIVE_SENSOR):clear_directives()
 	context:start_timer("outro_mithrax_spawn_delay", 2000)
 	context:start_timer("mission_complete_delay", 6000)
 	
@@ -465,7 +527,11 @@ local function play_outro_scene(context)
 	}}
 end
 
-local function check_arena_doors(context, state)
+local function update_arena_status(context, state)
+	-- This function should be modified to take arena arrays as an argument
+	-- to avoid unnecessary arena checks everytime it's called
+	-- Could be done with variable. current_active_arena = int, set when squads spawned.
+	-- Will allow on_event_squad_state to call the function with the correct arena array every call.
     for _, arena in ipairs(ARENAS) do
         local key = arena.id .. ".arena_cleared"
 		local entries = arena_squad_entries(arena)
@@ -477,14 +543,16 @@ local function check_arena_doors(context, state)
             end
         end
 
-        if not state:variable(key) and arena_cleared(context, arena) then
+        if not state:variable(key) and check_cleared_status(context, arena) then
             context:set_variable(key, true)
-
+			
+			-- If all conditions are met this should trigger the outro scene and mission complete.
             if arena.id == "outro_arena" and state:variable("bosses_defeated") == 3 then
 				play_outro_scene(context)
-				context:complete_mission{}
             end
-
+			
+			-- If the arena has a corresponding door that needs to be opened on it being cleared,
+			-- this will handle it.
             if arena.doors then
                 for _, door in ipairs(arena.doors) do
                     context:slot(door):transition{
@@ -492,11 +560,14 @@ local function check_arena_doors(context, state)
                     }
                 end
             end
-
+			
+			-- Some arenas end the current music segment when cleared, some don't.
+			-- This section checks if the arena has a clear_music_section and if it exists, plays it.
             if arena.clear_music_section then
                 context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = arena.clear_music_section}
             end
 
+			-- If the arena has a corresponding engagement sensor that should be set on clear, it gets set here.
             if arena.clear_sensor then
                 set_directive(context, arena.clear_sensor)
             end
@@ -518,9 +589,9 @@ return {
 		context:set_variable("is_heroic", is_heroic(context))
     end,
 
+	-- This function is currently used to debug features
     on_load = function(context, state)
         context:set_variable("reloaded", true)
-		-- This function is currently used to debug features
 		play_outro_scene(context)
     end,
 
@@ -540,7 +611,7 @@ return {
 			if not state:variable("hangar_visited.armed") then
 				context:set_variable("hangar_visited.armed", true)
 				
-				--context:slot(Slot.PLAZA_MIL_DANGER):fire_trigger()
+				--context:slot(Slot.PLAZA_MIL_DANGER):fire_trigger() | Not sure what this is supposed to do. Might be supposed to spawn the enemies
 				context:slot(Slot.MPT_MILITARY):fire_trigger()
 				context:slot(Slot.MPT_ITS_A_TRAP):fire_trigger()
 				
@@ -565,6 +636,8 @@ return {
 			if not state:variable("passage_visited.armed") then
 				context:set_variable("passage_visited.armed", true)
 				
+				-- Long zone, has a lot of music triggers. Some are only accessible on heroic and vice versa.
+				-- The unique triggers per difficulty could be put into the is_heroic check.
 				context:slot(Slot.MPT_A_SHIP):fire_trigger()
 				context:slot(Slot.MPT_LONG_WAY_DOWN):fire_trigger()
 				context:slot(Slot.MPT_LWD_END):fire_trigger()
@@ -573,11 +646,12 @@ return {
 				context:slot(Slot.MPT_VERTIGO):fire_trigger()
 				context:slot(Slot.MPT_VERTIGO_END):fire_trigger()
 				context:slot(Slot.MPT_THE_FANS):fire_trigger()
-				-- context:slot(Slot.NORMAL_SHORT_TOP_VENT):fire_trigger()
+				-- context:slot(Slot.NORMAL_SHORT_TOP_VENT):fire_trigger() | Not sure how this trigger is used
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381BA)
 				
-				-- Passage: Spawns different blockades depending on the mission difficulty
+				-- This section spawns different blockades depending on the mission difficulty.
+				-- Blockades are handled with objects. true = blocked
 				if state:variable("is_heroic") == true then
 					context:slot(Slot.O_NORMAL_TOP_BLOCK_A):set_object_active{active = true}
 					context:slot(Slot.O_NORMAL_TOP_BLOCK_B):set_object_active{active = true}
@@ -609,25 +683,36 @@ return {
 				context:slot(Slot.MPT_VAULT_END):fire_trigger()
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381D9)
-				context:set_variable("security_disabled", false)
-				context:set_variable("in_kill_area", false)
-				context:set_variable("burn_enabled", false)
-				context:set_variable("revision", 1)
 				
+				-- These variables are needed for propper vault functionality
+				
+				context:set_variable("security_disabled", false)
+				-- Security disabled allows a player to disable the vault
+				-- by flipping a switch on the other side of the maze.
+				
+				context:set_variable("burn_enabled", false)
+				-- Burn enabled ensures that two tiles won't trigger the
+				-- burn sequence at the same time.
+				
+				context:set_variable("revision", 1)
+				-- Revision is needed for the hop-on sensor to function.
+				-- Every call needs to be +1 from the previous call
+				
+				-- Enables all player monitors. Filtering signals to enable
+				-- a path is done in on_event_trigger_entered
 				for i = 0, 29 do
 					context:slot(
 						Slot["CRYPTARCH_MAZE_1_PM_MAZE_TILES_" .. i]
 					):set_occupancy_condition{value = 1}
 				end
 				
-				-- Vault: Spawns switch that toggles security and makes it interactable. (No functionality has been assigned for now)
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_interactable_object{used = true}
 				
 				context:slot(Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA):set_occupancy_condition{value = 1}
 				
 				context:slot(Slot.CRYPTARCH_MAZE_1_OF_KILL_AREA):set_object_filter{players = true, inside = context:slot(Slot.CRYPTARCH_MAZE_1_TV_KILL_AREA)}
-				-- set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815384B7) | Presumed Vault cleared. Might be tied to the puzzle
+				-- set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815384B7) | Assumed to Vault puzzle. Might be tied to vault cleared
 			end
 		end
 		
@@ -637,6 +722,7 @@ return {
 				context:set_variable("bosses_defeated", 0)
 				
 				context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
+				set_directive(context, ARENAS[6].enter_sensor)
 				place_boss_squads(context, ARENAS[6], "wave_one")
 				
 			end
@@ -671,14 +757,11 @@ return {
             context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0x7d465556}
         end
 		
-		if lib.is_slot(context, event, Slot.MPT_MILITARY) then
-			context:slot(Slot.MPT_MILITARY):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 4} -- hanger_combat
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_ITS_A_TRAP) then
-			context:slot(Slot.MPT_ITS_A_TRAP):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 5} -- its_a_trap
+		if lib.is_slot(context, event, Slot.PT_BOSS_SPAWN) then
+			context:slot(Slot.PT_BOSS_SPAWN):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 23} -- final_battle
+			
+			place_boss_actors(context, ARENAS[6], "wave_one", 1)
 		end
 		
 		if lib.is_slot(context, event, Slot.MPT_A_SHIP) then
@@ -688,6 +771,17 @@ return {
 			else
 				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 9} -- a_ship
 			end
+		end
+		
+		-- Find a way to combine all these music trigegrs into one...
+		if lib.is_slot(context, event, Slot.MPT_MILITARY) then
+			context:slot(Slot.MPT_MILITARY):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 4} -- hanger_combat
+		end
+		
+		if lib.is_slot(context, event, Slot.MPT_ITS_A_TRAP) then
+			context:slot(Slot.MPT_ITS_A_TRAP):disarm_trigger()
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 5} -- its_a_trap
 		end
 		
 		if lib.is_slot(context, event, Slot.MPT_LONG_WAY_DOWN) then
@@ -748,17 +842,9 @@ return {
 			context:slot(Slot.MPT_VAULT_END):disarm_trigger()
 			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 22} -- vault_end
 		end
-		
-		if lib.is_slot(context, event, Slot.PT_BOSS_SPAWN) then
-			context:slot(Slot.PT_BOSS_SPAWN):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 23} -- final_battle
-			
-			place_boss_actors(context, ARENAS[6], "wave_one", 1)
-		end
     end,
 
     on_event_timer_elapsed = function(context, state, event)
-	
 		if event.timer_name == "outro_mithrax_spawn_delay" then
 			context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
 			context:squad(mission.Squad.SQ_FRIENDLY_81538177):place{}
@@ -786,16 +872,21 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
-			-- context:set_variable("security_disabled", true)
-			-- This enables burn mode. No damage, Evil switch >:)
-			--[[
+			-- Without this security_disabled is set to true as soon as the object
+			-- is spawned in. Objects fire once on initial spawn.
+			if not state:variable("object_spawn.trigger") then
+				context:set_variable("object_spawn.trigger", true)
+			else
+			context:set_variable("security_disabled", true)
 			context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
 				transition = context.sdk.device_transitions.close,
-			}]]
+			}
+			end
 		end
 	end,
 
 	on_event_damage_state = function(context, state, event)
+		-- This is a mess. Do something about it...
 		if lib.is_slot(context, event, Slot.SQ_BOSS_C_ULTRA) then
 			if event.health ~= -1 and not state:variable("on_provoked.spawned") then
 				context:set_variable("on_provoked.spawned", true)
@@ -844,7 +935,7 @@ return {
 					context:set_variable("boss_c.cleared", true)
 					local bosses_defeated = state:variable("bosses_defeated")
 					context:set_variable("bosses_defeated", bosses_defeated + 1)
-					check_arena_doors(context, state)
+					update_arena_status(context, state)
 				end
 			end
 		end
@@ -857,7 +948,7 @@ return {
 					context:set_variable("boss_a.cleared", true)
 					local bosses_defeated = state:variable("bosses_defeated")
 					context:set_variable("bosses_defeated", bosses_defeated + 1)
-					check_arena_doors(context, state)
+					update_arena_status(context, state)
 				end
 			end
 		end
@@ -870,25 +961,31 @@ return {
 					context:set_variable("boss_b.cleared", true)
 					local bosses_defeated = state:variable("bosses_defeated")
 					context:set_variable("bosses_defeated", bosses_defeated + 1)
-					check_arena_doors(context, state)
+					update_arena_status(context, state)
 				end
 			end
 		end
 	end,
 	
 	on_event_squad_state = function(context, state, event)
-		check_arena_doors(context, state)
+		-- Checks on every squad state update if the arena is cleared or not
+		-- and perform the relevant actions tied to the arena
+		update_arena_status(context, state)
 	end,
 	
 	on_event_trigger_entered = function(context, state, event)
 		local maze_pattern
 
+		-- Decides the maze path. Currently set to arc patterns
 		if state:variable("is_heroic") == true then
 			maze_pattern = toaster_path[2].path
 		else
 			maze_pattern = toaster_path[1].path
 		end
 		
+		-- If a trigger is entered, check which one.
+		-- If it's safe, do nothing.
+		-- If it isn't safe and burn is off, enable burn.
 		for i = 0, 29 do
 			if lib.is_slot(
 				context,

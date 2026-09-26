@@ -1,0 +1,122 @@
+Music sections:
+0 = on_load, speakers_landing
+1 = blvd_cleared, first_shield_drop -- no music
+2 = plaza_entered, tower_plaza_combat
+3 = plaza_cleared, second_shield_drop -- no music
+4 = MPT_MILITARY, hanger_combat
+5 = MPT_ITS_A_TRAP, its_a_trap
+6 = hangar_cleared, hanger_clear -- no music
+7 = uw_entered, round_the_corner
+8 = uw_cleared, rooms_clear -- no music
+9 = MPT_A_SHIP, a_ship
+10 = MPT_A_SHIP (heroic?), same_ship_different_path
+11 = MPT_LONG_WAY_DOWN, long_way_down
+12 = MPT_LWD_END, lwd_end
+13 = MPT_VENTS_TO_PUZZLES, vents_to_puzzles
+14 = MPT_TO_THE_OUTSIDE, to_the_outside
+15 = MPT_VERTIGO, vertigo
+16 = MPT_VERTIGO_END, vertigo_end
+17 = MPT_THE_FANS, the_fans
+18 = MPT_ENTER_STAIRWELL, enter_stairwell
+19 = MPT_T_R_E_V_O_R, figure_it_out
+20 = MPT_ESCAPE_THE_VENTS, escape_the_vents
+21 = MPT_VAULT, the_vault
+22 = MPT_VAULT_END, vault_end
+23 = outro_entered, final_battle
+24 = tank_spawn, final_tanks
+25 = third_phase, victory_fail
+
+
+Final arena details
+SQ_VANDAL_A -- Spawn first wave | Tank platforms x1
+SQ_VANDAL_B -- Spawn first wave | Tank platforms x1
+SQ_VANDAL_C -- Spawn first wave | Tank platforms x1
+SQ_VANDAL_D -- Spawn first wave | Tank platforms x1
+SQ_A_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+SQ_B_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+SQ_C_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+SQ_D_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+SQ_E_WAVE_ONE_81538177 -- Dreg, Spawn first wave | left/right side of arena x1
+SQ_F_WAVE_ONE_81538177 -- Dreg, Spawn first wave | left/right side of arena x1
+SQ_G_WAVE_ONE -- Dreg, Spawn first wave | left/right side of arena x1
+SQ_H_WAVE_ONE -- Dreg, Spawn first wave | left/right side of arena x1
+SQ_BOSS_C_81538177 -- Spawn first wave | Siriks, Loyal to Eremis (Spawn as actor)
+location order Front = -1 --> Left = 0.95  --> Back = 0.90 --> Right = 0.85 --> Front = 0.80
+
+SQ_BOSS_A_81538177 -- Mimiks-0, Devils scion | Spawns on boss first damaged (Spawn as actor)
+SQ_VOID_SHANK_A -- Front shank | Spawns on boss first damaged x2
+SQ_VOID_SHANK_B -- Front shank | Spawns on boss first damaged x2
+SQ_VOID_SHANK_C -- Front shank | Spawns on boss first damaged x2
+SQ_VOID_SHANK_D -- Front shank | Spawns on boss first damaged x2
+
+SQ_ARC_SHANK_A -- Left shanks | Spawns on boss tp left x2
+SQ_ARC_SHANK_B -- Left shanks | Spawns on boss tp left x2
+
+SQ_BOSS_B_81538177 -- Mimiks-1, Devils scion | Spawns on boss tp back (Spawn as actor)
+SQ_SOLAR_SHANK_A -- Back shanks | Spawns on boss tp back x2
+SQ_SOLAR_SHANK_B -- Back shanks | Spawns on boss tp back x2
+SQ_SOLAR_SHANK_C -- Back shanks | Spawns on boss tp back x2
+SQ_SOLAR_SHANK_D -- Back shanks | Spawns on boss tp back x2
+
+SQ_ARC_SHANK_C -- Right shanks | Spawns on boss tp right x2
+SQ_ARC_SHANK_D -- Right shanks | Spawns on boss tp right x2
+
+SQ_VANDAL_FINAL_A -- Front of arena | Spawns on boss return to front
+SQ_VANDAL_FINAL_B -- Front of arena | Spawns on boss return to front
+SQ_MARAUDER_FINAL_A -- Gun | Front of arena | Spawns on boss return to front
+SQ_MARAUDER_FINAL_B -- Melee | Front of arena | Spawns on boss return to front
+SQ_MARAUDER_FINAL_C -- Melee | Front of arena | Spawns on boss return to front
+SQ_ARC_SHANK_FINAL_A -- Front of arena | Spawns on boss return to front
+SQ_ARC_SHANK_FINAL_B -- Front of arena | Spawns on boss return to front
+SQ_TANK_A -- Right tank | Spawns on boss return to front
+SQ_TANK_B -- Left tank | Spawns on boss return to front
+
+
+OBJ_INTRO
+Group 0 left tank vandal
+Group 1 left tank vandal
+Group 2 right tank vandal
+Group 3 right tank vandal
+Group 4 front right of front
+Group 5 front left of front
+Group 6 front, right box
+Group 7 front, left box
+Group 8 front, close left box
+Group 9 front
+Group 10 front
+Group 11 front, close right box
+
+-----
+
+OBJ_ADDS, a.k.a shanks
+Group 0 Flying, front | left
+Group 1 Flying, front | left
+Group 2 Flying, front | right
+Group 3 Flying, front | right
+Group 4 Flying, back
+Group 5 Flying, back
+Group 6 Flying, back
+Group 7 Flying, back
+Group 8 Flying, left
+Group 9 Flying, left
+Group 10 Flying, right
+Group 11 Flying, right
+
+-----
+
+OBJ_BOSS
+Group 0 Hovering in air at front
+Group 1 Slow walk round front
+Group 2 TP left
+Group 3 TP back
+Group 4 TP right
+Group 5 TP tank right
+Group 6 TP tank left
+Group 7 Front of front
+Group 8 Front of front
+Group 9 Front of front
+Group 10 Static back left of front
+Group 11 Static back right of front
+Group 12 No movement
+Group 13 No normal movement, tp's round front
+Location order Front = -1 --> Left = 0.95  --> Back = 0.90 --> Right = 0.85 --> Front = 0.80
