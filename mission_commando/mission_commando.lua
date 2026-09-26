@@ -39,14 +39,6 @@ local ARENAS = {
 					Slot.SQ_E_WAVE_ONE_8153806D,
 					Slot.SQ_F_WAVE_ONE_8153806D,
 				},
-		groups = lib.list(
-					mission.TaskGroup.OBJ_BLVD.GROUP_0,
-					mission.TaskGroup.OBJ_BLVD.GROUP_1,
-					mission.TaskGroup.OBJ_BLVD.GROUP_2,
-					mission.TaskGroup.OBJ_BLVD.GROUP_3,
-					mission.TaskGroup.OBJ_BLVD.GROUP_4,
-					mission.TaskGroup.OBJ_BLVD.GROUP_5
-				),
     },
     {
         id = "plaza",
@@ -83,19 +75,6 @@ local ARENAS = {
 					Slot.SQ_SNIPER_B,
 					Slot.SQ_SNIPER_C,
 				},
-		groups = lib.list(
-					mission.TaskGroup.OBJ_PLAZA.GROUP_0,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_1,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_2,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_3,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_4,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_5,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_6,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_7,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_8,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_9,
-					mission.TaskGroup.OBJ_PLAZA.GROUP_10
-				),
     },
 	{
 	
@@ -150,17 +129,6 @@ local ARENAS = {
 					Slot.SQ_SNIPE_A_WAVE_ONE, -- Slot 9
 					Slot.SQ_SNIPE_B_WAVE_ONE, -- Slot 9
 				},
-		groups = lib.list(
-					mission.TaskGroup.OBJ_MILITARY.GROUP_0,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_1,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_2,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_3,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_4,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_5,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_6,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_7,
-					mission.TaskGroup.OBJ_MILITARY.GROUP_8
-				),
     },
 	{
         id = "military_indoor",
@@ -192,16 +160,6 @@ local ARENAS = {
 					Slot.SQ_F_INDOOR,
 					Slot.SQ_HEAVY_INDOOR,
 				},
-		groups = lib.list(
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_0,
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_1,
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_2,
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_3,
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_4,
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_5,
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_6,
-					mission.TaskGroup.OBJ_MILITARY_INDOOR.GROUP_7
-					),
     },
 	{
         id = "underwatch",
@@ -234,75 +192,64 @@ local ARENAS = {
 					Slot.SQ_B_RETREAT,
 					Slot.SQ_C_RETREAT,
 				},
-		groups = lib.list(
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_0,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_1,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_2,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_3,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_4,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_5,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_6,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_7,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_8,
-					mission.TaskGroup.OBJ_UNDERWATCH.GROUP_9
-					),
     },
 	{
         id = "outro_arena",
-		objective = "OBJ_BOSS", -- 0-13
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_81538177,
+		actor_squads = {
+			{squad = Squad.SQ_BOSS_C_81538177, slot = Slot.SQ_BOSS_C_81538177, count = 1, default_group = 1, actor = Slot.SQ_BOSS_C_ULTRA},
+			{squad = Squad.SQ_BOSS_A_81538177, slot = Slot.SQ_BOSS_A_81538177, count = 1, default_group = 0, actor = Slot.SQ_BOSS_A_ULTRA},
+			{squad = Squad.SQ_BOSS_B_81538177, slot = Slot.SQ_BOSS_B_81538177, count = 1, default_group = 3, actor = Slot.SQ_BOSS_B_ULTRA},
+		},
 		squads = {
 			wave_one = {
-				{squad = Squad.SQ_VANDAL_A, count = 1, default_group = 5},
-				{squad = Squad.SQ_VANDAL_B, count = 1, default_group = 5},
-				{squad = Squad.SQ_VANDAL_C, count = 1, default_group = 6},
-				{squad = Squad.SQ_VANDAL_D, count = 1, default_group = 6},
-				{squad = Squad.SQ_A_WAVE_ONE_81538177, count = 1, default_group = 7}, -- Dreg
-				{squad = Squad.SQ_B_WAVE_ONE_81538177, count = 1, default_group = 7}, -- Dreg
-				{squad = Squad.SQ_C_WAVE_ONE_81538177, count = 1, default_group = 7}, -- Dreg
-				{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_group = 7}, -- Dreg
-				{squad = Squad.SQ_E_WAVE_ONE_81538177, count = 1, default_group = 8}, -- Dreg
-				{squad = Squad.SQ_F_WAVE_ONE_81538177, count = 1, default_group = 8}, -- Dreg
-				{squad = Squad.SQ_G_WAVE_ONE, count = 1, default_group = 8}, -- Dreg
-				{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_group = 8}, -- Dreg
-				{squad = Squad.SQ_BOSS_C_81538177, count = 1, default_group = 1, actor = Slot.SQ_BOSS_C_ULTRA},
+				{squad = Squad.SQ_VANDAL_A, count = 1, default_objective = "OBJ_INTRO", default_group = 0}, -- cleared
+				{squad = Squad.SQ_VANDAL_B, count = 1, default_objective = "OBJ_INTRO", default_group = 1}, -- cleared
+				{squad = Squad.SQ_VANDAL_C, count = 1, default_objective = "OBJ_INTRO", default_group = 2}, -- cleared
+				{squad = Squad.SQ_VANDAL_D, count = 1, default_objective = "OBJ_INTRO", default_group = 3}, -- cleared
+				{squad = Squad.SQ_A_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 4}, -- cleared
+				{squad = Squad.SQ_B_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 5}, -- cleared
+				{squad = Squad.SQ_C_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 6}, -- cleared
+				{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 7}, -- cleared
+				{squad = Squad.SQ_E_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 8}, 
+				{squad = Squad.SQ_F_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 9}, -- cleared
+				{squad = Squad.SQ_G_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 10}, -- cleared
+				{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 11}, -- cleared
 			},
 			on_provoked = {
-				{squad = Squad.SQ_BOSS_A_81538177, count = 1, default_group = 0, actor = Slot.SQ_BOSS_A_ULTRA},
-				{squad = Squad.SQ_VOID_SHANK_A, count = 2, default_group = 0},
-				{squad = Squad.SQ_VOID_SHANK_B, count = 2, default_group = 0},
-				{squad = Squad.SQ_VOID_SHANK_C, count = 2, default_group = 0},
-				{squad = Squad.SQ_VOID_SHANK_D, count = 2, default_group = 0},
+				{squad = Squad.SQ_VOID_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 0}, -- cleared
+				{squad = Squad.SQ_VOID_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 1}, -- cleared
+				{squad = Squad.SQ_VOID_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 2}, -- cleared
+				{squad = Squad.SQ_VOID_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 3}, -- cleared
 			},
 
 			on_tp_left = {
-				{squad = Squad.SQ_ARC_SHANK_A, count = 2, default_group = 14},
-				{squad = Squad.SQ_ARC_SHANK_B, count = 2, default_group = 14},
+				{squad = Squad.SQ_ARC_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 8}, -- cleared
+				{squad = Squad.SQ_ARC_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 9}, -- cleared
 			},
 
 			on_tp_back = {
-				{squad = Squad.SQ_BOSS_B_81538177, count = 1, default_group = 3, Slot.SQ_BOSS_B_ULTRA},
-				{squad = Squad.SQ_SOLAR_SHANK_A, count = 2, default_group = 14},
-				{squad = Squad.SQ_SOLAR_SHANK_B, count = 2, default_group = 14},
-				{squad = Squad.SQ_SOLAR_SHANK_C, count = 2, default_group = 14},
-				{squad = Squad.SQ_SOLAR_SHANK_D, count = 2, default_group = 14},
+				{squad = Squad.SQ_SOLAR_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 4}, -- cleared
+				{squad = Squad.SQ_SOLAR_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 5}, -- cleared
+				{squad = Squad.SQ_SOLAR_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 6}, -- cleared
+				{squad = Squad.SQ_SOLAR_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 7}, -- cleared
 			},
 
 			on_tp_right = {
-				{squad = Squad.SQ_ARC_SHANK_C, count = 2, default_group = 14},
-				{squad = Squad.SQ_ARC_SHANK_D, count = 2, default_group = 14},
+				{squad = Squad.SQ_ARC_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 11}, -- cleared
+				{squad = Squad.SQ_ARC_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 10}, -- cleared
 			},
 
 			on_tp_front = {
-				{squad = Squad.SQ_VANDAL_FINAL_A, count = 1, default_group = 10},
-				{squad = Squad.SQ_VANDAL_FINAL_B, count = 1, default_group = 11},
-				{squad = Squad.SQ_MARAUDER_FINAL_A, count = 1, default_group = 9},
-				{squad = Squad.SQ_MARAUDER_FINAL_B, count = 1, default_group = 9},
-				{squad = Squad.SQ_MARAUDER_FINAL_C, count = 1, default_group = 9},
-				{squad = Squad.SQ_ARC_SHANK_FINAL_A, count = 1, default_group = 0},
-				{squad = Squad.SQ_ARC_SHANK_FINAL_B, count = 1, default_group = 0},
-				{squad = Squad.SQ_TANK_A, count = 1, default_group = 5},
-				{squad = Squad.SQ_TANK_B, count = 1, default_group = 6},
+				{squad = Squad.SQ_VANDAL_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 10}, -- cleared
+				{squad = Squad.SQ_VANDAL_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 11}, -- cleared
+				{squad = Squad.SQ_MARAUDER_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 7}, -- cleared
+				{squad = Squad.SQ_MARAUDER_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 8}, -- cleared
+				{squad = Squad.SQ_MARAUDER_FINAL_C, count = 1, default_objective = "OBJ_BOSS", default_group = 9}, -- cleared
+				{squad = Squad.SQ_ARC_SHANK_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 12}, -- cleared
+				{squad = Squad.SQ_ARC_SHANK_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 13}, -- cleared
+				{squad = Squad.SQ_TANK_A, count = 1, default_objective = "OBJ_BOSS", default_group = 5}, -- cleared
+				{squad = Squad.SQ_TANK_B, count = 1, default_objective = "OBJ_BOSS", default_group = 6}, -- cleared
 			},
 		},
 		squad_slots = {
@@ -319,10 +266,8 @@ local ARENAS = {
 				Slot.SQ_F_WAVE_ONE_81538177,
 				Slot.SQ_G_WAVE_ONE,
 				Slot.SQ_H_WAVE_ONE,
-				Slot.SQ_BOSS_C_81538177,
 			},
 			on_provoked = {
-				Slot.SQ_BOSS_A_81538177,
 				Slot.SQ_VOID_SHANK_A,
 				Slot.SQ_VOID_SHANK_B,
 				Slot.SQ_VOID_SHANK_C,
@@ -335,7 +280,6 @@ local ARENAS = {
 			},
 
 			on_tp_back = {
-				Slot.SQ_BOSS_B_81538177,
 				Slot.SQ_SOLAR_SHANK_A,
 				Slot.SQ_SOLAR_SHANK_B,
 				Slot.SQ_SOLAR_SHANK_C,
@@ -359,22 +303,6 @@ local ARENAS = {
 				Slot.SQ_TANK_B,
 			},
 		},
-		groups = lib.list(
-			mission.TaskGroup.OBJ_BOSS.GROUP_0,
-			mission.TaskGroup.OBJ_BOSS.GROUP_1,
-			mission.TaskGroup.OBJ_BOSS.GROUP_2,
-			mission.TaskGroup.OBJ_BOSS.GROUP_3,
-			mission.TaskGroup.OBJ_BOSS.GROUP_4,
-			mission.TaskGroup.OBJ_BOSS.GROUP_5,
-			mission.TaskGroup.OBJ_BOSS.GROUP_6,
-			mission.TaskGroup.OBJ_BOSS.GROUP_7,
-			mission.TaskGroup.OBJ_BOSS.GROUP_8,
-			mission.TaskGroup.OBJ_BOSS.GROUP_9,
-			mission.TaskGroup.OBJ_BOSS.GROUP_10,
-			mission.TaskGroup.OBJ_BOSS.GROUP_11,
-			mission.TaskGroup.OBJ_BOSS.GROUP_12,
-			mission.TaskGroup.OBJ_BOSS.GROUP_13
-		),
     },
 }
 
@@ -453,29 +381,29 @@ end
 
 local function place_boss_squads(context, arena_data, wave) -- wave is a string with the same name as the wave you want to spawn
 	for i, sq in ipairs(arena_data.squads[wave]) do
-		if sq.actor then
-			context:slot(sq.actor):bind_combatant_to_squad()
-
-			context:slot(sq.actor):run_atoms{
-				atoms = {{kind = "trivial"}},
-				spawn = true,
-			}
-
-			context:slot(arena_data.squad_slots[wave][i]):assign_combat_objective{
-				objective = context:slot(Slot[arena_data.objective]),
-				task_group = mission.TaskGroup[arena_data.objective]["GROUP_" .. sq.default_group],
-			}
-		else
-			local squad = context:squad(sq.squad) 
-			local counts = squad:counts()
-			counts:set(1, sq.count)
-			context:slot(arena_data.squad_slots[wave][i]):assign_combat_objective{
-				objective = context:slot(Slot[arena_data.objective]),
-				task_group = mission.TaskGroup[arena_data.objective]["GROUP_" .. sq.default_group]
-			}
-			squad:place{counts = counts}
-		end
+		local squad = context:squad(sq.squad) 
+		local counts = squad:counts()
+		counts:set(1, sq.count)
+		context:slot(arena_data.squad_slots[wave][i]):assign_combat_objective{
+			objective = context:slot(Slot[sq.default_objective]),
+			task_group = mission.TaskGroup[sq.default_objective]["GROUP_" .. sq.default_group]
+		}
+		squad:place{counts = counts}
 	end
+end
+
+local function place_boss_actors(context, arena_data, wave, index)
+		context:slot(arena_data.actor_squads[index].actor):bind_combatant_to_squad()
+
+		context:slot(arena_data.actor_squads[index].actor):run_atoms{
+			atoms = {{kind = "trivial"}},
+			spawn = true,
+		}
+
+		context:slot(arena_data.actor_squads[index].slot):assign_combat_objective{
+			objective = context:slot(Slot.OBJ_BOSS),
+			task_group = mission.TaskGroup.OBJ_BOSS["GROUP_" .. arena_data.actor_squads[index].default_group],
+		}
 end
 
 local WAVE_KEYS = {
@@ -524,7 +452,10 @@ local function arena_cleared(context, arena)
 end
 
 local function play_outro_scene(context)
+	context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
+	-- Add code to clear directive here
 	context:start_timer("outro_mithrax_spawn_delay", 2000)
+	context:start_timer("mission_complete_delay", 6000)
 	
 	local kinds = context.sdk.atom_kinds
 	context:slot(Slot.SQ_SKIFF_PILOT):run_atoms{spawn = true, atoms = {
@@ -549,7 +480,7 @@ local function check_arena_doors(context, state)
         if not state:variable(key) and arena_cleared(context, arena) then
             context:set_variable(key, true)
 
-            if arena.id == "outro_arena" then
+            if arena.id == "outro_arena" and state:variable("bosses_defeated") == 3 then
 				play_outro_scene(context)
 				context:complete_mission{}
             end
@@ -573,10 +504,6 @@ local function check_arena_doors(context, state)
     end
 end
 
-local function update_boss_group(context, state)
-	-- Placeholder
-end
-
 
 return {
     initial_state = {
@@ -594,6 +521,7 @@ return {
     on_load = function(context, state)
         context:set_variable("reloaded", true)
 		-- This function is currently used to debug features
+		play_outro_scene(context)
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -706,8 +634,10 @@ return {
 		if event.region_index == OUTRO_REGION then
 			if not state:variable("outro_region_visited.armed") then
 				context:set_variable("outro_region_visited.armed", true)
+				context:set_variable("bosses_defeated", 0)
 				
 				context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
+				place_boss_squads(context, ARENAS[6], "wave_one")
 				
 			end
 		end
@@ -823,16 +753,20 @@ return {
 			context:slot(Slot.PT_BOSS_SPAWN):disarm_trigger()
 			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 23} -- final_battle
 			
-			place_boss_squads(context, ARENAS[6], "wave_one")
+			place_boss_actors(context, ARENAS[6], "wave_one", 1)
 		end
     end,
 
     on_event_timer_elapsed = function(context, state, event)
+	
 		if event.timer_name == "outro_mithrax_spawn_delay" then
 			context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
 			context:squad(mission.Squad.SQ_FRIENDLY_81538177):place{}
 			context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):send_event{key = 0xdf24c893} -- outro_trigger
-			-- context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):send_event{key = 0xa703a771} -- despawn
+		end
+		
+		if event.timer_name == "mission_complete_delay" then
+			context:complete_mission{}
 		end
 		
 		if event.timer_name == "end_burn" then
@@ -860,14 +794,14 @@ return {
 			}]]
 		end
 	end,
-	
+
 	on_event_damage_state = function(context, state, event)
-		context:set_variable("boss.health", event.health)
 		if lib.is_slot(context, event, Slot.SQ_BOSS_C_ULTRA) then
 			if event.health ~= -1 and not state:variable("on_provoked.spawned") then
 				context:set_variable("on_provoked.spawned", true)
 				place_boss_squads(context, ARENAS[6], "on_provoked")
-			elseif event.health ~= -1 then
+				place_boss_actors(context, ARENAS[6], "on_provoked", 2)
+			elseif state:variable("on_provoked.spawned") then
 				if event.health <= 0.95 and not state:variable("on_tp_left.spawned") then
 					context:set_variable("on_tp_left.spawned", true)
 					context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
@@ -883,6 +817,7 @@ return {
 						task_group = mission.TaskGroup.OBJ_BOSS.GROUP_3,
 					}
 					place_boss_squads(context, ARENAS[6], "on_tp_back")
+					place_boss_actors(context, ARENAS[6], "on_tp_back", 3)
 					
 				elseif event.health <= 0.85 and not state:variable("on_tp_right.spawned") then
 					context:set_variable("on_tp_right.spawned", true)
@@ -900,6 +835,42 @@ return {
 					}
 					context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 24}
 					place_boss_squads(context, ARENAS[6], "on_tp_front")
+					
+				elseif event.health <= 0.50 and not state:variable("music_shift.triggered") then
+					context:set_variable("music_shift.triggered", true)
+					context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 25}
+					
+				elseif event.health <= 0 and not state:variable("boss_c.cleared") then
+					context:set_variable("boss_c.cleared", true)
+					local bosses_defeated = state:variable("bosses_defeated")
+					context:set_variable("bosses_defeated", bosses_defeated + 1)
+					check_arena_doors(context, state)
+				end
+			end
+		end
+		
+		if lib.is_slot(context, event, Slot.SQ_BOSS_A_ULTRA) then
+			if event.health ~= -1 and not state:variable("boss_a.provoked") then
+				context:set_variable("boss_a.provoked", true)
+			elseif state:variable("boss_a.provoked") then
+				if event.health <= 0 and not state:variable("boss_a.cleared") then
+					context:set_variable("boss_a.cleared", true)
+					local bosses_defeated = state:variable("bosses_defeated")
+					context:set_variable("bosses_defeated", bosses_defeated + 1)
+					check_arena_doors(context, state)
+				end
+			end
+		end
+		
+		if lib.is_slot(context, event, Slot.SQ_BOSS_B_ULTRA) then
+			if event.health ~= -1 and not state:variable("boss_b.provoked") then
+				context:set_variable("boss_b.provoked", true)
+			elseif state:variable("boss_b.provoked") then
+				if event.health <= 0 and not state:variable("boss_b.cleared") then
+					context:set_variable("boss_b.cleared", true)
+					local bosses_defeated = state:variable("bosses_defeated")
+					context:set_variable("bosses_defeated", bosses_defeated + 1)
+					check_arena_doors(context, state)
 				end
 			end
 		end
