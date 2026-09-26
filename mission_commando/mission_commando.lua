@@ -249,53 +249,127 @@ local ARENAS = {
     },
 	{
         id = "outro_arena",
-		intro_objective = "OBJ_INTRO", -- 0-11
-		adds_objective = "OBJ_ADDS", -- 0-11
-		boss_objective = "OBJ_BOSS", -- 0-13
+		-- intro_objective = "OBJ_INTRO", -- 0-11
+		-- adds_objective = "OBJ_ADDS", -- 0-11
+		objective = "OBJ_BOSS", -- 0-13
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_81538177,
-        squads = {
-					{squad = Squad.SQ_A_HALL, count = 1},
-				},
+        wave_one = {
+			{squad = Squad.SQ_VANDAL_A, count = 1, default_group = 0},
+			{squad = Squad.SQ_VANDAL_B, count = 1, default_group = 0},
+			{squad = Squad.SQ_VANDAL_C, count = 1, default_group = 0},
+			{squad = Squad.SQ_VANDAL_D, count = 1, default_group = 0},
+			{squad = Squad.SQ_A_WAVE_ONE_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_B_WAVE_ONE_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_C_WAVE_ONE_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_E_WAVE_ONE_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_F_WAVE_ONE_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_G_WAVE_ONE, count = 1, default_group = 0},
+			{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_group = 0},
+			{squad = Squad.SQ_BOSS_C_81538177, count = 1, default_group = 0},
+		},
+
+		on_first_damage = {
+			{squad = Squad.SQ_BOSS_A_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_VOID_SHANK_A, count = 2, default_group = 0},
+			{squad = Squad.SQ_VOID_SHANK_B, count = 2, default_group = 0},
+			{squad = Squad.SQ_VOID_SHANK_C, count = 2, default_group = 0},
+			{squad = Squad.SQ_VOID_SHANK_D, count = 2, default_group = 0},
+		},
+
+		on_tp_left = {
+			{squad = Squad.SQ_ARC_SHANK_A, count = 2, default_group = 0},
+			{squad = Squad.SQ_ARC_SHANK_B, count = 2, default_group = 0},
+		},
+
+		on_tp_back = {
+			{squad = Squad.SQ_BOSS_B_81538177, count = 1, default_group = 0},
+			{squad = Squad.SQ_SOLAR_SHANK_A, count = 2, default_group = 0},
+			{squad = Squad.SQ_SOLAR_SHANK_B, count = 2, default_group = 0},
+			{squad = Squad.SQ_SOLAR_SHANK_C, count = 2, default_group = 0},
+			{squad = Squad.SQ_SOLAR_SHANK_D, count = 2, default_group = 0},
+		},
+
+		on_tp_right = {
+			{squad = Squad.SQ_ARC_SHANK_C, count = 2, default_group = 0},
+			{squad = Squad.SQ_ARC_SHANK_D, count = 2, default_group = 0},
+		},
+
+		on_tp_front = {
+			{squad = Squad.SQ_VANDAL_FINAL_A, count = 1, default_group = 0},
+			{squad = Squad.SQ_VANDAL_FINAL_B, count = 1, default_group = 0},
+			{squad = Squad.SQ_MARAUDER_FINAL_A, count = 1, default_group = 0},
+			{squad = Squad.SQ_MARAUDER_FINAL_B, count = 1, default_group = 0},
+			{squad = Squad.SQ_MARAUDER_FINAL_C, count = 1, default_group = 0},
+			{squad = Squad.SQ_ARC_SHANK_FINAL_A, count = 1, default_group = 0},
+			{squad = Squad.SQ_ARC_SHANK_FINAL_B, count = 1, default_group = 0},
+			{squad = Squad.SQ_TANK_A, count = 1, default_group = 0},
+			{squad = Squad.SQ_TANK_B, count = 1, default_group = 0},
+		},
 		--[[
-			SQ_VANDAL_A -- Tank platforms
-			SQ_VANDAL_B -- Tank platforms
-			SQ_VANDAL_C -- Tank platforms
-			SQ_VANDAL_D -- Tank platforms
-			SQ_A_WAVE_ONE_81538177 -- Dreg, Spawn first | White boxes
-			SQ_B_WAVE_ONE_81538177 -- Dreg, Spawn first | White boxes
-			SQ_C_WAVE_ONE_81538177 -- Dreg, Spawn first | White boxes
-			SQ_D_WAVE_ONE_81538177 -- Dreg, Spawn first | White boxes
-			SQ_E_WAVE_ONE_81538177 -- Dreg, Spawn first | left/right side of arena
-			SQ_F_WAVE_ONE_81538177 -- Dreg, Spawn first | left/right side of arena
-			SQ_G_WAVE_ONE -- Dreg, Spawn first | left/right side of arena
-			SQ_H_WAVE_ONE -- Dreg, Spawn first | left/right side of arena
-			SQ_VOID_SHANK_A -- Front shank
-			SQ_VOID_SHANK_B -- Front shank
-			SQ_VOID_SHANK_C -- Front shank
-			SQ_VOID_SHANK_D -- Front shank
-			SQ_ARC_SHANK_A -- Left shanks
-			SQ_ARC_SHANK_B -- Left shanks
-			SQ_ARC_SHANK_C -- Right shanks
-			SQ_ARC_SHANK_D -- Right shanks
-			SQ_SOLAR_SHANK_A -- Back shanks
-			SQ_SOLAR_SHANK_B -- Back shanks
-			SQ_SOLAR_SHANK_C -- Back shanks
-			SQ_SOLAR_SHANK_D -- Back shanks
-			SQ_BOSS_A_81538177 -- Mimiks-0, Devils scion
-			SQ_BOSS_B_81538177 -- Mimiks-1, Devils scion
-			SQ_BOSS_C_81538177 -- Siriks, Loyal to Eremis | Needs health tracker
-			SQ_VANDAL_FINAL_A -- Front of arena
-			SQ_VANDAL_FINAL_B -- Front of arena
-			SQ_MARAUDER_FINAL_A -- Gun | Front of arena
-			SQ_MARAUDER_FINAL_B -- Melee | Front of arena
-			SQ_MARAUDER_FINAL_C -- Melee | Front of arena
-			SQ_ARC_SHANK_FINAL_A -- Front of arena
-			SQ_ARC_SHANK_FINAL_B -- Front of arena
-			SQ_TANK_A -- Right tank
-			SQ_TANK_B -- Left tank
+			SQ_VANDAL_A -- Spawn first wave | Tank platforms x1
+			SQ_VANDAL_B -- Spawn first wave | Tank platforms x1
+			SQ_VANDAL_C -- Spawn first wave | Tank platforms x1
+			SQ_VANDAL_D -- Spawn first wave | Tank platforms x1
+			SQ_A_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+			SQ_B_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+			SQ_C_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+			SQ_D_WAVE_ONE_81538177 -- Dreg, Spawn first wave | White boxes x1
+			SQ_E_WAVE_ONE_81538177 -- Dreg, Spawn first wave | left/right side of arena x1
+			SQ_F_WAVE_ONE_81538177 -- Dreg, Spawn first wave | left/right side of arena x1
+			SQ_G_WAVE_ONE -- Dreg, Spawn first wave | left/right side of arena x1
+			SQ_H_WAVE_ONE -- Dreg, Spawn first wave | left/right side of arena x1
+			SQ_BOSS_C_81538177 -- Spawn first wave | Siriks, Loyal to Eremis | Needs health tracker
+			
+			SQ_BOSS_A_81538177 -- Mimiks-0, Devils scion | Spawns on boss first damaged
+			SQ_VOID_SHANK_A -- Front shank | Spawns on boss first damaged x2
+			SQ_VOID_SHANK_B -- Front shank | Spawns on boss first damaged x2
+			SQ_VOID_SHANK_C -- Front shank | Spawns on boss first damaged x2
+			SQ_VOID_SHANK_D -- Front shank | Spawns on boss first damaged x2
+			
+			
+			SQ_ARC_SHANK_A -- Left shanks | Spawns on boss tp left x2
+			SQ_ARC_SHANK_B -- Left shanks | Spawns on boss tp left x2
+			
+			SQ_BOSS_B_81538177 -- Mimiks-1, Devils scion | Spawns on boss tp back
+			SQ_SOLAR_SHANK_A -- Back shanks | Spawns on boss tp back x2
+			SQ_SOLAR_SHANK_B -- Back shanks | Spawns on boss tp back x2
+			SQ_SOLAR_SHANK_C -- Back shanks | Spawns on boss tp back x2
+			SQ_SOLAR_SHANK_D -- Back shanks | Spawns on boss tp back x2
+			
+			SQ_ARC_SHANK_C -- Right shanks | Spawns on boss tp right x2
+			SQ_ARC_SHANK_D -- Right shanks | Spawns on boss tp right x2
+			
+			SQ_VANDAL_FINAL_A -- Front of arena | Spawns on boss return to front
+			SQ_VANDAL_FINAL_B -- Front of arena | Spawns on boss return to front
+			SQ_MARAUDER_FINAL_A -- Gun | Front of arena | Spawns on boss return to front
+			SQ_MARAUDER_FINAL_B -- Melee | Front of arena | Spawns on boss return to front
+			SQ_MARAUDER_FINAL_C -- Melee | Front of arena | Spawns on boss return to front
+			SQ_ARC_SHANK_FINAL_A -- Front of arena | Spawns on boss return to front
+			SQ_ARC_SHANK_FINAL_B -- Front of arena | Spawns on boss return to front
+			SQ_TANK_A -- Right tank | Spawns on boss return to front
+			SQ_TANK_B -- Left tank | Spawns on boss return to front
 		]]
     },
 }
+
+			-- OBJ_BOSS
+			--[[
+			0 -- No normal movement, tp's round front
+			1 -- Slow walk round front
+			2 -- TP left
+			3 -- TP back
+			4 -- TP right
+			5 -- TP tank right
+			6 -- TP tank left
+			7 -- Front of front
+			8 -- Front of front
+			9 -- Front of front
+			10 -- Static back left of front
+			11 -- Static back right of front
+			12 -- No movement
+			13 -- No normal movement, tp's round front
+			]]
 
 local toaster_path = {
 					{
@@ -448,6 +522,7 @@ local function check_arena_doors(context, state)
     end
 end
 
+
 return {
     initial_state = {
         region_index = INTRO_REGION,
@@ -476,7 +551,8 @@ return {
 		-- 7 Catwalk 3 a
 		-- 8 Catwalk 1
 		-- 9 Wave_C
-
+		
+		--[[
 		context:slot(Slot.SQ_D_WAVE_ONE_8153855C):assign_combat_objective{
 			objective = context:slot(Slot.OBJ_MILITARY),
 			task_group = mission.TaskGroup.OBJ_MILITARY.GROUP_9,
@@ -486,6 +562,7 @@ return {
 		local counts = squad:counts()
 		counts:set(1, 3)
 		squad:place{counts = counts}
+		]]
 		
 		-- OUTRO_REGION: Some things for SCENE_OUTRO_FRIENDLY. outro_trigger seems to be the relevant key to trigger the scene.
 		-- 				 Skiff isn't friendly but that matches videos from season of the drifter.
@@ -496,16 +573,28 @@ return {
 		--				 Largest blockade, doors. Squads seem to not always report the fact that they died. Causing the arena_cleared call in check_arena_doors to report false.
 		--				 check_arena_doors is called from on_event_squad_state
 		
-		--[[
+			-- boss_objective = "OBJ_BOSS", -- 0-13
+			--[[
+			context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
+				objective = context:slot(Slot.OBJ_BOSS),
+				task_group = mission.TaskGroup.OBJ_BOSS.GROUP_1,
+			}
+			
+			local squad = context:squad(Squad.SQ_BOSS_C_81538177)
+			local counts = squad:counts()
+			counts:set(1, 1)
+			squad:place{counts = counts}]]
+			
 			context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
 			context:squad(mission.Squad.SQ_FRIENDLY_81538177):place{}
-			context:squad(mission.Squad.SQ_SKIFF):place{}
-			context:squad(mission.Squad.SQ_SKIFF_PILOT):place{}
 			context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0xdf24c893}
-			0xa703a771 despawn
-			0xdf24c893 outro_trigger
-			0xCF0F2A72 2.combat_1.fa_shanks_boss_rush
-		]]
+			
+			local kinds = context.sdk.atom_kinds
+			context:slot(Slot.SQ_SKIFF_PILOT):run_atoms{spawn = true, atoms = {
+				{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_052C60A0, target = context:slot(Slot.SKIFF_ENTRY_SEQUENCE)},
+				{kind = kinds.sleep, seconds = 6},
+				{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_1E35DF11, target = context:slot(Slot.SKIFF_EXIT_SEQUENCE)},
+			}}
     end,
 
     on_event_region_changed = function(context, state, event)
