@@ -5,5 +5,7 @@ local missions = require("missions")
 local mission = require(missions.EDZ_FREEROAM)
 local freeroam = require("lib.freeroam")
 local content = require("edz_freeroam.content")
+local sectors = require("edz_freeroam.sectors")
 
-return freeroam.new{zones = content(mission, freeroam)}
+return freeroam.new{zones = content(mission, freeroam),
+    sectors = sectors(mission, freeroam)}

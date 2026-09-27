@@ -1,12 +1,62 @@
--- Adieu. Red War campaign draft; not tested in game.
--- One leg over regions 24 to 27. Steps follow the step objects, their lines and the trigger volume
--- positions: the canal, the climb past the dead Guardians, the mountain, the beasts, the canyon.
+-- Adieu. Server scene and encounter port; live behavior remains unverified.
+-- Injury effects, loadout grants and the two section teleports remain absent.
 local missions = require("missions")
 local mission = require(missions.MISSION_JOURNEY)
 local campaign = require("lib.campaign")
+local lib = require("lib.mission_lib")
 local unit, line = campaign.unit, campaign.line
-local Slot, Squad, Directive = mission.Slot, mission.Squad, mission.Directive
+local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80B5E02A
+
+-- These input keys belong to the installed scene graphs.
+local Input = {bridge = 0xB687F07B, rooftop = 0xDD6D986F, rooftop_move = 0x5A9CAA14,
+    real_rooftop = 0x6A1120BD, rush = 0xA07DCECA, falcon = 0x159DFE1B,
+    follow = 0xF849C1B2, collapse = 0x86685186, pride = 0x50954B78, beast = 0x286C14D7,
+    ghost_exit1 = 0xFBA2AF26, ghost_exit2 = 0xFBA2AF25, ghost_exit3 = 0xFBA2AF24}
+
+local function scene_key(context, scene)
+    return "journey.scene." .. context.attempt_generation .. "." .. scene
+end
+
+local function start_scene(context, state, name, props)
+    local key = scene_key(context, name)
+    if state:variable(key) ~= nil then return end
+    if props ~= nil then context:activate_objects{slots = props, active = true} end
+    context:scene(Scene[name]):activate{}
+    context:set_variable(key, true)
+end
+
+local function stop_scene(context, state, name)
+    local key = scene_key(context, name)
+    if state:variable(key) ~= true then return end
+    context:scene(Scene[name]):stop{}
+    context:set_variable(key, false)
+end
+
+local scenery = {
+    {trigger = Slot.PT_SCENE_ROOFTOP, scene = "SC_ROOFTOP_SCENE",
+        inputs = {Input.rooftop, Input.rooftop_move}},
+    {trigger = Slot.PT_SCENE_ROOFTOP, scene = "SC_REAL_ROOFTOP", inputs = {Input.real_rooftop}},
+    {trigger = Slot.PT_SCENE_TANK, scene = "SC_BRIDGE_SCENE", inputs = {Input.bridge}},
+    {trigger = Slot.PT_SHADOW_SCENE, scene = "SC_SHADOW_SCENE", inputs = {Input.bridge}},
+    {trigger = Slot.PT_OMG_GOGOGO, scene = "SC_OMG_WHAT_ZBB", inputs = {Input.rush}},
+    {trigger = Slot.PT_GHOST_EXIT_1, scene = "SC_GHOST_SEARCHING", inputs = {Input.ghost_exit1}},
+    {trigger = Slot.PT_GHOST_EXIT_2, scene = "SC_GHOST_SEARCHING", inputs = {Input.ghost_exit2}},
+    {trigger = Slot.PT_GHOST_EXIT_3, scene = "SC_GHOST_SEARCHING", inputs = {Input.ghost_exit3}},
+    {trigger = Slot.PT_GHOST_FINDING, scene = "SC_GHOST_FINDING", props = {Slot.O_GHOST_FINDING}},
+    {trigger = Slot.PT_PLAYER_COLLAPSE, scene = "SC_GHOST_FINDING", props = {Slot.O_GHOST_FINDING},
+        inputs = {Input.collapse}},
+    {trigger = Slot.PT_FALCON_CLIMB, scene = "SC_FALCON_CLIMB_1", props = {Slot.O_FALCON_CLIMB_1},
+        inputs = {Input.falcon}},
+    {trigger = Slot.PT_FOLLOW_FALCON, scene = "SC_FALCON_CLIMB_2", props = {Slot.O_FALCON_CLIMB_2},
+        inputs = {Input.follow}},
+    {trigger = Slot.PT_FALCON_1, scene = "SC_FALCON_1", props = {Slot.O_FALCON_1},
+        inputs = {Input.falcon}},
+    {trigger = Slot.PT_FALCON_3, scene = "SC_FALCON_3", props = {Slot.O_FALCON_3},
+        inputs = {Input.falcon}},
+    {trigger = Slot.PT_FALCON_4, scene = "SC_FALCON_4", props = {Slot.O_FALCON_4},
+        inputs = {Input.follow}},
+}
 
 -- The burning City around the canal is dressed, not fought. These squads carry no objective.
 local city = {
@@ -48,12 +98,16 @@ local city = {
         unit(Squad.SQ_SAD_GHOST_1, Slot.SQ_SAD_GHOST_1),
         unit(Squad.SQ_SAD_GHOST_2, Slot.SQ_SAD_GHOST_2),
     },
+    on_start = function(context, state)
+        start_scene(context, state, "SC_GHOST_SEARCHING")
+    end,
 }
 
 -- The climb starts where the falcon first lands.
 local climb = {
     id = "climb",
-    trigger = Slot.PT_FALCON_CLIMB,
+    after = "camp_combat",
+    objective = Slot.OBJ_CLIMB_BEASTS,
     squads = {
         unit(Squad.SQ_CLIMB_BEAST_PRIME, Slot.SQ_CLIMB_BEAST_PRIME),
         unit(Squad.SQ_CLIMB_BEAST_A, Slot.SQ_CLIMB_BEAST_A),
@@ -69,6 +123,10 @@ local climb = {
         unit(Squad.SQ_CLIMB_BEAST_F, Slot.SQ_CLIMB_BEAST_F),
         unit(Squad.SQ_CLIMB_BEAST_F_1, Slot.SQ_CLIMB_BEAST_F_1),
     },
+    on_start = function(context, state)
+        start_scene(context, state, "SC_PRIDE_ROCK")
+        context:scene(Scene.SC_PRIDE_ROCK):send_event{key = Input.pride}
+    end,
 }
 
 -- The dead Guardians on the climb.
@@ -103,18 +161,37 @@ local beasts = {
         unit(Squad.SQ_BOWL_LEGS, Slot.SQ_BOWL_LEGS),
         unit(Squad.SQ_BOWL_LEGS_1, Slot.SQ_BOWL_LEGS_1),
     },
+    on_start = function(context, state)
+        start_scene(context, state, "SC_BEASTMASTER")
+        context:scene(Scene.SC_BEASTMASTER):send_event{key = Input.beast}
+    end,
 }
 
-return campaign.new{
+local script = campaign.new{
     key = "journey",
     directive_sensor = Slot.M_DIRECTIVE_SENSOR_80B5E02A,
     dialogue_sensor = Slot.M_DIALOG_SENSOR_80B5E02A,
+    intro = {
+        {state = mission.states.STATE_80B5E01F_0003_0001_80B5E019,
+            cinematic = Slot.INTRO_CINEMATIC_CINEMATIC},
+    },
+    outro = {
+        {state = mission.states.STATE_80B5E01F_0003_0002_80B5E01A,
+            cinematic = Slot.MID_A_CINEMATIC_CINEMATIC},
+        {state = mission.states.STATE_80B5E01F_0003_0003_80B5E01E,
+            cinematic = Slot.MID_B_CINEMATIC_CINEMATIC},
+    },
     legs = {
         {id = "the_walk", state = mission.states.STATE_80B5E01F_0003_0000_80B5E018, arm = {
             Slot.PT_GHOST_FINDING, Slot.PT_GOTO_CLIMB, Slot.PT_FALCON_CLIMB,
             Slot.PT_DLG_CITY_EXIT,
             Slot.PT_CLIMB_FLYOVER, Slot.PT_FIND_GUARDIANS_HIGH, Slot.PT_GOTO_MOUNTAIN,
             Slot.PT_GOTO_CANYON, Slot.PT_BEAST, Slot.PT_GOTO_HAW, Slot.PT_END_NAV,
+            Slot.PT_GOTO_ARRIVAL,
+            Slot.PT_SCENE_ROOFTOP, Slot.PT_SCENE_TANK, Slot.PT_SHADOW_SCENE, Slot.PT_OMG_GOGOGO,
+            Slot.PT_GHOST_EXIT_1, Slot.PT_GHOST_EXIT_2, Slot.PT_GHOST_EXIT_3,
+            Slot.PT_PLAYER_COLLAPSE, Slot.PT_FOLLOW_FALCON,
+            Slot.PT_FALCON_1, Slot.PT_FALCON_3, Slot.PT_FALCON_4,
         }},
     },
     steps = {
@@ -128,24 +205,61 @@ return campaign.new{
                 line(cue.CUE_20, Slot.TV_DLG_CITY_EXIT)},
             ends = {trigger = Slot.PT_GOTO_CLIMB}},
         {id = "rally", directive = Directive.REGROUP, navpoint = Slot.AP_DEAD_GUARDIANS,
+            on_start = function(context, state)
+                stop_scene(context, state, "SC_GHOST_SEARCHING")
+                stop_scene(context, state, "SC_GHOST_FINDING")
+                context:activate_objects{slots = {Slot.O_GHOST_FINDING, Slot.O_GHOST_SEARCHING},
+                    active = false}
+                start_scene(context, state, "SC_FALCON_CLIMB_1", {Slot.O_FALCON_CLIMB_1})
+                start_scene(context, state, "SC_FALCON_CLIMB_2", {Slot.O_FALCON_CLIMB_2})
+            end,
             ends = {trigger = Slot.PT_FIND_GUARDIANS_HIGH}},
         -- "These Guardians... They had no chance without their powers."
         {id = "gun", directive = Directive.ARM_YOURSELF, navpoint = Slot.AP_GET_GUN,
             lines = {line(cue.CUE_24), line(cue.CUE_27)},
+            barrier = true,
             ends = {interact = Slot.O_AUTO_RIFLE}},
+        {id = "camp_combat", barrier = true, ends = {clear = "climb"}},
         {id = "falcon", directive = Directive.FOLLOW_YOUR_VISION_B4B4B71D,
             navpoint = Slot.SLOT_000B_80B5E415,
             ends = {trigger = Slot.PT_GOTO_MOUNTAIN}},
         -- "It's that falcon again. Is it following us?"
         {id = "mountain", directive = Directive.FOLLOW_YOUR_VISION_ABA9EFFB,
             navpoint = Slot.AP_GOTO_CANYON,
+            on_start = function(context, state)
+                start_scene(context, state, "SC_FALCON_1", {Slot.O_FALCON_1})
+                start_scene(context, state, "SC_FALCON_3", {Slot.O_FALCON_3})
+                start_scene(context, state, "SC_FALCON_4", {Slot.O_FALCON_4})
+            end,
             lines = {line(cue.CUE_28, Slot.SLOT_0008_80B5E434)},
             ends = {trigger = Slot.PT_GOTO_CANYON}},
         {id = "bowl", directive = Directive.FOLLOW_YOUR_VISION_CA83E2E7,
             navpoint = Slot.AP_GOTO_HAW,
             ends = {trigger = Slot.PT_GOTO_HAW}},
         {id = "canyon", directive = Directive.FOLLOW_YOUR_VISION, navpoint = Slot.AP_HAWTHORNE,
-            ends = {trigger = Slot.PT_END_NAV}},
+            lines = {line(cue.CUE_29)},
+            ends = {trigger = Slot.PT_GOTO_ARRIVAL}},
     },
     encounters = {city, climb, guardians, beasts},
 }
+
+local handle_trigger = script.on_event_player_trigger
+script.on_event_player_trigger = function(context, state, event)
+    handle_trigger(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation or event.kind ~= "playerTrigger"
+        or state:variable("flow.journey.step.outro") ~= nil then return end
+    for index, action in ipairs(scenery) do
+        local key = "journey.scenery." .. context.attempt_generation .. "." .. index
+        if state:variable(key) == nil and lib.is_slot(context, event, action.trigger) then
+            context:set_variable(key, true)
+            start_scene(context, state, action.scene, action.props)
+            if state:variable(scene_key(context, action.scene)) == true then
+                for _, input in ipairs(action.inputs or {}) do
+                    context:scene(Scene[action.scene]):send_event{key = input}
+                end
+            end
+        end
+    end
+end
+
+return script

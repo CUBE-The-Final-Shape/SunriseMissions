@@ -1,19 +1,12 @@
--- Chosen. Panoptes, the Infinite Mind. Ported from the Dawn fork; not tested in game.
--- Three legs: the Lighthouse (120), Infinite Forest D (88), the Lair and the Crown (112).
--- Dawn keeps this mission's whole combat order in C++ behind one plugin argument, so the wave
--- order below is read out of its catalogs and written here as explicit steps.
--- Not ported: Panoptes himself. His arms, eye, lift, teleports, damage phases and the arc-charge
--- crown are client-side in Dawn, and the damage transaction protocol is not decoded. The rescue
--- of Osiris, the boss reveal cinematic and the Mercury ending handoff are out for the same reason.
--- What this script owns is the route, the objectives, the dialogue and all fifteen enemy waves.
+-- Omega. Native route and enemy waves; live play remains unverified.
+-- Absent: Panoptes combat, arm travel, Crown charges, Osiris rescue and the ending.
+-- Clearing support waves cannot complete the mission.
 local missions = require("missions")
 local mission = require(missions.MISSION_SCOT)
 local campaign = require("lib.campaign")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80F47BDD
-
--- The Lair's first summon, on the left arm.
 local lair_left = {
     id = "lair_left",
     after = "lair_left",
@@ -27,8 +20,6 @@ local lair_left = {
         unit(Squad.SQ_SIDE_2, Slot.SQ_SIDE_2),
     },
 }
-
--- The second summon, on the right arm, with the named anchor.
 local lair_right = {
     id = "lair_right",
     after = "lair_right",
@@ -71,8 +62,6 @@ local island_c = {
         unit(Squad.SQ_ISLAND_C_2, Slot.SQ_ISLAND_C_2),
     },
 }
-
--- Crown cycle 1, the Fallen.
 local crown1_a = {
     id = "crown1_a",
     after = "crown1_a",
@@ -111,8 +100,6 @@ local crown1_c = {
         unit(Squad.SQ_WAVE_C_3_80F476C6, Slot.SQ_WAVE_C_3_80F476C6),
     },
 }
-
--- Crown cycle 2, the Hive.
 local crown2_a = {
     id = "crown2_a",
     after = "crown2_a",
@@ -151,8 +138,6 @@ local crown2_c = {
         unit(Squad.SQ_WAVE_C_3_80F4779F, Slot.SQ_WAVE_C_3_80F4779F),
     },
 }
-
--- The Cabal that cover Panoptes' escape. Never a kill barrier: he leaves while they live.
 local escape = {
     id = "escape",
     after = "escape",
@@ -171,8 +156,6 @@ local escape = {
         unit(Squad.SQ_MELEE_6, Slot.SQ_MELEE_6),
     },
 }
-
--- Crown cycle 3, the Vex.
 local crown3_a = {
     id = "crown3_a",
     after = "crown3_a",
@@ -213,6 +196,7 @@ local crown3_c = {
 
 return campaign.new{
     key = "scot",
+    complete = false,
     directive_sensor = Slot.M_DIRECTIVE_SENSOR_80F47BDD,
     dialogue_sensor = Slot.M_DIALOG_SENSOR_80F47BDD,
     legs = {
@@ -232,15 +216,16 @@ return campaign.new{
             watch = {Slot.PM_LAIR_80F47B4B}},
     },
     steps = {
-        -- Ikora holds the Forest gate shut until the player walks up to her.
         {id = "gate", directive = Directive.DESTROY_PANOPTES_THE_INFINITE_MIND,
             on_start = function(context)
                 move(context, {Slot.D_GATE_CONTROLLER}, "close")
             end,
             ends = {monitor = Slot.PM_WEAPONDOWN}},
+        {id = "cast_ikora", on_start = function(context)
+            context:squad(Squad.SQUAD_IKORA):place{mode = context.sdk.squad_modes.reserve}
+        end},
         {id = "ikora", scene = Scene.SCENE_IKORA_OPENS_PORTAL,
             ends = {scene = Slot.SCENE_IKORA_OPENS_PORTAL}},
-        -- The lattice releases and the gate opens.
         {id = "portal",
             on_start = function(context)
                 move(context, {Slot.D_GATE_CONTROLLER}, "open")
@@ -248,8 +233,6 @@ return campaign.new{
                     seed = campaign.run_seed(context), enabled = true}
             end,
             ends = {monitor = Slot.INFINITE_FOREST_ENTRANCE_PLAYER_MONITOR, region = "forest"}},
-        -- Infinite Forest D. Its four landmarks have no authored player trigger, so the crossing
-        -- ends on the bubble monitor and the lines go out with it.
         {id = "forest", directive = Directive.DESTROY_PANOPTES_THE_INFINITE_MIND,
             lines = {line(cue.CUE_6), line(cue.CUE_7)},
             ends = {monitor = Slot.BUBBLE_MONITOR_D}},
@@ -257,26 +240,25 @@ return campaign.new{
             navpoint = Slot.AP_BOSS_PLATFORM,
             lines = {line(cue.CUE_9)},
             ends = {monitor = Slot.PM_LAIR_80F47B4B, region = "lair"}},
-        -- The Lair. Panoptes summons from one arm, then the other.
         {id = "lair_left", navpoint = Slot.AP_BOSS_PLATFORM,
             barrier = true, ends = {clear = "lair_left"}},
         {id = "lair_right", navpoint = Slot.AP_BOSS_PLATFORM,
             barrier = true, ends = {clear = "lair_right"}},
-        -- Three islands on the way to the Crown.
+        {id = "reach_island_a", barrier = true, ends = {trigger = Slot.PT_FIRST_ISLAND}},
         {id = "island_a", barrier = true, ends = {clear = "island_a"}},
+        {id = "reach_island_b", barrier = true, ends = {trigger = Slot.PT_SECOND_ISLAND}},
         {id = "island_b", barrier = true, ends = {clear = "island_b"}},
+        {id = "reach_island_c", barrier = true, ends = {trigger = Slot.PT_FINAL_ISLAND}},
         {id = "island_c", barrier = true, ends = {clear = "island_c"}},
-        -- Crown cycle 1, the Fallen. Three waves, each a kill barrier.
+        {id = "reach_crown1_a", barrier = true, ends = {trigger = Slot.PT_PLATFORM_START_80F476C6}},
         {id = "crown1_a", barrier = true, ends = {clear = "crown1_a"}},
         {id = "crown1_b", barrier = true, ends = {clear = "crown1_b"}},
         {id = "crown1_c", barrier = true, ends = {clear = "crown1_c"}},
-        -- Crown cycle 2, the Hive.
+        {id = "reach_crown2_a", barrier = true, ends = {trigger = Slot.PT_PLATFORM_START_80F4779F}},
         {id = "crown2_a", barrier = true, ends = {clear = "crown2_a"}},
         {id = "crown2_b", barrier = true, ends = {clear = "crown2_b"}},
         {id = "crown2_c", barrier = true, ends = {clear = "crown2_c"}},
-        -- The escape cover. It places and the mission moves on; nothing waits for it to die.
         {id = "escape", ends = {trigger = Slot.PT_PLATFORM_START_80F478BD}},
-        -- Crown cycle 3, the Vex.
         {id = "crown3_a", barrier = true, ends = {clear = "crown3_a"}},
         {id = "crown3_b", barrier = true, ends = {clear = "crown3_b"}},
         {id = "crown3_c", barrier = true, ends = {clear = "crown3_c"}},

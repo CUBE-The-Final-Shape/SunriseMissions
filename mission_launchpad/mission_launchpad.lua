@@ -1,8 +1,6 @@
--- New Light. Ported from the Dawn fork's native mission definition; not tested in game.
--- Four legs: the exterior wall (24), the Breach (0), the Divide (8) and Dock 13 (16).
--- Dawn keeps only two client hooks here and neither is gameplay, so the whole flow is server
--- behaviour. Not ported: the Ghost's type-42 performance at the lights, the Skiff flight, the
--- three bookend movies and the Tower handoff. Each is its own native piece, not a mission step.
+-- New Light uses native server messages; these changes remain unverified in game.
+-- Absent: Ghost movement, room lighting, physical shutter binding, and ambush performances.
+-- Absent: item grants, assault replacements, Walker transport, and the Tower handoff.
 local missions = require("missions")
 local mission = require(missions.MISSION_LAUNCHPAD)
 local campaign = require("lib.campaign")
@@ -24,7 +22,7 @@ local nests = {
 -- The first Vandal, then the room behind it.
 local first_vandal = {
     id = "first_vandal",
-    after = "breach",
+    after = "breach", trigger = Slot.PT_FALLEN_1B_SPAWN,
     objective = Slot.OBJ_BREACH_FALLEN01,
     squads = {
         unit(Squad.SQ_FALLEN_FIRST_VANDAL, Slot.SQ_FALLEN_FIRST_VANDAL),
@@ -33,7 +31,7 @@ local first_vandal = {
 
 local first_fight = {
     id = "first_fight",
-    trigger = Slot.PT_DIAG_CORNER,
+    trigger = Slot.PT_FALLEN_C_SPAWN,
     after = "breach",
     objective = Slot.OBJ_BREACH_FALLEN01,
     squads = {
@@ -41,7 +39,6 @@ local first_fight = {
         unit(Squad.SQ_FALLEN_WALL_L_C, Slot.SQ_FALLEN_WALL_L_C),
         unit(Squad.SQ_FALLEN_1C, Slot.SQ_FALLEN_1C),
         unit(Squad.SQ_FALLEN_2, Slot.SQ_FALLEN_2),
-        unit(Squad.SQ_FALLEN_DROPDOWN_E, Slot.SQ_FALLEN_DROPDOWN_E),
     },
 }
 
@@ -57,22 +54,19 @@ local cache = {
 
 local corridor = {
     id = "corridor",
-    trigger = Slot.PT_MUSIC_ALLEY,
+    trigger = Slot.PT_CORR_SPAWN_B,
     after = "breach",
     objective = Slot.OBJ_BREACH_FALLEN01,
     squads = {
         unit(Squad.SQ_FALLEN_DROPDOWN_F, Slot.SQ_FALLEN_DROPDOWN_F),
         unit(Squad.SQ_FALLEN_WALL_R_F, Slot.SQ_FALLEN_WALL_R_F),
         unit(Squad.SQ_FALLEN_FLOOR_F, Slot.SQ_FALLEN_FLOOR_F),
-        unit(Squad.SQ_FALLEN_DROPDOWN_G, Slot.SQ_FALLEN_DROPDOWN_G),
-        unit(Squad.SQ_FALLEN_WALL_L_G, Slot.SQ_FALLEN_WALL_L_G),
-        unit(Squad.SQ_FALLEN_H, Slot.SQ_FALLEN_H),
     },
 }
 
 local garage = {
     id = "garage",
-    trigger = Slot.PT_TRANS_GRAVEYARD,
+    trigger = Slot.PT_FINAL_ROOM_BATTLE,
     after = "breach",
     objective = Slot.OBJ_BREACH_FALLEN01,
     squads = {
@@ -119,7 +113,7 @@ local hangar = {
 
 local backup = {
     id = "backup",
-    trigger = Slot.PT_FALLEN_BACKUP,
+    after = "dock",
     objective = Slot.OBJ_M0_HANGAR_FALLEN,
     squads = {
         unit(Squad.SQ_M0_FALLEN_1, Slot.SQ_M0_FALLEN_1),
@@ -127,8 +121,38 @@ local backup = {
     },
 }
 
-return campaign.new{
+local hall_drop = {
+    id = "hall_drop", after = "breach", trigger = Slot.PT_FALLEN_MELEE,
+    objective = Slot.OBJ_BREACH_FALLEN01,
+    squads = {unit(Squad.SQ_FALLEN_DROPDOWN_E, Slot.SQ_FALLEN_DROPDOWN_E)},
+}
+local corridor_melee = {
+    id = "corridor_melee", after = "breach", trigger = Slot.PT_CORR_SPAWN_B_MELEE,
+    objective = Slot.OBJ_BREACH_FALLEN01,
+    squads = {
+        unit(Squad.SQ_FALLEN_DROPDOWN_G, Slot.SQ_FALLEN_DROPDOWN_G),
+        unit(Squad.SQ_FALLEN_WALL_L_G, Slot.SQ_FALLEN_WALL_L_G),
+    },
+}
+local corridor_rear = {
+    id = "corridor_rear", after = "breach", trigger = Slot.PT_CORR_SPAWN_B_REAR,
+    objective = Slot.OBJ_BREACH_FALLEN01,
+    squads = {unit(Squad.SQ_FALLEN_H, Slot.SQ_FALLEN_H)},
+}
+
+local script = campaign.new{
     key = "launchpad",
+    intro = {{state = mission.states.STATE_8153C01B_0003_0001_8153C01A,
+        cinematic = Slot.PF_CINEMATIC_BOOKEND_CINEMATIC_8153C2C5}},
+    outro = {
+        {state = mission.states.STATE_8153C01B_0002_0001_8153C017,
+            cinematic = Slot.PF_CINEMATIC_BOOKEND_CINEMATIC_8153C279},
+        {state = mission.states.STATE_8153C01B_0002_0002_8153C018,
+            cinematic = Slot.PF_CINEMATIC_BOOKEND_CINEMATIC_8153C280},
+    },
+    omit = {Slot.O_WEAPON, Slot.O_CHEST_WEAPON, Slot.O_POWER_CHEST, Slot.O_SHIP,
+        Slot.O_SHIP_WIRES, Slot.O_SHIP_CONSOLE, Slot.O_ROOF_WIRES, Slot.O_ROOF,
+        Slot.O_KETCH_GANTRY, Slot.O_SIGNAL_FLARE},
     directive_sensor = Slot.M_DIRECTIVE_SENSOR_8153C294,
     dialogue_sensor = Slot.M_DIALOG_SENSOR_8153C294,
     legs = {
@@ -138,6 +162,9 @@ return campaign.new{
             Slot.PT_FALLEN_ABOVE, Slot.PT_FIRST_WEAPON_GIVE, Slot.PT_NUX_GHOST_LIGHT_UP_START,
             Slot.PT_DIAG_CORNER, Slot.PT_LOOTCACHE, Slot.PT_MUSIC_ALLEY,
             Slot.PT_TRANS_GRAVEYARD, Slot.PT_EXIT_8153C1E2,
+            Slot.PT_FALLEN_1B_SPAWN, Slot.PT_FALLEN_C_SPAWN, Slot.PT_FALLEN_ARENA_SPAWN,
+            Slot.PT_FALLEN_MELEE, Slot.PT_CORR_SPAWN_B, Slot.PT_CORR_SPAWN_B_MELEE,
+            Slot.PT_CORR_SPAWN_B_REAR, Slot.PT_FINAL_ROOM_BATTLE, Slot.PT_FALLEN_VANDAL_SPAWN,
         }},
         {id = "divide", state = mission.states.STATE_8153C01B_0001_0000_8153C015, arm = {
             Slot.PT_KETCH, Slot.PT_GRAVEYARD_REVEAL, Slot.PT_ENTER_HANGAR,
@@ -176,6 +203,7 @@ return campaign.new{
             navpoint = Slot.NP_GHOST_LIGHT,
             on_start = function(context)
                 context:activate_objects{slots = {Slot.O_BREACH_GATING_BACK}, active = true}
+                move(context, {Slot.D_BREACH_GATE_LIGHTS_8153C1AD}, "open")
             end,
             ends = {trigger = Slot.PT_FIRST_WEAPON_GIVE}},
         -- "There. A rifle."
@@ -184,11 +212,12 @@ return campaign.new{
             on_start = function(context)
                 context:activate_objects{slots = {Slot.O_WEAPON}, active = true}
             end,
-            ends = {interact = Slot.O_WEAPON_INTERACT}},
+            barrier = true, ends = {interact = Slot.O_WEAPON_INTERACT}},
         -- Through the Breach. Every ambush below is its own trigger; none of them gates the way.
         {id = "breach", directive = Directive.SURVIVE_GOING_THROUGH_THE_BREACH,
             lines = {line(cue.CUE_12)},
             on_start = function(context)
+                context:slot(Slot.O_CHEST_WEAPON):set_interactable_object{used = true}
                 context:activate_objects{slots = {Slot.O_BREACH_GATING_BACK, Slot.O_WEAPON},
                     active = false}
             end,
@@ -197,8 +226,6 @@ return campaign.new{
             ends = {trigger = Slot.PT_LOOTCACHE}},
         -- The weapon cache in the alley.
         {id = "cache", lines = {line(cue.CUE_15)},
-            ends = {interact = Slot.O_CHEST_WEAPON}},
-        {id = "shotgun", lines = {line(cue.CUE_17)},
             ends = {trigger = Slot.PT_MUSIC_ALLEY}},
         {id = "corridor", lines = {line(cue.CUE_24)},
             ends = {trigger = Slot.PT_TRANS_GRAVEYARD}},
@@ -212,8 +239,9 @@ return campaign.new{
         {id = "ketch", lines = {line(cue.CUE_27)},
             on_start = function(context)
                 context:activate_objects{slots = {Slot.O_SIGNAL_FLARE}, active = true}
+                context:slot(Slot.CI_KETCH_ARRIVAL_CINEMATIC):set_cinematic_active{active = true}
             end,
-            ends = {trigger = Slot.PT_GRAVEYARD_REVEAL}},
+            ends = {}},
         -- "Push back the assault." The reveal and the fight start together.
         {id = "assault", directive = Directive.PUSH_BACK_THE_ASSAULT,
             navpoint = Slot.NP_CHEST,
@@ -228,11 +256,10 @@ return campaign.new{
             navpoint = Slot.NP_END_MISSION_8153C272,
             lines = {line(cue.CUE_36)},
             on_start = function(context)
+                context:slot(Slot.O_POWER_CHEST):set_interactable_object{used = true}
                 context:activate_objects{slots = {Slot.O_SHIP, Slot.O_SHIP_WIRES,
                     Slot.O_SHIP_CONSOLE, Slot.O_ROOF_WIRES, Slot.O_ROOF}, active = true}
             end,
-            ends = {interact = Slot.O_POWER_CHEST}},
-        {id = "rocket", lines = {line(cue.CUE_38)},
             ends = {trigger = Slot.PT_MAIN_ROOM}},
         {id = "clear", directive = Directive.CLEAR_THE_AREA,
             navpoint = Slot.NP_END_MISSION_8153C272,
@@ -245,7 +272,20 @@ return campaign.new{
             ends = {trigger = Slot.PT_END_MISSION}},
     },
     encounters = {
-        nests, first_vandal, first_fight, cache, corridor, garage,
+        nests, first_vandal, first_fight, hall_drop, cache,
+        corridor, corridor_melee, corridor_rear, garage,
         raiders, walker, hangar, backup,
     },
 }
+
+local terminated = script.on_event_cinematic_terminated
+script.on_event_cinematic_terminated = function(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation then return end
+    if event.slot ~= nil and event.slot.id == Slot.CI_KETCH_ARRIVAL_CINEMATIC then
+        context:slot(Slot.CI_KETCH_ARRIVAL_CINEMATIC):set_cinematic_active{active = false}
+        context:activate_objects{slots = {Slot.O_SIGNAL_FLARE}, active = false}
+    end
+    terminated(context, state, event)
+end
+
+return script

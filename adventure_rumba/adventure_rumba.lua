@@ -1,16 +1,25 @@
--- Hijacked. Ported from the Dawn fork's step graph; not tested in game.
--- Four legs: Artifacts Edge (104), the Mists (264), the Nessus surface (296) and the Well of
--- Echoes (320). The Entangled Mind retreats twice, then dies; the processor is carried to the
--- conflux and scanned.
--- Dawn placed this mission's enemies from a client hook and read the Mind's health the same way.
--- Here every placement is an ordinary squad request and the Mind's retreats follow its authored
--- teleport triggers. Not ported: the boss relocation mechanic, which has no server verb.
+-- Hijacked uses network reports; device modes and charge time remain unverified in game.
+-- Absent: Mind relocation, enemy plate contesting, and plate charge visuals.
 local missions = require("missions")
 local mission = require(missions.ADVENTURE_RUMBA)
 local campaign = require("lib.campaign")
+local lib = require("lib.mission_lib")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive = mission.Slot, mission.Squad, mission.Directive
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80B42ADB
+
+local function key(context, name)
+    return "rumba/" .. context.attempt_generation .. "/" .. name
+end
+
+local function pose(context, slot, value)
+    context:slot(slot):set_channel{
+        channel = context.sdk.device_channels.position, value = context.sdk.unit(value),
+    }
+end
+
+-- The reconstructed charge lasts five seconds of uninterrupted occupancy.
+local PLATE_MILLISECONDS = 5000
 
 -- The Harpies circling Artifacts Edge before the player moves.
 local waiting = {
@@ -92,8 +101,7 @@ local arena_front = {
 
 local arena_back = {
     id = "arena_back",
-    trigger = Slot.PT_HYDRA_TELEPORT01,
-    after = "hunt",
+    after = "pursuit",
     objective = Slot.LRG_ARENA_OBJECTIVE,
     squads = {
         unit(Squad.LRG_ARENA_BACK_LEFT01_SQUAD, Slot.LRG_ARENA_BACK_LEFT01_SQUAD),
@@ -107,7 +115,7 @@ local arena_back = {
 local mind_guards = {
     id = "mind_guards",
     trigger = Slot.HYDRA_PLAYER_TRIGGER,
-    after = "hunt",
+    after = "cornered",
     objective = Slot.HYDRA_OBJECTIVE,
     squads = {
         unit(Squad.HYDRA_GOBLIN01_SQUAD, Slot.HYDRA_GOBLIN01_SQUAD),
@@ -174,7 +182,7 @@ local well_mid = {
 
 local well_floor = {
     id = "well_floor",
-    after = "plate",
+    after = "charge",
     objective = Slot.OBJ_FINAL,
     squads = {
         unit(Squad.SQ_FINAL_GOBLIN00, Slot.SQ_FINAL_GOBLIN00),
@@ -184,12 +192,16 @@ local well_floor = {
 
 local platform_guards = {
     id = "platform_guards",
-    after = "climb",
+    after = "platform2",
     objective = Slot.OBJ_FINAL,
     squads = {
         unit(Squad.SQ_FINAL_PLAT_GOBLIN01, Slot.SQ_FINAL_PLAT_GOBLIN01),
-        unit(Squad.SQ_FINAL_PLAT_GOBLIN02, Slot.SQ_FINAL_PLAT_GOBLIN02),
     },
+}
+
+local platform_guards2 = {
+    id = "platform_guards2", after = "platform3", objective = Slot.OBJ_FINAL,
+    squads = {unit(Squad.SQ_FINAL_PLAT_GOBLIN02, Slot.SQ_FINAL_PLAT_GOBLIN02)},
 }
 
 -- The last guard set. The two Harpies never gate the scan.
@@ -213,8 +225,15 @@ local conflux_harpies = {
     },
 }
 
-return campaign.new{
+local script = campaign.new{
     key = "rumba",
+    omit = {
+        Slot.O_ECHOES_RUMBA_BLOCK01, Slot.O_ECHOES_RUMBA_BLOCK02,
+        Slot.O_ECHOES_RUMBA_BLOCK02_COV, Slot.O_ECHOES_RUMBA_BLOCK03,
+        Slot.O_ECHOES_RUMBA_BLOCK04, Slot.O_ECHOES_RUMBA_BLOCK04_COV01,
+        Slot.O_ECHOES_RUMBA_BLOCK04_COV02, Slot.O_ECHOES_RUMBA_BLOCK05,
+        Slot.O_ECHOES_RUMBA_FINAL_LIGHTHOUSE, Slot.O_ECHOES_RUMBA_GHOST_INTERACT,
+    },
     directive_sensor = Slot.M_DIRECTIVE_SENSOR_80B42ADB,
     dialogue_sensor = Slot.M_DIALOG_SENSOR_80B42ADB,
     legs = {
@@ -258,15 +277,15 @@ return campaign.new{
         {id = "hunt", directive = Directive.SCAVENGE_A_POWERFUL_PROCESSOR_FROM_THE_VEX_AE1FB52D,
             on_start = function(context)
                 context:activate_objects{slots = {Slot.O_MISTS_RUMBA_BARRIER01}, active = true}
-                move(context, {Slot.D_MISTS_RUMBA_BARRIER01}, "open")
+                pose(context, Slot.D_MISTS_RUMBA_BARRIER01, 0)
             end,
             ends = {trigger = Slot.LRG_ARENA_PLAYER_TRIGGER}},
-        -- "There it is." The Mind retreats twice on its own teleport triggers.
+        -- Health gates use the combatant Sense; route crossings cannot stand in for damage.
         {id = "identified", lines = {line(cue.CUE_5)},
-            ends = {trigger = Slot.PT_HYDRA_TELEPORT01,
+            barrier = true, ends = {clear = "mind",
                 health = {slot = Slot.HYDRA_HYDRA_SQUAD_HYDRA, at = 2 / 3}}},
         {id = "pursuit", lines = {line(cue.CUE_6)},
-            ends = {trigger = Slot.PT_HYDRA_TELEPORT02,
+            barrier = true, ends = {clear = "mind",
                 health = {slot = Slot.HYDRA_HYDRA_SQUAD_HYDRA, at = 1 / 3}}},
         {id = "cornered", directive = Directive.DEFEAT_THE_ENTANGLED_MIND,
             barrier = true, ends = {clear = "mind"}},
@@ -275,12 +294,12 @@ return campaign.new{
             navpoint = Slot.AP_ENDPOINT_80B42422,
             lines = {line(cue.CUE_9)},
             on_start = function(context)
-                move(context, {Slot.D_MISTS_RUMBA_BARRIER01}, "close")
+                pose(context, Slot.D_MISTS_RUMBA_BARRIER01, 1)
             end,
             ends = {trigger = Slot.PT_ENDPOINT_80B42422}},
-        {id = "returned", navpoint = Slot.AP_TELEPORT,
+        {id = "returned", navpoint = Slot.AP_TELEPORT, revisit = true, barrier = true,
             directive = Directive.CONNECT_THE_PROCESSOR_TO_THE_VEX_NETWORK,
-            ends = {trigger = Slot.PT_TELEPORT, region = "surface"}},
+            ends = {trigger = Slot.PT_TELEPORT}},
         -- The conflux is lit before the walk to it.
         {id = "route", directive = Directive.CONNECT_THE_PROCESSOR_TO_THE_VEX_NETWORK_D014E2DA,
             navpoint = Slot.AP_ENDPOINT_80B427B1,
@@ -305,30 +324,61 @@ return campaign.new{
                     active = true}
             end,
             ends = {trigger = Slot.PT_ENDPOINT_80B42AAA}},
-        {id = "climb", navpoint = Slot.NP_FINAL_BLOCK01,
+        {id = "charge", navpoint = Slot.NP_FINAL_BLOCK01, barrier = true,
+            on_start = function(context, state)
+                context:set_variable(key(context, "plate/armed"), true)
+                context:slot(Slot.PF_SYNC_PLATE_CENTRAL_PM_VOLUME)
+                    :set_occupancy_condition{value = 1}
+                if state:variable(key(context, "plate/occupied")) then
+                    context:set_variable(key(context, "plate/charging"), true)
+                    context:start_timer(key(context, "plate"), PLATE_MILLISECONDS)
+                end
+            end,
+            ends = {await = function(context, state)
+                return state:variable(key(context, "plate/charged")) == true
+            end}},
+        {id = "climb", navpoint = Slot.NP_FINAL_BLOCK01, barrier = true, revisit = true,
             on_start = function(context)
-                context:activate_objects{slots = {Slot.O_ECHOES_RUMBA_BLOCK01,
-                    Slot.O_ECHOES_RUMBA_BLOCK02, Slot.O_ECHOES_RUMBA_BLOCK02_COV,
-                    Slot.O_ECHOES_RUMBA_BLOCK03, Slot.O_ECHOES_RUMBA_BLOCK04,
+                context:activate_objects{slots = {Slot.O_ECHOES_RUMBA_BLOCK01}, active = true}
+                move(context, {Slot.D_ECHOES_RUMBA_BLOCK01}, "open")
+            end,
+            ends = {trigger = Slot.PT_FINAL_BLOCK01}},
+        {id = "platform2", barrier = true, revisit = true,
+            on_start = function(context)
+                context:activate_objects{slots = {Slot.O_ECHOES_RUMBA_BLOCK02,
+                    Slot.O_ECHOES_RUMBA_BLOCK02_COV}, active = true}
+            end,
+            ends = {trigger = Slot.PT_FINAL_BLOCK02}},
+        {id = "platform3", barrier = true, revisit = true,
+            on_start = function(context)
+                context:activate_objects{slots = {Slot.O_ECHOES_RUMBA_BLOCK03}, active = true}
+            end,
+            ends = {trigger = Slot.PT_FINAL_BLOCK03}},
+        {id = "platform4", barrier = true, revisit = true,
+            on_start = function(context)
+                context:activate_objects{slots = {Slot.O_ECHOES_RUMBA_BLOCK04,
                     Slot.O_ECHOES_RUMBA_BLOCK04_COV01, Slot.O_ECHOES_RUMBA_BLOCK04_COV02},
                     active = true}
-                move(context, {Slot.D_ECHOES_RUMBA_BLOCK01, Slot.D_ECHOES_RUMBA_BLOCK04}, "open")
+                move(context, {Slot.D_ECHOES_RUMBA_BLOCK04}, "open")
             end,
-            ends = {trigger = {Slot.PT_FINAL_BLOCK01, Slot.PT_FINAL_BLOCK02,
-                Slot.PT_FINAL_BLOCK03, Slot.PT_FINAL_BLOCK04}}},
+            ends = {trigger = Slot.PT_FINAL_BLOCK04}},
         {id = "conflux_fight", navpoint = Slot.AP_CONFLUX,
             barrier = true, ends = {clear = {"well_floor", "conflux_guards"}}},
         -- The Ghost connects the processor.
         {id = "scan", directive = Directive.CONNECT_THE_PROCESSOR_TO_THE_VEX_NETWORK_EDEDCBB4,
             navpoint = Slot.AP_CONFLUX,
             lines = {line(cue.CUE_11)},
-            ends = {ghost_link = Slot.GL_ECHOES_CONFLUX}},
+            on_start = function(context)
+                context:slot(Slot.O_ECHOES_RUMBA_GHOST_INTERACT)
+                    :set_interactable_object{used = true}
+            end,
+            barrier = true, ends = {ghost_link = Slot.GL_ECHOES_CONFLUX}},
         -- "It failed." The lighthouse image comes up with the answer.
         {id = "failed",
             on_start = function(context)
                 context:activate_objects{slots = {Slot.O_ECHOES_RUMBA_FINAL_LIGHTHOUSE},
                     active = true}
-                move(context, {Slot.D_ECHOES_RUMBA_FINAL_LIGHTHOUSE}, "open")
+                pose(context, Slot.D_ECHOES_RUMBA_FINAL_LIGHTHOUSE, 0.5)
             end,
             lines = {line(cue.CUE_12), line(cue.CUE_13)}},
     },
@@ -336,7 +386,43 @@ return campaign.new{
         waiting, upper_patrol, patrol, entrance, small_arena,
         mind, arena_front, arena_back, mind_guards,
         return_patrols, echoes_entry, echoes_zone,
-        well_entrance, well_mid, well_floor, platform_guards,
+        well_entrance, well_mid, well_floor, platform_guards, platform_guards2,
         conflux_guards, conflux_harpies,
     },
 }
+
+local entered = script.on_event_trigger_entered
+script.on_event_trigger_entered = function(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation then return end
+    if lib.is_slot(context, event, Slot.PF_SYNC_PLATE_CENTRAL_PM_VOLUME) then
+        context:set_variable(key(context, "plate/occupied"), true)
+        if state:variable(key(context, "plate/armed"))
+            and not state:variable(key(context, "plate/charged"))
+            and not state:variable(key(context, "plate/charging")) then
+            context:set_variable(key(context, "plate/charging"), true)
+            context:start_timer(key(context, "plate"), PLATE_MILLISECONDS)
+        end
+    end
+    entered(context, state, event)
+end
+script.on_event_trigger_exited = function(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation then return end
+    if lib.is_slot(context, event, Slot.PF_SYNC_PLATE_CENTRAL_PM_VOLUME) then
+        context:clear_variable(key(context, "plate/occupied"))
+        context:clear_variable(key(context, "plate/charging"))
+        context:cancel_timer(key(context, "plate"))
+    end
+end
+local elapsed = script.on_event_timer_elapsed
+script.on_event_timer_elapsed = function(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation then return end
+    if event.timer_name == key(context, "plate")
+        and state:variable(key(context, "plate/occupied"))
+        and state:variable(key(context, "plate/charging")) then
+        context:clear_variable(key(context, "plate/charging"))
+        context:set_variable(key(context, "plate/charged"), true)
+    end
+    elapsed(context, state, event)
+end
+
+return script

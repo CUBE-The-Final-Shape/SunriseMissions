@@ -1,15 +1,48 @@
--- A Garden World. Ported from the Dawn fork's step graph; not tested in game.
--- Four legs: the Lighthouse (120), the Infinite Forest (80), the simulant past (8), the Spire
--- (136). The route is the cube puzzle: each Vex lens is shot, then its block and lasers come down.
--- Each run seeds the authored type-37 Forest worker and leaves its other inputs authored.
--- Dendron's shield phases read the health fraction his type-2 Sense already reports.
--- Not ported: the lens expose mechanic, which Dawn sends before a lens may be shot.
+-- A Garden World. Native mission logic; live play remains unverified.
+-- Absent: lens vulnerability, golem release inputs, boss motion and shield ownership.
 local missions = require("missions")
 local mission = require(missions.STRIKE_BOND)
 local campaign = require("lib.campaign")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
 local cue = mission.DialogueCue.M_DIALOG_SENSOR
+
+local function block(prefix)
+    return {
+        objects = {Slot[prefix .. "_O_VEX_LENS"], Slot[prefix .. "_O_WRAPPER"],
+            Slot[prefix .. "_O_VEX_BLOCK"]},
+        devices = {Slot[prefix .. "_D_VEX_LENS"], Slot[prefix .. "_D_VEX_BLOCK"],
+            Slot[prefix .. "_D_LASER_IN"], Slot[prefix .. "_D_LASER_OUT"],
+            Slot[prefix .. "_D_SHIELD"]},
+    }
+end
+
+local function golem(prefix)
+    return {
+        objects = {Slot[prefix .. "_O_LENS"], Slot[prefix .. "_O_WRAPPER"]},
+        devices = {Slot[prefix .. "_D_LENS"], Slot[prefix .. "_D_LASER"],
+            Slot[prefix .. "_D_SHIELD"]},
+    }
+end
+
+local blocks = {block("PF_BLOCK_0"), block("PF_BLOCK_1"), block("PF_BLOCK_2"),
+    block("PF_BLOCK_3"), block("PF_BLOCK_4"), block("PF_TOWER_BLOCK")}
+local golems = {golem("PF_TERRACE_GOLEM"), golem("PF_CANNON_GOLEM"),
+    golem("PF_TOWER_GOLEM"), golem("PF_GOLEM_0"), golem("PF_GOLEM_1"),
+    golem("PF_GOLEM_2"), golem("PF_GOLEM_3")}
+
+local function prepare(context, group)
+    context:activate_objects{slots = group.objects, active = true}
+    move(context, group.devices, "open")
+end
+
+local omit = {Slot.BOSS_PLATFORM_O_LOOP, Slot.O_MAIN_LENS, Slot.LIGHTHOUSE_TELEPORT,
+    Slot.O_CANNON, Slot.O_MAIN_CANNON}
+for _, groups in ipairs({blocks, golems}) do
+    for _, group in ipairs(groups) do
+        for _, object in ipairs(group.objects) do omit[#omit + 1] = object end
+    end
+end
 
 local lighthouse = {
     id = "lighthouse",
@@ -21,11 +54,9 @@ local lighthouse = {
         unit(Squad.SQ_LANDING, Slot.SQ_LANDING),
     },
 }
-
--- The fixed exit-platform sources of Forest C, not procedural population.
 local forest_exit = {
     id = "forest_exit",
-    trigger = Slot.PT_BEGIN,
+    after = "forest",
     objective = Slot.OBJ_IFC,
     squads = {
         unit(Squad.SQ_CYCLOPS_0, Slot.SQ_CYCLOPS_0),
@@ -85,8 +116,6 @@ local terrace = {
         unit(Squad.SQ_TERRACE_GOLEM_SUPPORT_3, Slot.SQ_TERRACE_GOLEM_SUPPORT_3),
     },
 }
-
--- The Minotaur that holds the terrace shield. Its scene owns the reveal.
 local terrace_golem = {
     id = "terrace_golem",
     after = "terrace",
@@ -210,10 +239,11 @@ local spire_top = {
         unit(Squad.SQ_TOP_3, Slot.SQ_TOP_3),
     },
 }
-
--- Dendron stands on the platform from the arena's first push.
 local dendron = {
     id = "dendron",
+    on_start = function(context)
+        context:slot(Slot.SQ_BOSS_BOND):bind_combatant_to_squad()
+    end,
     after = "top",
     objective = Slot.OBJ_MACHINE,
     squads = {
@@ -238,8 +268,6 @@ local arena_adds = {
         unit(Squad.SQ_LENS_ADDS_5, Slot.SQ_LENS_ADDS_5),
     },
 }
-
--- Two Minotaurs hold each shield. Killing both drops it and brings the next wave.
 local shield1 = {
     id = "shield1",
     after = "shield1",
@@ -252,7 +280,7 @@ local shield1 = {
 
 local shield1_adds = {
     id = "shield1_adds",
-    after = "shield2",
+    after = "second_phase",
     objective = Slot.OBJ_MACHINE,
     squads = {
         unit(Squad.SQ_BOSS_ADDS_4, Slot.SQ_BOSS_ADDS_4),
@@ -295,14 +323,13 @@ local shield2_adds = {
         unit(Squad.SQ_FINAL_ADDS3_3, Slot.SQ_FINAL_ADDS3_3),
     },
 }
-
--- A cube is passed by removing its block and its two lasers. Position 0 removes a device body.
 local function open_block(context, slots)
     move(context, slots, "close")
 end
 
 return campaign.new{
     key = "bond",
+    omit = omit,
     directive_sensor = Slot.M_DIRECTIVE_SENSOR,
     dialogue_sensor = Slot.M_DIALOG_SENSOR,
     legs = {
@@ -320,14 +347,12 @@ return campaign.new{
                 Slot.PT_MANCANNON2, Slot.PT_TOP}},
     },
     steps = {
-        -- Ikora sends the Guardian through the Lighthouse gate.
         {id = "briefing", directive = Directive.ENTER_THE_INFINITE_FOREST,
             lines = {line(cue.CUE_0)},
             on_start = function(context)
                 context:activate_objects{slots = {Slot.LIGHTHOUSE_TELEPORT}, active = true}
             end,
             ends = {region = "forest"}},
-        -- "Search for a gateway to the past." Forest C generates its islands from the seed.
         {id = "forest", directive = Directive.SEARCH_FOR_A_GATEWAY_TO_THE_PAST,
             lines = {line(cue.CUE_1)},
             on_start = function(context)
@@ -336,7 +361,6 @@ return campaign.new{
             end,
             ends = {trigger = {Slot.PT_END, Slot.PT_FAR}}},
         {id = "gate", directive = Directive.ENTER_THE_PAST, ends = {region = "past"}},
-        -- The simulant past. The launch cannons come up with the arrival.
         {id = "past_arrival", directive = Directive.ENTER_THE_SPIRE_2D67AB51,
             lines = {line(cue.CUE_3)},
             on_start = function(context)
@@ -345,13 +369,11 @@ return campaign.new{
                 context:activate_objects{slots = {Slot.O_CANNON}, active = true}
             end,
             ends = {trigger = Slot.PT_LOWER_CANNON}},
-        -- "Radiolaria." The security modules are ahead.
         {id = "radiolaria", directive = Directive.SABOTAGE_VEX_SECURITY_PROTOCOLS_82271EEA,
             lines = {line(cue.CUE_5)},
             ends = {trigger = Slot.PT_UPPER_PLATFORM}},
-        -- The first cube. Dawn sent a lens-expose mechanic before it could be shot; we do not have
-        -- that verb, so the lens stands as the map seeds it.
-        {id = "countermeasures", lines = {line(cue.CUE_4)},
+        {id = "countermeasures", lines = {line(cue.CUE_4)}, barrier = true,
+            on_start = function(context) prepare(context, blocks[1]) end,
             ends = {destroyed = {Slot.PF_BLOCK_0_O_VEX_LENS}}},
         {id = "first_block", lines = {line(cue.CUE_6), line(cue.CUE_7)},
             on_start = function(context)
@@ -359,18 +381,28 @@ return campaign.new{
                     Slot.PF_BLOCK_0_D_LASER_OUT, Slot.PF_BLOCK_0_D_SHIELD})
             end,
             ends = {trigger = {Slot.PT_TERRACE_STEPS, Slot.PT_TERRACE_FAR}}},
-        -- The terrace Minotaur holds the second cube's shield.
+        {id = "terrace_platform", barrier = true,
+            on_start = function(context) prepare(context, blocks[2]) end,
+            ends = {destroyed = {Slot.PF_BLOCK_1_O_VEX_LENS}}},
         {id = "terrace", directive = Directive.ENTER_THE_SPIRE_6D15E881,
             navpoint = Slot.AP_TERRACE_GOLEM_LENS,
             lines = {line(cue.CUE_8), line(cue.CUE_9)},
             scene = Scene.PF_TERRACE_GOLEM_SN_GOLEM,
+            on_start = function(context)
+                open_block(context, {Slot.PF_BLOCK_1_D_VEX_BLOCK, Slot.PF_BLOCK_1_D_LASER_IN,
+                    Slot.PF_BLOCK_1_D_LASER_OUT, Slot.PF_BLOCK_1_D_SHIELD})
+                prepare(context, golems[1])
+            end,
+            barrier = true, ends = {destroyed = {Slot.PF_TERRACE_GOLEM_O_LENS}}},
+        {id = "terrace_clear", barrier = true,
+            on_start = function(context)
+                move(context, {Slot.PF_TERRACE_GOLEM_D_LASER,
+                    Slot.PF_TERRACE_GOLEM_D_SHIELD}, "close")
+            end,
             ends = {clear = "terrace_golem"}},
         {id = "terrace_block", lines = {line(cue.CUE_10)},
-            on_start = function(context)
-                move(context, {Slot.PF_TERRACE_GOLEM_D_LASER, Slot.PF_TERRACE_GOLEM_D_SHIELD},
-                    "close")
-            end,
-            ends = {destroyed = {Slot.PF_BLOCK_1_O_VEX_LENS, Slot.PF_BLOCK_2_O_VEX_LENS}}},
+            on_start = function(context) prepare(context, blocks[3]) end,
+            barrier = true, ends = {destroyed = {Slot.PF_BLOCK_2_O_VEX_LENS}}},
         {id = "corridor", directive = Directive.SABOTAGE_VEX_SECURITY_PROTOCOLS,
             on_start = function(context)
                 open_block(context, {Slot.PF_BLOCK_1_D_VEX_BLOCK, Slot.PF_BLOCK_1_D_LASER_IN,
@@ -379,28 +411,36 @@ return campaign.new{
                     Slot.PF_BLOCK_2_D_LASER_OUT, Slot.PF_BLOCK_2_D_SHIELD})
             end,
             ends = {trigger = {Slot.PT_GATES, Slot.PT_GATE_RAMP, Slot.PT_GATES_UPPER}}},
-        {id = "gates", ends = {destroyed = {Slot.PF_BLOCK_3_O_VEX_LENS}}},
+        {id = "gates", barrier = true,
+            on_start = function(context) prepare(context, blocks[4]) end,
+            ends = {destroyed = {Slot.PF_BLOCK_3_O_VEX_LENS}}},
         {id = "gate2", lines = {line(cue.CUE_11)},
             on_start = function(context)
                 open_block(context, {Slot.PF_BLOCK_3_D_VEX_BLOCK, Slot.PF_BLOCK_3_D_LASER_IN,
                     Slot.PF_BLOCK_3_D_LASER_OUT, Slot.PF_BLOCK_3_D_SHIELD})
             end,
-            ends = {destroyed = {Slot.PF_BLOCK_4_O_VEX_LENS}}},
-        -- The cannon Minotaur guards the way to the Spire.
+            ends = {}},
         {id = "cannon_golem", scene = Scene.PF_CANNON_GOLEM_SN_GOLEM,
+            on_start = function(context) prepare(context, golems[2]) end,
+            barrier = true, ends = {destroyed = {Slot.PF_CANNON_GOLEM_O_LENS}}},
+        {id = "cannon_clear", barrier = true,
             on_start = function(context)
-                open_block(context, {Slot.PF_BLOCK_4_D_VEX_BLOCK, Slot.PF_BLOCK_4_D_LASER_IN,
-                    Slot.PF_BLOCK_4_D_LASER_OUT, Slot.PF_BLOCK_4_D_SHIELD})
+                move(context, {Slot.PF_CANNON_GOLEM_D_LASER,
+                    Slot.PF_CANNON_GOLEM_D_SHIELD}, "close")
             end,
             ends = {clear = "cannon_golem"}},
+        {id = "last_block", barrier = true,
+            on_start = function(context) prepare(context, blocks[5]) end,
+            ends = {destroyed = {Slot.PF_BLOCK_4_O_VEX_LENS}}},
         {id = "cannon", directive = Directive.ENTER_THE_SPIRE, navpoint = Slot.AP_TO_MACHINE,
             on_start = function(context)
                 move(context, {Slot.PF_CANNON_GOLEM_D_LASER, Slot.PF_CANNON_GOLEM_D_SHIELD},
                     "close")
+                open_block(context, {Slot.PF_BLOCK_4_D_VEX_BLOCK, Slot.PF_BLOCK_4_D_LASER_IN,
+                    Slot.PF_BLOCK_4_D_LASER_OUT, Slot.PF_BLOCK_4_D_SHIELD})
                 context:activate_objects{slots = {Slot.O_MAIN_CANNON}, active = true}
             end,
             ends = {trigger = Slot.PT_MAIN_CANNON}},
-        -- "Arc energy." The Spire is entered from the cannon.
         {id = "spire_entry", directive = Directive.ENTER_THE_SPIRE, navpoint = Slot.AP_TO_MACHINE,
             lines = {line(cue.CUE_12)},
             ends = {region = "spire"}},
@@ -412,16 +452,21 @@ return campaign.new{
             end,
             ends = {trigger = {Slot.PT_MID, Slot.PT_SECOND_FLOOR, Slot.PT_THIRD_FLOOR,
                 Slot.PT_MANCANNON2}}},
-        -- The Spire Minotaur holds the last cube on the climb.
         {id = "middle", directive = Directive.CLIMB, navpoint = Slot.AP_LENS_GOLEM,
             scene = Scene.PF_TOWER_GOLEM_SN_GOLEM,
+            on_start = function(context) prepare(context, golems[3]) end,
+            barrier = true, ends = {destroyed = {Slot.PF_TOWER_GOLEM_O_LENS}}},
+        {id = "tower_clear", barrier = true,
+            on_start = function(context)
+                move(context, {Slot.PF_TOWER_GOLEM_D_LASER,
+                    Slot.PF_TOWER_GOLEM_D_SHIELD}, "close")
+            end,
             ends = {clear = "tower_golem"}},
         {id = "tower_block",
             on_start = function(context)
-                move(context, {Slot.PF_TOWER_GOLEM_D_LASER, Slot.PF_TOWER_GOLEM_D_SHIELD}, "close")
+                prepare(context, blocks[6])
             end,
-            ends = {destroyed = {Slot.PF_TOWER_BLOCK_O_VEX_LENS}}},
-        -- The arena opens with Dendron already on his platform.
+            barrier = true, ends = {destroyed = {Slot.PF_TOWER_BLOCK_O_VEX_LENS}}},
         {id = "top", directive = Directive.CLIMB, navpoint = Slot.AP_LENS_GOLEM,
             on_start = function(context)
                 open_block(context, {Slot.PF_TOWER_BLOCK_D_VEX_BLOCK,
@@ -435,38 +480,53 @@ return campaign.new{
             ends = {trigger = Slot.PT_TOP}},
         {id = "arena", directive = Directive.SABOTAGE_VEX_SECURITY_PROTOCOLS_82271EEA,
             scene = Scene.SN_CYCLOPS_INTRO,
-            barrier = true, ends = {scene = Slot.SN_CYCLOPS_INTRO}},
+            ends = {}},
         {id = "lens", barrier = true, ends = {destroyed = {Slot.O_MAIN_LENS}}},
-        -- "The power is cut." The Spire lasers go down and the fight starts.
         {id = "adds", directive = Directive.OVERCOME_THE_VEX_665C1E1C,
             lines = {line(cue.CUE_13)},
             on_start = function(context)
                 move(context, {Slot.D_LASER_MAIN, Slot.D_TOWER_LASER}, "close")
             end,
-            -- Dendron raises his first shield at two thirds health. The client reports
-            -- that fraction on his type-2 Sense, so no client read is needed.
             barrier = true,
-            ends = {clear = "arena_adds", health = {slot = Slot.SQ_BOSS_BOND, at = 2 / 3}}},
+            ends = {health = {slot = Slot.SQ_BOSS_BOND, at = 2 / 3}}},
         {id = "shield1", directive = Directive.OVERCOME_THE_VEX_665C1E1C,
             scene = Scene.PF_GOLEM_0_SN_GOLEM,
             on_start = function(context)
+                prepare(context, golems[4])
+                prepare(context, golems[5])
+                context:scene(Scene.PF_GOLEM_1_SN_GOLEM):activate{}
                 move(context, {Slot.D_LASER_GOLEM1}, "open")
             end,
             barrier = true,
-            ends = {clear = "shield1", health = {slot = Slot.SQ_BOSS_BOND, at = 1 / 3}}},
+            ends = {destroyed = {Slot.PF_GOLEM_0_O_LENS, Slot.PF_GOLEM_1_O_LENS}}},
+        {id = "shield1_clear", barrier = true,
+            on_start = function(context)
+                move(context, {Slot.PF_GOLEM_0_D_LASER, Slot.PF_GOLEM_0_D_SHIELD,
+                    Slot.PF_GOLEM_1_D_LASER, Slot.PF_GOLEM_1_D_SHIELD}, "close")
+            end,
+            ends = {clear = "shield1"}},
+        {id = "second_phase", barrier = true,
+            on_start = function(context) move(context, {Slot.D_LASER_GOLEM1}, "close") end,
+            ends = {health = {slot = Slot.SQ_BOSS_BOND, at = 1 / 3}}},
         {id = "shield2", directive = Directive.OVERCOME_THE_VEX_665C1E1C,
             scene = Scene.PF_GOLEM_2_SN_GOLEM,
             on_start = function(context)
-                move(context, {Slot.D_LASER_GOLEM1}, "close")
+                prepare(context, golems[6])
+                prepare(context, golems[7])
+                context:scene(Scene.PF_GOLEM_3_SN_GOLEM):activate{}
                 move(context, {Slot.D_LASER_GOLEM2}, "open")
             end,
-            barrier = true, ends = {clear = "shield2"}},
-        {id = "final", directive = Directive.OVERCOME_THE_VEX_665C1E1C,
+            barrier = true,
+            ends = {destroyed = {Slot.PF_GOLEM_2_O_LENS, Slot.PF_GOLEM_3_O_LENS}}},
+        {id = "shield2_clear", barrier = true,
             on_start = function(context)
-                move(context, {Slot.D_LASER_GOLEM2}, "close")
+                move(context, {Slot.PF_GOLEM_2_D_LASER, Slot.PF_GOLEM_2_D_SHIELD,
+                    Slot.PF_GOLEM_3_D_LASER, Slot.PF_GOLEM_3_D_SHIELD}, "close")
             end,
-            barrier = true, ends = {clear = "dendron"}},
-        -- The chest opens where Dendron fell.
+            ends = {clear = "shield2"}},
+        {id = "final", directive = Directive.OVERCOME_THE_VEX_665C1E1C,
+            on_start = function(context) move(context, {Slot.D_LASER_GOLEM2}, "close") end,
+            barrier = true, ends = {health = {slot = Slot.SQ_BOSS_BOND, at = 0}}},
         {id = "reward", lines = {line(cue.CUE_14)},
             on_start = function(context)
                 context:activate_objects{slots = {Slot.PF_BOSS_CHEST_O_CHEST}, active = true}

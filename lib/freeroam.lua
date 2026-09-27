@@ -29,12 +29,14 @@ local SECTOR_KEY = "sec"
 local SECTOR_ACTIVE = 1
 local SECTOR_CLEARED = 2
 local SECTOR_CLEARED_KEY = "sk"
-local CRYSTAL_DONE_KEY = "cx"
 local ACTIVE_SITE_KEY = "as"
 
 --- Pairs a squad with the type-1 slot its Sense reports on.
-function freeroam.unit(squad, slot)
-    return {squad = lib.one(squad, "unit squad"), slot = lib.one(slot, "unit slot")}
+function freeroam.unit(squad, slot, options)
+    options = options or {}
+    return {squad = lib.one(squad, "unit squad"), slot = lib.one(slot, "unit slot"),
+        counts = options.counts, objective = options.objective, group = options.group,
+        member = options.member, spawn_rule = options.spawn_rule}
 end
 
 -- Ticks, never milliseconds: the script has no clock and the service timer is the only cadence.
@@ -100,7 +102,19 @@ end
 
 local function place_one(context, unit, mode)
     local squad = context:squad(unit.squad)
-    squad:place{counts = capped_counts(squad), mode = mode}
+    local counts = capped_counts(squad)
+    if unit.counts ~= nil then
+        assert(#unit.counts == counts.count, "encounter counts must match the authored lanes")
+        for index, value in ipairs(unit.counts) do counts:set(index, value) end
+    end
+    if unit.objective ~= nil then
+        context:slot(unit.slot):assign_combat_objective{
+            objective = context:slot(unit.objective), task_group = unit.group,
+        }
+    end
+    squad:place{counts = counts, mode = mode,
+        spawn_rule = unit.spawn_rule ~= nil and context:slot(unit.spawn_rule) or nil}
+    if unit.member ~= nil then context:slot(unit.member):bind_combatant_to_squad() end
 end
 
 local function place_units(context, units, mode)
@@ -198,7 +212,6 @@ end
 local function start_sector(context, scope, sector)
     scope:set_variable(SECTOR_KEY, SECTOR_ACTIVE)
     scope:set_variable(SECTOR_CLEARED_KEY, 0)
-    scope:set_variable(CRYSTAL_DONE_KEY, 0)
     set_objects(context, sector.chest, false)
     -- A blocker object is retired, not moved. A door is a type-23 channel.
     set_objects(context, sector.blockers, false)
@@ -209,24 +222,13 @@ local function start_sector(context, scope, sector)
             snap = true,
         }
     end
-    -- The authored effect and its filter hold the boss until its gate squads die.
-    if sector.shield ~= nil then
-        context:slot(sector.shield.effect):set_object_filter{
-            target = context:slot(sector.shield.filter),
-            inside = true,
-        }
-    end
+    -- TODO: shield effects need a type-26 server endpoint.
     place_units(context, sector.squads, context.sdk.squad_modes.replace)
     -- A crystal stays inert until its guardian dies. The monitor answers its destruction.
-    for _, crystal in ipairs(sector.crystals) do
+    for index, crystal in ipairs(sector.crystals) do
+        scope:clear_variable("crystal" .. index)
         context:activate_objects{slots = {crystal.object}, active = false}
         context:slot(crystal.monitor):watch_damage{target = context:slot(crystal.object)}
-    end
-end
-
-local function drop_shield(context, sector)
-    if sector.shield ~= nil then
-        context:slot(sector.shield.effect):set_object_active{active = false}
     end
 end
 
@@ -249,14 +251,17 @@ local function expose_boss_crystal(context, sector)
 end
 
 local function crystal_destroyed(context, scope, event, sector)
-    for _, crystal in ipairs(sector.crystals) do
+    for index, crystal in ipairs(sector.crystals) do
         if lib.is_slot(context, event, crystal.monitor) then
+            if scope:variable("crystal" .. index) then return end
+            scope:set_variable("crystal" .. index, true)
             if crystal.boss then
-                drop_shield(context, sector)
                 return
             end
-            local done = (scope:variable(CRYSTAL_DONE_KEY) or 0) + 1
-            scope:set_variable(CRYSTAL_DONE_KEY, done)
+            local done = 0
+            for other, target in ipairs(sector.crystals) do
+                if not target.boss and scope:variable("crystal" .. other) then done = done + 1 end
+            end
             if done >= sector.guarded_crystals then
                 expose_boss_crystal(context, sector)
             end
@@ -336,6 +341,13 @@ function freeroam.new(definition)
 
     local by_region = {}
     for _, zone in ipairs(zones) do
+        local encounter = definition.sectors ~= nil and definition.sectors[zone.region] or nil
+        if encounter ~= nil then
+            zone.sector = zone.sector or {}
+            zone.sector.squads = encounter.squads
+            zone.sector.boss = encounter.boss
+            zone.sector.chest = encounter.chest
+        end
         zone.patrol = zone.patrol or {}
         zone.ambient = zone.ambient or {}
         zone.events = zone.events or {}
@@ -378,39 +390,31 @@ function freeroam.new(definition)
         return by_region[region]
     end
 
-    -- A durable variable is only readable after its commit, so two events in one dispatch
-    -- would both see the zone as unbuilt and place its population twice.
-    local built = {}
-
     -- Leaving a sector's bubble empties it. Retiring and placing in one dispatch loses the
     -- placement, so the run that leaves clears the bodies and the next entry fills them.
     local function reset_departed(context, state, region)
         for _, zone in ipairs(zones) do
-            if zone.sector ~= nil and zone.region ~= region and built[zone.tag] then
+            local scope = lib.scope(context, state, zone.tag)
+            if zone.sector ~= nil and zone.region ~= region and scope:variable(ENTERED_KEY) then
                 retire_units(context, zone.sector.squads)
-                local scope = lib.scope(context, state, zone.tag)
                 scope:clear_variable(ENTERED_KEY)
                 scope:clear_variable(SECTOR_KEY)
                 scope:clear_variable(SECTOR_CLEARED_KEY)
-                scope:clear_variable(CRYSTAL_DONE_KEY)
-                built[zone.tag] = nil
             end
         end
     end
 
     local function build_zone(context, state, zone)
         local scope = lib.scope(context, state, zone.tag)
-        if built[zone.tag] or scope:variable(ENTERED_KEY) then
-            built[zone.tag] = true
+        if scope:variable(ENTERED_KEY) then
             resume_zone(context, scope, zone)
             return
         end
-        built[zone.tag] = true
         scope:set_variable(ENTERED_KEY, true)
         enter_zone(context, scope, zone)
     end
 
-    return {
+    local program = {
         -- A sector starts as soon as the client names it, not when it finishes switching slice
         -- sets. This places no state, so it cannot stall behind the switch or disturb a spawn.
         -- It needs a region already held: during the first load nothing is, and building then
@@ -443,6 +447,7 @@ function freeroam.new(definition)
         on_event_squad_state = function(context, state, event)
             local zone = held_zone(state)
             if zone == nil or not owns(context, zone) or event.alive_count ~= 0
+                or type(event.previous_alive_count) ~= "number"
                 or event.previous_alive_count <= 0 then
                 return
             end
@@ -473,13 +478,6 @@ function freeroam.new(definition)
             if open_crystal(context, event, sector) then
                 return
             end
-            -- A gate squad frees the boss: drop the authored effect that protects it.
-            for _, gate in ipairs(sector.gates) do
-                if lib.is_slot(context, event, gate) then
-                    drop_shield(context, sector)
-                    return
-                end
-            end
         end,
 
         -- The type-20 monitor echoes the crystal's health, so destruction needs no client read.
@@ -488,7 +486,7 @@ function freeroam.new(definition)
             if zone == nil or zone.sector == nil or not owns(context, zone) then
                 return
             end
-            if type(event.health) ~= "number" or event.health > 0 then
+            if type(event.health) ~= "number" or event.health ~= 0 then
                 return
             end
             crystal_destroyed(context, lib.scope(context, state, zone.tag), event, zone.sector)
@@ -508,6 +506,15 @@ function freeroam.new(definition)
             context:start_timer(TICK_TIMER, tick_ms)
         end,
     }
+    for _, name in ipairs({"on_event_client_state_changed", "on_event_region_changed",
+        "on_event_squad_state", "on_event_damage_state", "on_event_timer_elapsed"}) do
+        local handler = program[name]
+        program[name] = function(context, state, event)
+            if event.attempt_generation ~= context.attempt_generation then return end
+            handler(context, state, event)
+        end
+    end
+    return program
 end
 
 return freeroam

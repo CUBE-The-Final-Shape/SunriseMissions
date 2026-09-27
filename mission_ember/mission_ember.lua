@@ -1,12 +1,53 @@
--- 1AU. Red War campaign draft; not tested in game.
--- Steps follow the step objects, their lines and the trigger volume positions: the catwalk to
--- the control bridge, the ore tunnels, the sun deck, the foundry, the energy stream, the reactor.
+-- 1AU uses native server messages; these changes remain unverified in game.
+-- Absent: carry-loss recovery, Interceptor faction changes, and escape-ship hold.
+-- Absent: sun damage, vent exposure cycles, native carry ownership, and checkpoint recovery.
 local missions = require("missions")
 local mission = require(missions.MISSION_EMBER)
 local campaign = require("lib.campaign")
+local lib = require("lib.mission_lib")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive = mission.Slot, mission.Squad, mission.Directive
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80B3C90A
+
+local bridge_devices = {
+    Slot.POWERHOUSE_BRIDGE_ARM_MERCURY_DEVICE,
+    Slot.POWERHOUSE_BRIDGE_GEAR_MERCURY_BOTTOM_DEVICE,
+    Slot.POWERHOUSE_BRIDGE_GEAR_MERCURY_TOP_DEVICE,
+    Slot.POWERHOUSE_BRIDGE_ARM_SUN_DEVICE,
+    Slot.POWERHOUSE_BRIDGE_GEAR_SUN_BOTTOM_DEVICE,
+    Slot.POWERHOUSE_BRIDGE_GEAR_SUN_TOP_DEVICE,
+}
+
+local function pose(context, slots, value)
+    for _, slot in ipairs(slots) do
+        context:slot(slot):set_channel{
+            channel = context.sdk.device_channels.position, value = context.sdk.unit(value),
+        }
+    end
+end
+
+local foundry_devices = {
+    Slot.FOUNDRY_HATCH_DOOR_LEFT_DEVICE, Slot.FOUNDRY_HATCH_DOOR_RIGHT_DEVICE,
+    Slot.FOUNDRY_RAMROD_LEFT_DEVICE, Slot.FOUNDRY_RAMROD_RIGHT_DEVICE,
+    Slot.FOUNDRY_WARNING_LIGHT_DEVICE,
+}
+
+local function key(context, name)
+    return "ember/" .. context.attempt_generation .. "/" .. name
+end
+
+local function after_clear(encounter, force)
+    local squads = {}
+    for _, member in ipairs(encounter.squads) do squads[#squads + 1] = member.squad end
+    encounter.on_start = function(context)
+        context:set_variable(key(context, encounter.id .. "/present"), true)
+    end
+    return function(context, state)
+        return (force ~= nil and state:variable(key(context, force)) == true)
+            or (state:variable(key(context, encounter.id .. "/present")) == true
+                and context:cohort{squads = squads}.cleared)
+    end
+end
 
 -- The helipad squads stand where the player lands.
 local helipad = {
@@ -131,23 +172,38 @@ local processing_entry = {
     },
 }
 
--- The Cabal come in while the grinder runs.
 local processing_defend = {
     id = "processing_defend",
     after = "defend",
     objective = Slot.EMBER_LINK_PROCESSING_DEFEND_OBJECTIVE,
     squads = {
-        unit(Squad.PROCESSING_DEFEND_ANCHOR_SQUAD, Slot.PROCESSING_DEFEND_ANCHOR_SQUAD),
         unit(Squad.PROCESSING_DEFEND_DEFENSE_A_SQUAD, Slot.PROCESSING_DEFEND_DEFENSE_A_SQUAD),
         unit(Squad.PROCESSING_DEFEND_DEFENSE_B_SQUAD, Slot.PROCESSING_DEFEND_DEFENSE_B_SQUAD),
+        unit(Squad.PROCESSING_DEFEND_MELEE_A_SQUAD, Slot.PROCESSING_DEFEND_MELEE_A_SQUAD),
+        unit(Squad.PROCESSING_DEFEND_SUPPORT_A_SQUAD, Slot.PROCESSING_DEFEND_SUPPORT_A_SQUAD),
+    },
+}
+
+local processing_reinforcements = {
+    id = "processing_reinforcements",
+    after = "reinforcements",
+    objective = Slot.EMBER_LINK_PROCESSING_DEFEND_OBJECTIVE,
+    squads = {
         unit(Squad.PROCESSING_DEFEND_DEFENSE_C_SQUAD, Slot.PROCESSING_DEFEND_DEFENSE_C_SQUAD),
         unit(Squad.PROCESSING_DEFEND_DEFENSE_D_SQUAD, Slot.PROCESSING_DEFEND_DEFENSE_D_SQUAD),
-        unit(Squad.PROCESSING_DEFEND_MELEE_A_SQUAD, Slot.PROCESSING_DEFEND_MELEE_A_SQUAD),
         unit(Squad.PROCESSING_DEFEND_MELEE_B_SQUAD, Slot.PROCESSING_DEFEND_MELEE_B_SQUAD),
         unit(Squad.PROCESSING_DEFEND_MELEE_C_SQUAD, Slot.PROCESSING_DEFEND_MELEE_C_SQUAD),
-        unit(Squad.PROCESSING_DEFEND_MELEE_D_SQUAD, Slot.PROCESSING_DEFEND_MELEE_D_SQUAD),
-        unit(Squad.PROCESSING_DEFEND_SUPPORT_A_SQUAD, Slot.PROCESSING_DEFEND_SUPPORT_A_SQUAD),
         unit(Squad.PROCESSING_DEFEND_SUPPORT_B_SQUAD, Slot.PROCESSING_DEFEND_SUPPORT_B_SQUAD),
+    },
+}
+
+local processing_boss = {
+    id = "processing_boss",
+    after = "purifier",
+    objective = Slot.EMBER_LINK_PROCESSING_DEFEND_OBJECTIVE,
+    squads = {
+        unit(Squad.PROCESSING_DEFEND_ANCHOR_SQUAD, Slot.PROCESSING_DEFEND_ANCHOR_SQUAD),
+        unit(Squad.PROCESSING_DEFEND_MELEE_D_SQUAD, Slot.PROCESSING_DEFEND_MELEE_D_SQUAD),
     },
 }
 
@@ -181,9 +237,11 @@ local sunburn_a = {
     id = "sunburn_a",
     trigger = Slot.DECK_EAST_ENTRY_PLAYER_TRIGGER_80B3C6E8,
     objective = Slot.SUNBURN_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_OBJECTIVE,
+    on_start = function(context)
+        context:scene(mission.Scene.SUNBURN_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_SCENE)
+            :activate{spawn = true}
+    end,
     squads = {
-        unit(Squad.SUNBURN_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_01_SQUAD,
-             Slot.SUNBURN_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_01_SQUAD),
         unit(Squad.SUNBURN_BRIDGE_SUPPORT_A_SQUAD, Slot.SUNBURN_BRIDGE_SUPPORT_A_SQUAD),
         unit(Squad.SUNBURN_DECK_EAST_SUPPORT_A_SQUAD, Slot.SUNBURN_DECK_EAST_SUPPORT_A_SQUAD),
         unit(Squad.SUNBURN_DECK_WEST_SUPPORT_A_SQUAD, Slot.SUNBURN_DECK_WEST_SUPPORT_A_SQUAD),
@@ -195,9 +253,11 @@ local sunburn_b = {
     id = "sunburn_b",
     trigger = Slot.DECK_BRIDGE_025_PERCENT_PLAYER_TRIGGER_80B3C6E8,
     objective = Slot.SUNBURN_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_OBJECTIVE,
+    on_start = function(context)
+        context:scene(mission.Scene.SUNBURN_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_SCENE)
+            :activate{spawn = true}
+    end,
     squads = {
-        unit(Squad.SUNBURN_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_01_SQUAD,
-             Slot.SUNBURN_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_01_SQUAD),
         unit(Squad.SUNBURN_BRIDGE_SUPPORT_B_SQUAD, Slot.SUNBURN_BRIDGE_SUPPORT_B_SQUAD),
         unit(Squad.SUNBURN_DECK_EAST_SUPPORT_B_SQUAD, Slot.SUNBURN_DECK_EAST_SUPPORT_B_SQUAD),
         unit(Squad.SUNBURN_DECK_WEST_SUPPORT_B_SQUAD, Slot.SUNBURN_DECK_WEST_SUPPORT_B_SQUAD),
@@ -208,9 +268,11 @@ local sunburn_c = {
     id = "sunburn_c",
     trigger = Slot.DECK_BRIDGE_100_PERCENT_PLAYER_TRIGGER,
     objective = Slot.SUNBURN_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_OBJECTIVE,
+    on_start = function(context)
+        context:scene(mission.Scene.SUNBURN_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_SCENE)
+            :activate{spawn = true}
+    end,
     squads = {
-        unit(Squad.SUNBURN_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_01_SQUAD,
-             Slot.SUNBURN_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_01_SQUAD),
         unit(Squad.SUNBURN_DECK_WEST_SUPPORT_C_SQUAD, Slot.SUNBURN_DECK_WEST_SUPPORT_C_SQUAD),
     },
 }
@@ -265,9 +327,11 @@ local ascent_a = {
     id = "ascent_a",
     trigger = Slot.ASCENT_SPAWN_SET_01_PLAYER_TRIGGER,
     objective = Slot.ASCENT_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_OBJECTIVE,
+    on_start = function(context)
+        context:scene(mission.Scene.ASCENT_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_SCENE)
+            :activate{spawn = true}
+    end,
     squads = {
-        unit(Squad.ASCENT_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_01_SQUAD,
-             Slot.ASCENT_SQUAD_RETREAT_INSTANCE_A_PREFAB_RETREAT_01_SQUAD),
         unit(Squad.ASCENT_SUPPORT_A_SQUAD, Slot.ASCENT_SUPPORT_A_SQUAD),
     },
 }
@@ -276,9 +340,11 @@ local ascent_b = {
     id = "ascent_b",
     trigger = Slot.ASCENT_SPAWN_SET_02_PLAYER_TRIGGER,
     objective = Slot.ASCENT_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_OBJECTIVE,
+    on_start = function(context)
+        context:scene(mission.Scene.ASCENT_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_SCENE)
+            :activate{spawn = true}
+    end,
     squads = {
-        unit(Squad.ASCENT_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_01_SQUAD,
-             Slot.ASCENT_SQUAD_RETREAT_INSTANCE_B_PREFAB_RETREAT_01_SQUAD),
         unit(Squad.ASCENT_SUPPORT_B_SQUAD, Slot.ASCENT_SUPPORT_B_SQUAD),
     },
 }
@@ -287,9 +353,11 @@ local ascent_c = {
     id = "ascent_c",
     trigger = Slot.ASCENT_SPAWN_SET_03_PLAYER_TRIGGER,
     objective = Slot.ASCENT_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_OBJECTIVE,
+    on_start = function(context)
+        context:scene(mission.Scene.ASCENT_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_SCENE)
+            :activate{spawn = true}
+    end,
     squads = {
-        unit(Squad.ASCENT_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_01_SQUAD,
-             Slot.ASCENT_SQUAD_RETREAT_INSTANCE_C_PREFAB_RETREAT_01_SQUAD),
     },
 }
 
@@ -297,19 +365,41 @@ local foundry = {
     id = "foundry",
     trigger = Slot.OVERLOOK_TO_FOUNDRY_PLAYER_TRIGGER,
     squads = {
-        unit(Squad.FOUNDRY_ANCHOR_A_SQUAD, Slot.FOUNDRY_ANCHOR_A_SQUAD),
-        unit(Squad.FOUNDRY_RANGED_A_SQUAD, Slot.FOUNDRY_RANGED_A_SQUAD),
-        unit(Squad.FOUNDRY_RANGED_B_SQUAD, Slot.FOUNDRY_RANGED_B_SQUAD),
         unit(Squad.FOUNDRY_SUPPORT_A_SQUAD, Slot.FOUNDRY_SUPPORT_A_SQUAD),
         unit(Squad.FOUNDRY_SUPPORT_B_SQUAD, Slot.FOUNDRY_SUPPORT_B_SQUAD),
         unit(Squad.FOUNDRY_SUPPORT_C_SQUAD, Slot.FOUNDRY_SUPPORT_C_SQUAD),
+        unit(Squad.FOUNDRY_RANGED_A_SQUAD, Slot.FOUNDRY_RANGED_A_SQUAD),
+    },
+}
+
+local foundry_mid = {
+    id = "foundry_mid", after = "foundry",
+    when = after_clear(foundry, "foundry/mid"),
+    squads = {
         unit(Squad.FOUNDRY_SUPPORT_D_SQUAD, Slot.FOUNDRY_SUPPORT_D_SQUAD),
         unit(Squad.FOUNDRY_SUPPORT_E_SQUAD, Slot.FOUNDRY_SUPPORT_E_SQUAD),
         unit(Squad.FOUNDRY_SUPPORT_F_SQUAD, Slot.FOUNDRY_SUPPORT_F_SQUAD),
+        unit(Squad.FOUNDRY_RANGED_B_SQUAD, Slot.FOUNDRY_RANGED_B_SQUAD),
+    },
+}
+
+local foundry_boss = {
+    id = "foundry_boss", after = "foundry",
+    when = after_clear(foundry_mid, "foundry/final"),
+    squads = {
         unit(Squad.FOUNDRY_SUPPORT_G_SQUAD, Slot.FOUNDRY_SUPPORT_G_SQUAD),
         unit(Squad.FOUNDRY_SUPPORT_H_SQUAD, Slot.FOUNDRY_SUPPORT_H_SQUAD),
         unit(Squad.FOUNDRY_SUPPORT_I_SQUAD, Slot.FOUNDRY_SUPPORT_I_SQUAD),
+        unit(Squad.FOUNDRY_ANCHOR_A_SQUAD, Slot.FOUNDRY_ANCHOR_A_SQUAD),
     },
+}
+
+local foundry_secured = {
+    id = "foundry_secured", after = "foundry", when = after_clear(foundry_boss),
+    on_start = function(context)
+        pose(context, foundry_devices, 0)
+        context:slot(Slot.FOUNDRY_HATCH_DOOR_CENTER_KLAXON_AUDIO_SEQUENCE):play_sequence{}
+    end,
 }
 
 local security = {
@@ -317,6 +407,7 @@ local security = {
     trigger = Slot.SECURITY_DOOR_PLAYER_TRIGGER,
     objective = Slot.EMBER_APEX_SECURITY_OBJECTIVE,
     squads = {
+        unit(Squad.DISPENSER_SUPPORT_C_SQUAD, Slot.DISPENSER_SUPPORT_C_SQUAD),
         unit(Squad.SECURITY_LEDGE_SUPPORT_A_SQUAD, Slot.SECURITY_LEDGE_SUPPORT_A_SQUAD),
         unit(Squad.SECURITY_LEDGE_SUPPORT_B_SQUAD, Slot.SECURITY_LEDGE_SUPPORT_B_SQUAD),
     },
@@ -346,34 +437,15 @@ local access_two = {
 
 local clamshell_east = {
     id = "clamshell_east",
-    trigger = Slot.REACTOR_ARM_EAST_ENTRANCE_PLAYER_TRIGGER,
     after = "vents",
     objective = Slot.EMBER_APEX_REACTOR_CLAMSHELL_EAST_OBJECTIVE,
     squads = {
-        unit(Squad.REACTOR_CLAMSHELL_EAST_ANCHOR_A_SQUAD,
-             Slot.REACTOR_CLAMSHELL_EAST_ANCHOR_A_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_A_SQUAD,
              Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_A_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_B_SQUAD,
              Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_B_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_C_SQUAD,
-             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_C_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_D_SQUAD,
-             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_D_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_E_SQUAD,
-             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_E_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_F_SQUAD,
-             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_F_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_A_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_A_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_B_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_B_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_C_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_C_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_D_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_D_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_E_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_E_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_F_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_F_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_EAST_DEFENSE_A_SQUAD,
              Slot.REACTOR_CLAMSHELL_EAST_DEFENSE_A_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_EAST_DEFENSE_B_SQUAD,
-             Slot.REACTOR_CLAMSHELL_EAST_DEFENSE_B_SQUAD),
     },
 }
 
@@ -382,30 +454,80 @@ local clamshell_west = {
     after = "vents",
     objective = Slot.EMBER_APEX_REACTOR_CLAMSHELL_WEST_OBJECTIVE,
     squads = {
-        unit(Squad.REACTOR_CLAMSHELL_WEST_ANCHOR_A_SQUAD,
-             Slot.REACTOR_CLAMSHELL_WEST_ANCHOR_A_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_SUPPORT_A_SQUAD,
              Slot.REACTOR_CLAMSHELL_WEST_SUPPORT_A_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_SUPPORT_B_SQUAD,
              Slot.REACTOR_CLAMSHELL_WEST_SUPPORT_B_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_WEST_DEFENSE_A_SQUAD,
+             Slot.REACTOR_CLAMSHELL_WEST_DEFENSE_A_SQUAD),
+    },
+}
+
+local clamshell_east2 = {
+    id = "clamshell_east2", after = "vents",
+    objective = Slot.EMBER_APEX_REACTOR_CLAMSHELL_EAST_OBJECTIVE,
+    when = after_clear(clamshell_east, "exchangers/destroyed"),
+    squads = {
+        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_C_SQUAD,
+             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_C_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_D_SQUAD,
+             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_D_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_A_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_A_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_B_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_B_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_DEFENSE_B_SQUAD,
+             Slot.REACTOR_CLAMSHELL_EAST_DEFENSE_B_SQUAD),
+    },
+}
+
+local clamshell_east3 = {
+    id = "clamshell_east3", after = "vents",
+    objective = Slot.EMBER_APEX_REACTOR_CLAMSHELL_EAST_OBJECTIVE,
+    when = after_clear(clamshell_east2, "exchangers/destroyed"),
+    squads = {
+        unit(Squad.REACTOR_CLAMSHELL_EAST_ANCHOR_A_SQUAD,
+             Slot.REACTOR_CLAMSHELL_EAST_ANCHOR_A_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_E_SQUAD,
+             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_E_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_SUPPORT_F_SQUAD,
+             Slot.REACTOR_CLAMSHELL_EAST_SUPPORT_F_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_C_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_C_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_D_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_D_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_E_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_E_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_EAST_MELEE_F_SQUAD, Slot.REACTOR_CLAMSHELL_EAST_MELEE_F_SQUAD),
+    },
+}
+
+local clamshell_west2 = {
+    id = "clamshell_west2", after = "vents",
+    objective = Slot.EMBER_APEX_REACTOR_CLAMSHELL_WEST_OBJECTIVE,
+    when = after_clear(clamshell_west, "exchangers/destroyed"),
+    squads = {
         unit(Squad.REACTOR_CLAMSHELL_WEST_SUPPORT_C_SQUAD,
              Slot.REACTOR_CLAMSHELL_WEST_SUPPORT_C_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_SUPPORT_D_SQUAD,
              Slot.REACTOR_CLAMSHELL_WEST_SUPPORT_D_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_A_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_A_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_B_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_B_SQUAD),
+        unit(Squad.REACTOR_CLAMSHELL_WEST_DEFENSE_B_SQUAD,
+             Slot.REACTOR_CLAMSHELL_WEST_DEFENSE_B_SQUAD),
+    },
+}
+
+local clamshell_west3 = {
+    id = "clamshell_west3", after = "vents",
+    objective = Slot.EMBER_APEX_REACTOR_CLAMSHELL_WEST_OBJECTIVE,
+    when = after_clear(clamshell_west2, "exchangers/destroyed"),
+    squads = {
+        unit(Squad.REACTOR_CLAMSHELL_WEST_ANCHOR_A_SQUAD,
+             Slot.REACTOR_CLAMSHELL_WEST_ANCHOR_A_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_SUPPORT_E_SQUAD,
              Slot.REACTOR_CLAMSHELL_WEST_SUPPORT_E_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_SUPPORT_F_SQUAD,
              Slot.REACTOR_CLAMSHELL_WEST_SUPPORT_F_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_A_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_A_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_B_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_B_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_C_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_C_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_D_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_D_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_E_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_E_SQUAD),
         unit(Squad.REACTOR_CLAMSHELL_WEST_MELEE_F_SQUAD, Slot.REACTOR_CLAMSHELL_WEST_MELEE_F_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_WEST_DEFENSE_A_SQUAD,
-             Slot.REACTOR_CLAMSHELL_WEST_DEFENSE_A_SQUAD),
-        unit(Squad.REACTOR_CLAMSHELL_WEST_DEFENSE_B_SQUAD,
-             Slot.REACTOR_CLAMSHELL_WEST_DEFENSE_B_SQUAD),
     },
 }
 
@@ -419,10 +541,10 @@ local coffin_interior = {
     },
 }
 
--- The coffin guards and the dispenser have no encounter objective.
 local coffin_guard = {
     id = "coffin_guard",
-    after = "search",
+    after = "core_vent",
+    objective = Slot.EMBER_APEX_REACTOR_COFFIN_OBJECTIVE,
     squads = {
         unit(Squad.REACTOR_COFFIN_EAST_ANCHOR_A_SQUAD, Slot.REACTOR_COFFIN_EAST_ANCHOR_A_SQUAD),
         unit(Squad.REACTOR_COFFIN_EAST_DEFENSE_A_SQUAD, Slot.REACTOR_COFFIN_EAST_DEFENSE_A_SQUAD),
@@ -443,20 +565,34 @@ local coffin_guard = {
 
 local dispenser = {
     id = "dispenser",
-    after = "deliver",
+    after = "security",
+    objective = Slot.EMBER_APEX_SECURITY_OBJECTIVE,
     squads = {
         unit(Squad.DISPENSER_SUPPORT_A_SQUAD, Slot.DISPENSER_SUPPORT_A_SQUAD),
         unit(Squad.DISPENSER_SUPPORT_B_SQUAD, Slot.DISPENSER_SUPPORT_B_SQUAD),
-        unit(Squad.DISPENSER_SUPPORT_C_SQUAD, Slot.DISPENSER_SUPPORT_C_SQUAD),
     },
 }
 
-return campaign.new{
+local script = campaign.new{
     key = "ember",
+    omit = {Slot.MOTHER_BRAIN_CARRY_OBJECT, Slot.MOTHER_BRAIN_INTERACT_OBJECT,
+        Slot.REACTOR_GETAWAY_SHIP_OBJECT, Slot.SECURITY_PLACED_INTERCEPTOR_OBJECT,
+        Slot.REACTOR_CLAMSHELL_EAST_TARGET_OBJECT, Slot.REACTOR_CLAMSHELL_WEST_TARGET_OBJECT,
+        Slot.REACTOR_COFFIN_TARGET_OBJECT},
     -- The launch points are named `default`. The SDK names no spawn sets.
     spawn_set = 0x2EA8FB98,
     directive_sensor = Slot.M_DIRECTIVE_SENSOR_80B3C90A,
     dialogue_sensor = Slot.M_DIALOG_SENSOR_80B3C90A,
+    intro = {
+        {state = mission.states.STATE_80B3C09E_0006_0001_80B3C09A,
+            cinematic = Slot.PF_CINEMATIC_BOOKEND_CINEMATIC},
+    },
+    outro = {
+        {state = mission.states.STATE_80B3C09E_0000_0001_80B3C091,
+            cinematic = Slot.PF_CINEMATIC_BOOKEND_STM_CINEMATIC},
+        {state = mission.states.STATE_80B3C09E_0000_0002_80B3C093,
+            cinematic = Slot.PF_CINEMATIC_BOOKEND_CNN_CINEMATIC},
+    },
     legs = {
         {id = "powerhouse", state = mission.states.STATE_80B3C09E_0008_0000_80B3C09C, arm = {
             Slot.CATWALK_015_PERCENT_PLAYER_TRIGGER, Slot.PIPE_CROSSING_040_PERCENT_PLAYER_TRIGGER,
@@ -487,6 +623,7 @@ return campaign.new{
             Slot.ASCENT_SPAWN_SET_03_PLAYER_TRIGGER,
             Slot.CINDER_DIRECTIVE_MEAT_GRINDER_GOTO_PLAYER_TRIGGER,
             Slot.OVERLOOK_TO_FOUNDRY_PLAYER_TRIGGER,
+            Slot.FOUNDRY_SPAWN_SET_02_PLAYER_TRIGGER, Slot.FOUNDRY_SPAWN_SET_03_PLAYER_TRIGGER,
             Slot.CINDER_DIRECTIVE_FOUNDRY_GOTO_PLAYER_TRIGGER,
             Slot.CINDER_DIRECTIVE_CHUTE_GOTO_PLAYER_TRIGGER,
         }},
@@ -504,6 +641,7 @@ return campaign.new{
         -- "We made it. We're on the Almighty." Then the weapon comes into view on the catwalk.
         {id = "fuel", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_6D8E0897,
             navpoint = Slot.SLOT_0011_80B3DBD9,
+            on_start = function(context) pose(context, bridge_devices, 1) end,
             lines = {line(cue.CUE_0), line(cue.CUE_2, Slot.SLOT_0016_80B3DBD9)},
             ends = {trigger = Slot.POWERHOUSE_DIRECTIVE_LANDING_MERCURY_PLAYER_TRIGGER}},
         {id = "landing", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_A70DA4A6,
@@ -512,7 +650,7 @@ return campaign.new{
         -- "Let me at that console, and I'll get the bridge back." No bridge until the scan ends.
         {id = "console", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_2700C0C5,
             navpoint = Slot.POWERHOUSE_DIRECTIVE_LANDING_MERCURY_INTERACT_NAV_POINT,
-            lines = {line(cue.CUE_3)}, barrier = true,
+            lines = {line(cue.CUE_3)},
             on_start = function(context)
                 move(context, {Slot.POWERHOUSE_LANDING_MERCURY_DOOR_DEVICE}, "open")
             end,
@@ -521,8 +659,7 @@ return campaign.new{
         {id = "cross", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_AFBF882A,
             navpoint = Slot.SLOT_000D_80B3DBB9, lines = {line(cue.CUE_8)},
             on_start = function(context)
-                move(context, {Slot.POWERHOUSE_BRIDGE_ARM_MERCURY_DEVICE,
-                    Slot.POWERHOUSE_BRIDGE_ARM_SUN_DEVICE}, "open")
+                pose(context, bridge_devices, 0)
             end,
             ends = {trigger = Slot.POWERHOUSE_DIRECTIVE_BYWAY_PLAYER_TRIGGER}},
         {id = "link", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_4EA80049,
@@ -543,22 +680,31 @@ return campaign.new{
         -- "Looks like the Red Legion use fusion cells to power their machinery."
         {id = "cell", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_591B1D88,
             navpoint = Slot.LINK_CARRY_OBJECT_NAV_POINT, lines = {line(cue.CUE_14)},
-            ends = {trigger = Slot.LINK_CARRY_OBJECT_PLAYER_TRIGGER}},
+            barrier = true, ends = {interact = Slot.CARRY_OBJECT}},
         {id = "grinder", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_57050F62,
             navpoint = Slot.LINK_DIRECTIVE_CONTROL_INTERACT_NAV_POINT,
             lines = {line(cue.CUE_13)},
-            ends = {interact = Slot.CARRY_RECEPTACLE_INTERACT_OBJECT}},
+            barrier = true, ends = {interact = Slot.CARRY_RECEPTACLE_INTERACT_OBJECT}},
         {id = "defend", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS,
-            navpoint = Slot.SLOT_0012_80B3DA3A, lines = {line(cue.CUE_18)},
+            navpoint = Slot.SLOT_0012_80B3DA3A, barrier = true,
             on_start = function(context)
-                move(context, {Slot.TUMBLER_CHAMBER_LEFT_DEVICE,
-                    Slot.TUMBLER_CHAMBER_RIGHT_DEVICE}, "power_on")
+                pose(context, {Slot.TUMBLER_DOOR_DEVICE, Slot.DOOR_HATCH_ONE_DEVICE,
+                    Slot.DOOR_HATCH_TWO_DEVICE}, 0)
+                pose(context, {Slot.DOOR_HATCH_THREE_DEVICE, Slot.DOOR_HATCH_FOUR_DEVICE}, 0)
+                pose(context, {Slot.LINK_TUMBLER_WARNING_LIGHTING_STATE_DEVICE}, 1)
             end,
             ends = {clear = "processing_defend"}},
+        {id = "reinforcements", barrier = true,
+            ends = {clear = "processing_reinforcements"}},
+        {id = "purifier", barrier = true, ends = {clear = "processing_boss"}},
         -- "Ore tunnels are clear. We can follow the fuel to the weapon's core."
         {id = "proceed", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_65D5979D,
             navpoint = Slot.SLOT_0016_80B3DA3A, lines = {line(cue.CUE_17)},
-            on_start = function(context) move(context, {Slot.TUMBLER_DOOR_DEVICE}, "open") end,
+            on_start = function(context)
+                pose(context, {Slot.TUMBLER_DOOR_DEVICE, Slot.TUMBLER_CHAMBER_LEFT_DEVICE,
+                    Slot.TUMBLER_CHAMBER_RIGHT_DEVICE}, 1)
+                pose(context, {Slot.LINK_TUMBLER_WARNING_LIGHTING_STATE_DEVICE}, 0)
+            end,
             ends = {trigger = Slot.LINK_DIRECTIVE_TUMBLER_EXIT_PLAYER_TRIGGER}},
         -- Ikora sends Zavala's group to the City perimeter; Zavala says goodbye.
         {id = "chamber", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_62E3AEFB,
@@ -573,6 +719,7 @@ return campaign.new{
         -- The sun deck: "Hope you put your sunscreen on." "Stay in the shadows!"
         {id = "deck", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_D496059B,
             navpoint = Slot.CINDER_DIRECTIVE_SUNBURN_GOTO_NAV_POINT,
+            on_start = function(context) pose(context, foundry_devices, 1) end,
             lines = {line(cue.CUE_26, Slot.SLOT_0025_80B3D70B),
                 line(cue.CUE_27, Slot.SLOT_0027_80B3D70B)},
             ends = {trigger = Slot.CINDER_DIRECTIVE_SUNBURN_GOTO_PLAYER_TRIGGER}},
@@ -592,8 +739,7 @@ return campaign.new{
             navpoint = Slot.CINDER_DIRECTIVE_FOUNDRY_GOTO_NAV_POINT,
             lines = {line(cue.CUE_33, Slot.SLOT_0010_80B3D691)},
             on_start = function(context)
-                move(context, {Slot.FOUNDRY_HATCH_DOOR_LEFT_DEVICE,
-                    Slot.FOUNDRY_HATCH_DOOR_RIGHT_DEVICE}, "open")
+                pose(context, foundry_devices, 1)
             end,
             ends = {trigger = Slot.CINDER_DIRECTIVE_FOUNDRY_GOTO_PLAYER_TRIGGER}},
         -- The energy stream carries the player up to the apex; its goto volume is at the top.
@@ -608,14 +754,20 @@ return campaign.new{
         {id = "security_door",
             directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_4E4862BB,
             navpoint = Slot.SLOT_0013_80B3D319,
-            on_start = function(context) move(context, {Slot.SECURITY_DOOR_DEVICE}, "open") end,
+            on_start = function(context)
+                move(context, {Slot.SECURITY_DOOR_DEVICE}, "close")
+                context:activate_objects{slots = {Slot.SECURITY_PLACED_INTERCEPTOR_OBJECT},
+                    active = true}
+            end,
             ends = {trigger = Slot.SECURITY_DOOR_PLAYER_TRIGGER}},
         {id = "security", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_4E4862BB,
             navpoint = Slot.SLOT_0014_80B3D319,
             ends = {trigger = Slot.APEX_DIRECTIVE_SECURITY_GOTO_PLAYER_TRIGGER}},
         -- "Interceptors. It's like they're begging us to blow this place up."
+        {id = "controllers", barrier = true, ends = {clear = "dispenser"}},
         {id = "interceptor", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_3CBFC90B,
             navpoint = Slot.SECURITY_INTERCEPTOR_NAV_POINT, lines = {line(cue.CUE_38)},
+            on_start = function(context) move(context, {Slot.SECURITY_DOOR_DEVICE}, "open") end,
             ends = {trigger = Slot.ACCESS_JUMP_ONE_PLAYER_TRIGGER}},
         {id = "outer_door", directive = Directive.FIND_AND_DISABLE_THE_ALMIGHTY_S_WEAPONS_3CBFC90B,
             navpoint = Slot.SLOT_0011_80B3D319,
@@ -634,6 +786,9 @@ return campaign.new{
             lines = {line(cue.CUE_40, Slot.SLOT_0008_80B3D2BB),
                 line(cue.CUE_41, Slot.SLOT_000A_80B3D2BB)},
             on_start = function(context)
+                context:activate_objects{slots = {Slot.REACTOR_CLAMSHELL_EAST_TARGET_OBJECT,
+                    Slot.REACTOR_CLAMSHELL_WEST_TARGET_OBJECT, Slot.REACTOR_COFFIN_TARGET_OBJECT},
+                    active = true}
                 move(context, {Slot.REACTOR_CLAMSHELL_EAST_DOOR_A_DEVICE,
                     Slot.REACTOR_CLAMSHELL_EAST_DOOR_B_DEVICE,
                     Slot.REACTOR_CLAMSHELL_WEST_DOOR_A_DEVICE,
@@ -641,35 +796,39 @@ return campaign.new{
                     Slot.REACTOR_CLAMSHELL_EAST_TARGET_DEVICE,
                     Slot.REACTOR_CLAMSHELL_WEST_TARGET_DEVICE}, "open")
             end,
-            ends = {destroyed = {Slot.REACTOR_CLAMSHELL_EAST_TARGET_OBJECT,
+            barrier = true, ends = {destroyed = {Slot.REACTOR_CLAMSHELL_EAST_TARGET_OBJECT,
                 Slot.REACTOR_CLAMSHELL_WEST_TARGET_OBJECT}}},
         -- "That's two. Last one should be ventilating the core."
         {id = "core_vent", directive = Directive.SABOTAGE_THE_ALMIGHTY_S_WEAPON_SYSTEMS_6C7F39DC,
             navpoint = Slot.APEX_DIRECTIVE_REACTOR_COFFIN_TARGET_NAV_POINT,
             lines = {line(cue.CUE_44)},
             on_start = function(context)
+                context:set_variable(key(context, "exchangers/destroyed"), true)
                 move(context, {Slot.CLAMSHELL_TO_COFFIN_EAST_BRIDGE_DEVICE,
-                    Slot.CLAMSHELL_TO_COFFIN_WEST_BRIDGE_DEVICE,
-                    Slot.REACTOR_COFFIN_DOOR_EAST_DEVICE, Slot.REACTOR_COFFIN_DOOR_WEST_DEVICE},
-                    "open")
+                    Slot.CLAMSHELL_TO_COFFIN_WEST_BRIDGE_DEVICE}, "close")
+                move(context, {Slot.REACTOR_COFFIN_DOOR_EAST_DEVICE,
+                    Slot.REACTOR_COFFIN_DOOR_WEST_DEVICE}, "open")
             end,
-            ends = {destroyed = {Slot.REACTOR_COFFIN_TARGET_OBJECT}}},
+            barrier = true, ends = {destroyed = {Slot.REACTOR_COFFIN_TARGET_OBJECT}}},
         -- "Temperature levels are rising, but it's not enough. We need to disrupt the core."
         {id = "search", directive = Directive.SABOTAGE_THE_ALMIGHTY_S_WEAPON_SYSTEMS_61D2B286,
             navpoint = Slot.SLOT_0012_80B3D2FF, lines = {line(cue.CUE_48)},
             on_start = function(context)
-                move(context, {Slot.COFFIN_BUNKER_DOOR_SOUTH_DEVICE}, "open")
+                move(context, {Slot.COFFIN_BUNKER_DOOR_SOUTH_DEVICE, Slot.MOTHER_BRAIN_DOOR_DEVICE},
+                    "open")
+                context:activate_objects{slots = {Slot.MOTHER_BRAIN_CARRY_OBJECT}, active = true}
             end,
             ends = {trigger = Slot.REACTOR_MOTHER_BRAIN_ENTRY_PLAYER_TRIGGGER}},
         -- "A fusion cell. We'll use that to overload the electron reservoir."
+        {id = "core_cell", lines = {line(cue.CUE_50)}, barrier = true,
+            ends = {interact = Slot.MOTHER_BRAIN_CARRY_OBJECT}},
         {id = "deliver",
             directive = Directive.DELIVER_THE_FINAL_BLOW_TO_THE_ALMIGHTY_S_WEAPON_SYSTEMS,
             navpoint = Slot.EMBER_DIRECTIVE_REACTOR_MOTHER_BRAIN_DELIVERY_NAV_POINT,
-            lines = {line(cue.CUE_50)},
             on_start = function(context)
                 move(context, {Slot.MOTHER_BRAIN_DOOR_DEVICE, Slot.REACTOR_SHIELD_DEVICE}, "open")
             end,
-            ends = {interact = Slot.MOTHER_BRAIN_INTERACT_OBJECT}},
+            barrier = true, ends = {interact = Slot.MOTHER_BRAIN_INTERACT_OBJECT}},
         -- "I'm bringing the ship around! Run!" The last lines wait on the rail as it runs east.
         {id = "escape", directive = Directive.ESCAPE_THE_ALMIGHTY,
             navpoint = Slot.APEX_DIRECTIVE_REACTOR_RAILS_ESCAPE_NAV_POINT,
@@ -677,16 +836,37 @@ return campaign.new{
                 line(cue.CUE_53, Slot.APEX_MOTHER_BRAIN_007_DIALOG_TRIGGER_VOLUME),
                 line(cue.CUE_54, Slot.SLOT_0008_80B3D2DC)},
             on_start = function(context)
-                move(context, {Slot.REACTOR_GETAWAY_SHIP_DEVICE}, "open")
+                context:activate_objects{slots = {Slot.REACTOR_GETAWAY_SHIP_OBJECT}, active = true}
+                move(context, {Slot.MOTHER_BRAIN_CONSOLE_DEVICE,
+                    Slot.MOTHER_BRAIN_ENGINE_LEFT_DEVICE, Slot.MOTHER_BRAIN_ENGINE_RIGHT_DEVICE,
+                    Slot.REACTOR_GETAWAY_SHIP_DEVICE}, "open")
+                context:scene(mission.Scene.MOTHER_BRAIN_HOLE_EXPLOSION_SCENE):activate{}
             end,
             ends = {trigger = Slot.APEX_DIRECTIVE_REACTOR_RAILS_ESCAPE_PLAYER_TRIGGER}},
     },
     encounters = {
         helipad, catwalk, pipes, landing_mercury, bridge, landing_sun, bridge_crossing,
-        processing_entry, processing_defend,
+        processing_entry, processing_defend, processing_reinforcements, processing_boss,
         tumbler, ready_room_one, sunburn_a, sunburn_b, sunburn_c, sunburn_exit, ready_room_two,
-        chamber, meat_grinder, ascent_a, ascent_b, ascent_c, foundry,
-        security, access_one, access_two, clamshell_east, clamshell_west, coffin_interior,
+        chamber, meat_grinder, ascent_a, ascent_b, ascent_c,
+        foundry, foundry_mid, foundry_boss, foundry_secured,
+        security, access_one, access_two,
+        clamshell_east, clamshell_east2, clamshell_east3,
+        clamshell_west, clamshell_west2, clamshell_west3, coffin_interior,
         coffin_guard, dispenser,
     },
 }
+
+local trigger = script.on_event_player_trigger
+script.on_event_player_trigger = function(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation then return end
+    if lib.is_slot(context, event, Slot.FOUNDRY_SPAWN_SET_02_PLAYER_TRIGGER) then
+        context:set_variable(key(context, "foundry/mid"), true)
+    elseif lib.is_slot(context, event, Slot.FOUNDRY_SPAWN_SET_03_PLAYER_TRIGGER) then
+        context:set_variable(key(context, "foundry/mid"), true)
+        context:set_variable(key(context, "foundry/final"), true)
+    end
+    trigger(context, state, event)
+end
+
+return script

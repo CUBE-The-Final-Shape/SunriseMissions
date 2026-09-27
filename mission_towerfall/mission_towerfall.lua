@@ -1,17 +1,26 @@
--- Homecoming. Red War campaign draft; not tested in game.
--- Steps follow the step objects and their lines: Shaxx sends the player through the armory and
--- the hangar to the plaza, Zavala sends them after Ikora, and Amanda picks them up past the
--- boulevard.
+-- Homecoming. Native mission logic; live play remains unverified.
+-- Absent: scene entry choreography, Zavala Wards/revival, weapon rewards and carrier flights.
 local missions = require("missions")
 local mission = require(missions.MISSION_TOWERFALL)
 local campaign = require("lib.campaign")
+local lib = require("lib.mission_lib")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
-local Slot, Squad, Directive = mission.Slot, mission.Squad, mission.Directive
+local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80B50913
 
--- The Underwatch crowd, Shaxx and the frames dress the opening. They carry no objective.
+local pickup_state = mission.states.STATE_80B500BC_0008_0001_80B500B9
+local ship_state = mission.states.STATE_80B500BC_0008_0000_80B500B8
+local PICKUP_KEY = "towerfall.pickup"
+local PICKUP_REQUESTED, PICKUP_PLAYING, PICKUP_RETURNING, PICKUP_ARRIVED = 1, 2, 3, 4
 local underwatch_cast = {
     id = "cast",
+    on_start = function(context)
+        for _, scene in ipairs({Scene.SC_CIVILIAN_CATATONIC, Scene.SC_CIVILIAN_GROUND_1,
+            Scene.SC_CIVILIAN_GROUND_2, Scene.SC_CIVILIAN_ON_KNEES_CRYING,
+            Scene.SC_CIVILIAN_KNEEL}) do
+            context:scene(scene):activate{}
+        end
+    end,
     squads = {
         unit(Squad.SQ_SHAXX, Slot.SQ_SHAXX),
         unit(Squad.SQ_FRAME, Slot.SQ_FRAME),
@@ -36,8 +45,6 @@ local underwatch_cast = {
         unit(Squad.SQ_CIVILIAN_HERO_MOMENT, Slot.SQ_CIVILIAN_HERO_MOMENT),
     },
 }
-
--- "Watch out!" then "Cabal!" as the drop pod lands.
 local first_contact = {
     id = "contact",
     trigger = Slot.PT_DROP_POD,
@@ -83,18 +90,11 @@ local post_gun = {
 
 local hangar = {
     id = "hangar_fight",
-    trigger = Slot.PT_HANGAR_SPAWN,
+    after = "hangar",
     objective = Slot.OBJ_HANGAR,
     squads = {
-        unit(Squad.SQ_MILITARY_HALLWAY_DESTRUCTION, Slot.SQ_MILITARY_HALLWAY_DESTRUCTION),
-        unit(Squad.SQ_HANGAR_OVERLOOK_A_A, Slot.SQ_HANGAR_OVERLOOK_A_A),
-        unit(Squad.SQ_HANGAR_OVERLOOK_A_A_CENT, Slot.SQ_HANGAR_OVERLOOK_A_A_CENT),
         unit(Squad.SQ_HANGAR_OVERLOOK_A_B, Slot.SQ_HANGAR_OVERLOOK_A_B),
-        unit(Squad.SQ_HANGAR_OVERLOOK_A_C, Slot.SQ_HANGAR_OVERLOOK_A_C),
-        unit(Squad.SQ_HANGAR_OVERLOOK_B_A, Slot.SQ_HANGAR_OVERLOOK_B_A),
-        unit(Squad.SQ_HANGAR_OVERLOOK_B_B, Slot.SQ_HANGAR_OVERLOOK_B_B),
         unit(Squad.SQ_HANGAR_OVERLOOK_B_C, Slot.SQ_HANGAR_OVERLOOK_B_C),
-        unit(Squad.SQ_HANGAR_OVERLOOK_SNIPER, Slot.SQ_HANGAR_OVERLOOK_SNIPER),
         unit(Squad.SQ_HANGAR_A_A, Slot.SQ_HANGAR_A_A),
         unit(Squad.SQ_HANGAR_A_A_FLANK, Slot.SQ_HANGAR_A_A_FLANK),
         unit(Squad.SQ_HANGAR_A_B, Slot.SQ_HANGAR_A_B),
@@ -114,6 +114,26 @@ local hangar = {
         unit(Squad.SQ_RED_GUARD_THROW_A, Slot.SQ_RED_GUARD_THROW_A),
     },
 }
+
+local hangar_first = {
+    id = "hangar_first", after = "hangar", objective = Slot.OBJ_HANGAR,
+    squads = {
+        unit(Squad.SQ_MILITARY_HALLWAY_DESTRUCTION, Slot.SQ_MILITARY_HALLWAY_DESTRUCTION),
+        unit(Squad.SQ_HANGAR_OVERLOOK_A_A, Slot.SQ_HANGAR_OVERLOOK_A_A),
+        unit(Squad.SQ_HANGAR_OVERLOOK_A_A_CENT, Slot.SQ_HANGAR_OVERLOOK_A_A_CENT),
+        unit(Squad.SQ_HANGAR_OVERLOOK_A_C, Slot.SQ_HANGAR_OVERLOOK_A_C),
+        unit(Squad.SQ_HANGAR_OVERLOOK_B_A, Slot.SQ_HANGAR_OVERLOOK_B_A),
+    },
+}
+
+local hangar_second = {
+    id = "hangar_second", after = "hangar", objective = Slot.OBJ_HANGAR,
+    squads = {
+        unit(Squad.SQ_HANGAR_OVERLOOK_B_B, Slot.SQ_HANGAR_OVERLOOK_B_B),
+        unit(Squad.SQ_HANGAR_OVERLOOK_SNIPER, Slot.SQ_HANGAR_OVERLOOK_SNIPER),
+    },
+}
+
 
 local plaza_hold = {
     id = "plaza_hold",
@@ -141,28 +161,38 @@ local zavala = {
         unit(Squad.SQ_PLAZA_INTERIM_A_B, Slot.SQ_PLAZA_INTERIM_A_B),
     },
 }
-
--- The defend volume covers the plaza, so the wave waits for the defend goal as well.
-local plaza_defend = {
-    id = "plaza_waves",
-    trigger = Slot.PT_DEFEND,
-    after = "defend",
-    objective = Slot.OBJ_PLAZA_REINFORCE,
-    lines = {line(cue.CUE_52)},
+local plaza_wave1 = {
+    id = "plaza_wave1", after = "defend", objective = Slot.OBJ_PLAZA_REINFORCE,
     squads = {
         unit(Squad.SQ_PLAZA_REINFORCE_START_A, Slot.SQ_PLAZA_REINFORCE_START_A),
         unit(Squad.SQ_PLAZA_REINFORCE_START_B, Slot.SQ_PLAZA_REINFORCE_START_B),
-        unit(Squad.SQ_PLAZA_REINFORCE_A_A, Slot.SQ_PLAZA_REINFORCE_A_A),
+    },
+}
+
+local plaza_wave2 = {
+    id = "plaza_wave2", after = "defend_two", objective = Slot.OBJ_PLAZA_REINFORCE,
+    squads = {
         unit(Squad.SQ_PLAZA_REINFORCE_A_A_EXTRA, Slot.SQ_PLAZA_REINFORCE_A_A_EXTRA),
-        unit(Squad.SQ_PLAZA_REINFORCE_A_B, Slot.SQ_PLAZA_REINFORCE_A_B),
         unit(Squad.SQ_PLAZA_REINFORCE_A_C, Slot.SQ_PLAZA_REINFORCE_A_C),
         unit(Squad.SQ_PLAZA_REINFORCE_A_D, Slot.SQ_PLAZA_REINFORCE_A_D),
         unit(Squad.SQ_PLAZA_REINFORCE_A_D_EXTRA, Slot.SQ_PLAZA_REINFORCE_A_D_EXTRA),
+    },
+}
+
+local plaza_wave3 = {
+    id = "plaza_wave3", after = "defend_three", objective = Slot.OBJ_PLAZA_REINFORCE,
+    squads = {
         unit(Squad.SQ_PLAZA_REINFORCE_B_A, Slot.SQ_PLAZA_REINFORCE_B_A),
         unit(Squad.SQ_PLAZA_REINFORCE_B_A_EXTRA, Slot.SQ_PLAZA_REINFORCE_B_A_EXTRA),
         unit(Squad.SQ_PLAZA_REINFORCE_B_B, Slot.SQ_PLAZA_REINFORCE_B_B),
         unit(Squad.SQ_PLAZA_REINFORCE_B_B_EXTRA, Slot.SQ_PLAZA_REINFORCE_B_B_EXTRA),
     },
+}
+
+
+local ikora_cast = {
+    id = "ikora_cast", after = "boulevard",
+    squads = {unit(Squad.SQ_IKORA_80B5011F, Slot.SQ_IKORA_80B5011F)},
 }
 
 local bazaar = {
@@ -179,7 +209,6 @@ local bazaar = {
         unit(Squad.SQ_BAZAAR_A_C, Slot.SQ_BAZAAR_A_C),
         unit(Squad.SQ_BAZAAR_FINALE, Slot.SQ_BAZAAR_FINALE),
         unit(Squad.SQ_FLAME, Slot.SQ_FLAME),
-        unit(Squad.SQ_IKORA_80B5011F, Slot.SQ_IKORA_80B5011F),
         unit(Squad.SQUAD_CABAL_BLASTED_1, Slot.SQUAD_CABAL_BLASTED_1),
         unit(Squad.SQUAD_CABAL_BLASTED_2, Slot.SQUAD_CABAL_BLASTED_2),
         unit(Squad.SQUAD_CABAL_BLASTED_3, Slot.SQUAD_CABAL_BLASTED_3),
@@ -189,12 +218,8 @@ local bazaar = {
 
 local ship_entry = {
     id = "ship_entry",
-    trigger = Slot.PT_DAMAGED,
+    after = "locate",
     objective = Slot.OBJ_DAMAGED,
-    on_start = function(context)
-        move(context, {Slot.D_SHIP_POD_DOOR_A, Slot.D_SHIP_POD_DOOR_B, Slot.D_SHIP_DOOR_ENTER},
-            "open")
-    end,
     squads = {
         unit(Squad.SQ_PODS, Slot.SQ_PODS),
         unit(Squad.SQ_DAMAGED, Slot.SQ_DAMAGED),
@@ -209,7 +234,8 @@ local ship_entry = {
 
 local deck = {
     id = "deck",
-    trigger = Slot.PT_DECK_START,
+    trigger = Slot.PT_DAMAGED_HALL_STAIRS,
+    after = "locate",
     squads = {
         unit(Squad.SQ_DECK_FRONT_A_A, Slot.SQ_DECK_FRONT_A_A),
         unit(Squad.SQ_DECK_FRONT_A_B, Slot.SQ_DECK_FRONT_A_B),
@@ -235,8 +261,8 @@ local deck_boss = {
 
 local shield_room = {
     id = "shield_room",
-    trigger = Slot.PT_MATRIX_DOOR,
-    on_start = function(context) move(context, {Slot.D_SHIP_DOOR}, "open") end,
+    trigger = Slot.PT_DECK_BOSS,
+    after = "locate",
     squads = {
         unit(Squad.SQ_SHIP_DOOR_MELEE, Slot.SQ_SHIP_DOOR_MELEE),
         unit(Squad.SQ_SHIP_DOOR_MELEE_C, Slot.SQ_SHIP_DOOR_MELEE_C),
@@ -280,17 +306,18 @@ local escape_guard = {
     },
 }
 
-return campaign.new{
+local program = campaign.new{
     key = "towerfall",
+    omit = {Slot.SHIELD_GENERATOR_A, Slot.SHIELD_GENERATOR_B, Slot.SHIELD_GENERATOR_C},
     directive_sensor = Slot.M_DIRECTIVE_SENSOR_80B50913,
     dialogue_sensor = Slot.M_DIALOG_SENSOR_80B50913,
-    -- Retail opens on Zavala's briefing as the attack starts, then the Guardian flying in.
-    -- prefab_hro is the fly-in, seen live. The briefing is none of this scenario's cutscenes.
-    -- TODO: play the briefing; it is the movie of activity row 265, which the menu does not offer.
-    -- The spawn after the cutscene comes from the settings arrival override for this package.
     intro = {
         {state = mission.states.STATE_80B500BC_0002_0001_80B500B1,
             cinematic = Slot.PREFAB_HRO_CINEMATIC},
+    },
+    outro = {
+        {state = mission.states.STATE_80B500BC_0001_0001_80B500AF,
+            cinematic = Slot.OUTRO_CINEMATIC_CINEMATIC},
     },
     legs = {
         {id = "underwatch", state = mission.states.STATE_80B500BC_0009_0000_80B500BB, arm = {
@@ -312,80 +339,220 @@ return campaign.new{
             Slot.PT_SKYBATTLE_3, Slot.PT_DIALOG_ALMOST_THERE, Slot.PT_DESTROY_BATTLESHIP,
             Slot.PT_GOTO_END, Slot.PT_DAMAGED, Slot.PT_DECK_START, Slot.PT_DECK_BOSS,
             Slot.PT_MATRIX_DOOR, Slot.PT_ENGINE_ROOM_GHAUL,
+            Slot.PT_PODS_DOOR_A, Slot.PT_DAMAGED_HALL_STAIRS,
+            Slot.PT_DAMAGED_HALL_STAIRS_DOOR, Slot.PT_ENGINE_ROOM_LOWER,
+            Slot.PT_ESCAPE_EXPLOSION_A_80B508F4, Slot.PT_ESCAPE_EXPLOSION_B_80B508F4,
+            Slot.PT_ESCAPE_EXPLOSION_C, Slot.PT_ESCAPE_EXPLOSION_D,
         }},
     },
     steps = {
-        -- "Let's get moving. We need to find Zavala, Ikora, and Cayde."
         {id = "home", directive = Directive.DEFEND_YOUR_HOME, navpoint = Slot.AP_IKORA,
             lines = {line(cue.CUE_1)},
             ends = {trigger = Slot.PT_PLAYER_NEAR_SHAXX}},
-        -- Shaxx opens his armory; the gun door is the way in.
         {id = "gear", directive = Directive.GEAR_UP_FOR_THE_FIGHT,
             navpoint = Slot.SLOT_0009_80B5168C,
             on_start = function(context) move(context, {Slot.D_GUN_DOOR}, "open") end,
             ends = {trigger = Slot.PT_WEAPON_COMPLETE}},
-        -- The evacuation announcement waits in the volume on the way down.
         {id = "find", directive = Directive.FIND_ZAVALA_432D2C96,
             navpoint = Slot.AP_GOTO_MILITARY_80B5168C,
             lines = {line(cue.CUE_30, Slot.SLOT_0004_80B5168C)},
             ends = {trigger = Slot.PT_GOTO_MILITARY}},
-        -- "Look at the size of that thing." waits at the hangar window.
+        {id = "military_arrival", barrier = true, ends = {region = "military"}},
         {id = "hangar", directive = Directive.JOIN_ZAVALA_IN_THE_PLAZA,
             navpoint = Slot.SLOT_0008_80B50B91,
             lines = {line(cue.CUE_34, Slot.SLOT_0004_80B50B91)},
+            on_start = function(context)
+                move(context, {Slot.D_GATING_AMANDA_START, Slot.D_GATING_AMANDA_HANGAR}, "close")
+            end,
+            barrier = true, ends = {clear = "hangar_first"}},
+        {id = "hangar_clear", barrier = true,
+            on_start = function(context) move(context, {Slot.D_GATING_AMANDA_START}, "open") end,
+            ends = {clear = "hangar_second"}},
+        {id = "hangar_exit", on_start = function(context)
+                move(context, {Slot.D_GATING_AMANDA_HANGAR}, "open")
+            end,
             ends = {trigger = Slot.PT_GOTO_PLAZA_80B50B91}},
-        -- "What is that thing they're attaching?" waits at the plaza's edge.
         {id = "zavala", directive = Directive.FIGHT_WITH_ZAVALA, navpoint = Slot.AP_PLAZA,
             lines = {line(cue.CUE_40, Slot.SLOT_0019_80B51058)},
-            ends = {clear = "plaza_hold"}},
-        -- "Don't let them past the gate! The evac shuttles are back there!"
+            barrier = true, ends = {clear = "plaza_hold"}},
         {id = "defend", directive = Directive.DEFEND_THE_TOWER,
-            lines = {line(cue.CUE_51)},
-            ends = {clear = "plaza_waves"}},
-        -- Ikora goes after the Speaker and Zavala sends the player with her.
+            lines = {line(cue.CUE_52)}, barrier = true,
+            ends = {clear = "plaza_wave1"}},
+        {id = "defend_two", directive = Directive.DEFEND_THE_TOWER,
+            lines = {line(cue.CUE_53), line(cue.CUE_51)}, barrier = true,
+            ends = {clear = "plaza_wave2"}},
+        {id = "defend_three", directive = Directive.DEFEND_THE_TOWER,
+            lines = {line(cue.CUE_55), line(cue.CUE_57), line(cue.CUE_54)}, barrier = true,
+            ends = {clear = "plaza_wave3"}},
         {id = "speaker", directive = Directive.LEAVE_THE_PLAZA_AND_FIND_THE_SPEAKER_E68735ED,
             navpoint = Slot.SLOT_000E_80B51058,
             lines = {line(cue.CUE_59)},
             ends = {trigger = Slot.PT_GOTO_BOULEVARD}},
-        -- "And flamethrowers." waits in the bazaar.
+        {id = "boulevard_arrival", barrier = true, ends = {region = "boulevard"}},
         {id = "boulevard", directive = Directive.LEAVE_THE_PLAZA_AND_FIND_THE_SPEAKER,
             navpoint = Slot.SLOT_000A_80B5097F,
             lines = {line(cue.CUE_74, Slot.TV_BAZAAR_80B5097F)},
             ends = {trigger = Slot.PT_GOTO_SPEAKER}},
-        -- Zavala calls Holliday in; her line waits at the pickup.
+        {id = "bazaar_clear", barrier = true, ends = {clear = "bazaar"}},
         {id = "board", directive = Directive.BOARD_THE_COMMAND_SHIP,
             navpoint = Slot.SLOT_0004_80B5097F,
             lines = {line(cue.CUE_75), line(cue.CUE_76, Slot.SLOT_0009_80B5097F)},
             ends = {trigger = Slot.PT_GOTO_SKY_BATTLE}},
-        -- The console's hologram holds the ship's schematic.
+        {id = "pickup", barrier = true,
+            on_start = function(context)
+                context:set_variable(PICKUP_KEY, PICKUP_REQUESTED)
+                context:hold_spawn{active = true}
+                context:select_state(pickup_state)
+            end,
+            ends = {await = function(_, state)
+                return state:variable(PICKUP_KEY) == PICKUP_ARRIVED
+            end}},
         {id = "locate", directive = Directive.DISABLE_THE_SHIELDS, navpoint = Slot.AP_LOCATE,
             lines = {line(cue.CUE_77)},
             ends = {ghost_link = Slot.GL_CABAL_CONSOLE}},
-        -- "The shield generator should be at the bottom of the ship."
         {id = "reach", directive = Directive.REACH_THE_SHIELD_GENERATOR,
             navpoint = Slot.AP_DESTROY_BATTLESHIP,
             lines = {line(cue.CUE_79), line(cue.CUE_84, Slot.SLOT_0011_80B51397)},
+            on_start = function(context)
+                move(context, {Slot.D_CABAL_CONSOLE, Slot.D_SHIP_POD_DOOR_A,
+                    Slot.D_SHIP_POD_DOOR_B}, "open")
+            end,
             ends = {trigger = Slot.PT_DESTROY_BATTLESHIP}},
-        -- "Destroy the turbines. The shields should fizzle." The vents expose them.
         {id = "overload", directive = Directive.OVERLOAD_THE_GENERATOR,
-            navpoint = Slot.SLOT_000C_80B51397,
+            navpoint = Slot.SLOT_000C_80B51397, barrier = true,
             lines = {line(cue.CUE_86)},
             on_start = function(context)
-                move(context, {Slot.D_VENTS_A, Slot.D_VENTS_B, Slot.D_VENTS_C,
-                    Slot.D_SHIELD_GEN_A, Slot.D_SHIELD_GEN_B, Slot.D_SHIELD_GEN_COLLAR}, "open")
+                context:activate_objects{slots = {Slot.SHIELD_GENERATOR_A,
+                    Slot.SHIELD_GENERATOR_B, Slot.SHIELD_GENERATOR_C}, active = true}
+                for _, slot in ipairs({Slot.D_SHIELD_GENERATOR_A, Slot.D_SHIELD_GENERATOR_B,
+                    Slot.D_SHIELD_GENERATOR_C}) do
+                    context:slot(slot):set_channel{channel = context.sdk.device_channels.position,
+                        value = context.sdk.unit(0.1)}
+                end
             end,
             ends = {destroyed = {Slot.SHIELD_GENERATOR_A, Slot.SHIELD_GENERATOR_B,
                 Slot.SHIELD_GENERATOR_C}}},
-        -- "Zavala! We did it! The shields are down!" then "Amanda! We're headed topside!"
         {id = "escape", directive = Directive.ESCAPE_THE_COMMAND_SHIP,
             navpoint = Slot.SLOT_0010_80B51397,
             lines = {line(cue.CUE_91), line(cue.CUE_92)},
-            on_start = function(context) move(context, {Slot.D_SHIP_DOOR_EXIT}, "open") end,
+            on_start = function(context)
+                for _, slot in ipairs({Slot.D_SHIELD_GEN_A, Slot.D_SHIELD_GEN_B,
+                    Slot.D_SHIELD_GEN_CORE}) do
+                    context:slot(slot):set_channel{channel = context.sdk.device_channels.position,
+                        value = context.sdk.unit(0.2)}
+                end
+                move(context, {Slot.D_SHIELD_GEN_COLLAR, Slot.D_HEAT_SINK_GLOWS}, "close")
+                move(context, {Slot.D_GEN_EXIT_LIGHTS, Slot.D_SHIP_DOOR_EXIT}, "open")
+            end,
             ends = {trigger = Slot.PT_GOTO_END}},
     },
     encounters = {
+        {id = "console_approach", after = "locate", trigger = Slot.PT_PODS_DOOR_A,
+            lines = {line(cue.CUE_78)}},
+        {id = "stairs", after = "reach", trigger = Slot.PT_DAMAGED_HALL_STAIRS,
+            lines = {line(cue.CUE_82)}},
+        {id = "stairs_door", after = "reach", trigger = Slot.PT_DAMAGED_HALL_STAIRS_DOOR,
+            on_start = function(context) move(context, {Slot.D_SHIP_DOOR}, "open") end},
+        {id = "reactor_preload", after = "reach", trigger = Slot.PT_ENGINE_ROOM_LOWER,
+            on_start = function(context)
+                for _, slot in ipairs({Slot.D_SHIELD_GEN_A, Slot.D_SHIELD_GEN_B,
+                    Slot.D_SHIELD_GEN_CORE}) do
+                    context:slot(slot):set_channel{channel = context.sdk.device_channels.position,
+                        value = context.sdk.unit(0.1)}
+                end
+                move(context, {Slot.D_SHIELD_GEN_COLLAR, Slot.D_HEAT_SINK_GLOWS,
+                    Slot.D_GEN_A_LIGHTS, Slot.D_GEN_B_LIGHTS, Slot.D_GEN_C_LIGHTS,
+                    Slot.D_VENTS_A, Slot.D_VENTS_B, Slot.D_VENTS_C,
+                    Slot.D_SHIP_DOOR_ENTER}, "open")
+            end},
+        {id = "explosion_a", after = "escape", trigger = Slot.PT_ESCAPE_EXPLOSION_A_80B508F4,
+            on_start = function(context)
+                context:scene(Scene.SC_EXPLOSION_A_80B508F4):activate{}
+            end},
+        {id = "explosion_b", after = "escape", trigger = Slot.PT_ESCAPE_EXPLOSION_B_80B508F4,
+            on_start = function(context)
+                context:scene(Scene.SC_EXPLOSION_B_80B508F4):activate{}
+            end},
+        {id = "explosion_c", after = "escape", trigger = Slot.PT_ESCAPE_EXPLOSION_C,
+            on_start = function(context)
+                context:scene(Scene.SC_EXPLOSION_C_80B508F4):activate{}
+            end},
+        {id = "explosion_d", after = "escape", trigger = Slot.PT_ESCAPE_EXPLOSION_D,
+            on_start = function(context)
+                context:scene(Scene.SC_EXPLOSION_D_80B508F4):activate{}
+            end},
         underwatch_cast, first_contact, centurion, wall, post_gun, hangar, plaza_hold, zavala,
-        plaza_defend, bazaar, ship_entry, deck, deck_boss, shield_room, turbine_guard, ghaul,
+        hangar_first, hangar_second, plaza_wave1, plaza_wave2, plaza_wave3,
+        ikora_cast, bazaar, ship_entry, deck, deck_boss, shield_room, turbine_guard, ghaul,
         escape_guard,
     },
 }
+
+local region_changed = program.on_event_region_changed
+program.on_event_region_changed = function(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation then return end
+    local phase = state:variable(PICKUP_KEY)
+    if phase == PICKUP_REQUESTED and event.region_index == pickup_state.region_index then
+        context:set_variable(PICKUP_KEY, PICKUP_PLAYING)
+        context:slot(Slot.MID_CINEMATIC_CINEMATIC):set_cinematic_active{active = true}
+    elseif phase == PICKUP_RETURNING and event.region_index == ship_state.region_index then
+        context:set_variable(PICKUP_KEY, PICKUP_ARRIVED)
+    end
+    region_changed(context, state, event)
+end
+
+local function finish_pickup(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation
+        or state:variable(PICKUP_KEY) ~= PICKUP_PLAYING
+        or not lib.is_slot(context, event, Slot.MID_CINEMATIC_CINEMATIC) then return end
+    context:slot(Slot.MID_CINEMATIC_CINEMATIC):set_cinematic_active{active = false}
+    context:set_variable(PICKUP_KEY, PICKUP_RETURNING)
+    context:select_state(ship_state)
+    context:hold_spawn{active = false}
+end
+
+local terminated = program.on_event_cinematic_terminated
+program.on_event_cinematic_terminated = function(context, state, event)
+    finish_pickup(context, state, event)
+    terminated(context, state, event)
+end
+
+local skipped = program.on_event_cinematic_skip_requested
+program.on_event_cinematic_skip_requested = function(context, state, event)
+    finish_pickup(context, state, event)
+    skipped(context, state, event)
+end
+
+
+local turbine_objects = {Slot.SHIELD_GENERATOR_A, Slot.SHIELD_GENERATOR_B, Slot.SHIELD_GENERATOR_C}
+local turbines = {
+    [Slot.SHIELD_GENERATOR_A] = Slot.D_GEN_A_LIGHTS,
+    [Slot.SHIELD_GENERATOR_B] = Slot.D_GEN_B_LIGHTS,
+    [Slot.SHIELD_GENERATOR_C] = Slot.D_GEN_C_LIGHTS,
+}
+local object_state = program.on_event_object_state
+program.on_event_object_state = function(context, state, event)
+    if event.attempt_generation ~= context.attempt_generation then return end
+    local source = event.slot ~= nil and event.slot.id or nil
+    local key = nil
+    for index, slot in ipairs(turbine_objects) do
+        if slot == source then key = "flow.towerfall.fact.overload.gone" .. index end
+    end
+    local was_destroyed = key ~= nil and state:variable(key) == true
+    object_state(context, state, event)
+    if key == nil or was_destroyed or state:variable(key) ~= true then return end
+    move(context, {turbines[source]}, "close")
+    local count = 0
+    for index in ipairs(turbine_objects) do
+        if state:variable("flow.towerfall.fact.overload.gone" .. index) == true then
+            count = count + 1
+        end
+    end
+    if count < 3 then
+        context:slot(Slot.M_DIALOG_SENSOR_80B50913):play_dialogue_cue{
+            cue = count == 1 and cue.CUE_88 or cue.CUE_90,
+        }
+    end
+end
+
+return program

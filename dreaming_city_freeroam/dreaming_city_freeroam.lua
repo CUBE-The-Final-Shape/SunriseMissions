@@ -5,5 +5,7 @@ local missions = require("missions")
 local mission = require(missions.DREAMING_CITY_FREEROAM)
 local freeroam = require("lib.freeroam")
 local content = require("dreaming_city_freeroam.content")
+local sectors = require("dreaming_city_freeroam.sectors")
 
-return freeroam.new{zones = content(mission, freeroam)}
+return freeroam.new{zones = content(mission, freeroam),
+    sectors = sectors(mission, freeroam)}

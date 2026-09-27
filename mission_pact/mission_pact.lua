@@ -1,9 +1,5 @@
--- A Garden World's campaign twin of Tree of Probabilities. Ported from the Dawn fork; not tested
--- in game. Same four legs and the same content objects as the strike, with the campaign's own
--- line order, its Minotaur reveal before Valus Thuun, and the closing map scan.
--- Each run seeds the authored type-37 Forest worker and leaves its other inputs authored.
--- Thuun's retreats read the health fraction his type-2 Sense already reports, so no client
--- hook is needed. Not ported: the Harvester delivery chain, a type-2 mechanic sequence.
+-- Tree of Probabilities. Native mission logic; live play remains unverified.
+-- Absent: eight Forest defenders, Harvester delivery, boss retreat motion and immunity.
 local missions = require("missions")
 local mission = require(missions.MISSION_PACT)
 local campaign = require("lib.campaign")
@@ -36,6 +32,9 @@ local vanguard = {
 
 local rearguard = {
     id = "rearguard",
+    on_start = function(context)
+        context:slot(Slot.SQ_CABAL_ANCHOR_GLADIATOR):bind_combatant_to_squad()
+    end,
     trigger = Slot.PT_NEAR_GATE,
     objective = Slot.OBJ_PACT_LIGHTHOUSE,
     squads = {
@@ -54,12 +53,9 @@ local basilisk = {
         unit(Squad.SQ_BASILISK, Slot.SQ_BASILISK),
     },
 }
-
--- The SDK export carries a squad for the first two portal guards only; the other eight authored
--- type-1 slots have no squad row, so they cannot be placed.
 local portal = {
     id = "portal",
-    trigger = Slot.PT_LOAD_POST,
+    after = "barrier",
     objective = Slot.OBJ_IFB,
     squads = {
         unit(Squad.SQ_PORTAL_GUARD_0, Slot.SQ_PORTAL_GUARD_0),
@@ -168,8 +164,6 @@ local prefight = {
         unit(Squad.SQ_PREFIGHT_SKIRMISH_5, Slot.SQ_PREFIGHT_SKIRMISH_5),
     },
 }
-
--- The campaign meets the Minotaur first; Valus Thuun follows it.
 local minotaur = {
     id = "minotaur",
     after = "reveal",
@@ -181,11 +175,12 @@ local minotaur = {
 
 local boss = {
     id = "boss",
-    after = "thuun",
+    after = "reveal",
     objective = Slot.OBJ_BOMB_BOSS,
-    squads = {
-        unit(Squad.SQ_BOSS_80F54E07, Slot.SQ_BOSS_80F54E07),
-    },
+    squads = {unit(Squad.SQ_BOSS_80F54E07, Slot.SQ_BOSS_80F54E07)},
+    on_start = function(context)
+        context:slot(Slot.SQ_BOSS_VAL_THOOUN):bind_combatant_to_squad()
+    end,
 }
 
 local room1 = {
@@ -249,7 +244,8 @@ local room3 = {
     },
 }
 
-return campaign.new{
+local script = campaign.new{
+    omit = {Slot.LIGHTHOUSE_TELEPORT},
     key = "pactmission",
     directive_sensor = Slot.M_DIRECTIVE_SENSOR,
     dialogue_sensor = Slot.M_DIALOG_SENSOR,
@@ -269,11 +265,9 @@ return campaign.new{
             watch = {Slot.PM_LEDGE_FINAL, Slot.PM_ROOM2, Slot.PM_ROOM3}},
     },
     steps = {
-        -- "I have reports of Red Legion activity on Mercury." Position 1 is the device's authored
-        -- body, so the wall goes up by opening its position lane.
         {id = "approach", directive = Directive.APPROACH_THE_INFINITE_FOREST_GATEWAY,
             navpoint = Slot.AP_FOREST_PORTAL_80F55205,
-            lines = {line(cue.CUE_1)},
+            lines = {line(cue.CUE_0)},
             on_start = function(context)
                 move(context, {Slot.D_SHIELD_WALL_80F551DE}, "open")
             end,
@@ -281,18 +275,17 @@ return campaign.new{
         {id = "landing", directive = Directive.APPROACH_THE_INFINITE_FOREST_GATEWAY,
             navpoint = Slot.AP_FOREST_PORTAL_80F55205,
             ends = {trigger = Slot.PT_NEAR_GATE}},
-        -- "Guardian! We've got Cabal loose."
         {id = "gate", directive = Directive.APPROACH_THE_INFINITE_FOREST_GATEWAY,
             navpoint = Slot.AP_FOREST_PORTAL_80F55205,
-            lines = {line(cue.CUE_0)},
-            ends = {clear = {"rearguard", "vanguard"}}},
+            lines = {line(cue.CUE_1)},
+            barrier = true, ends = {clear = "rearguard"}},
         {id = "traverse", directive = Directive.TRAVERSE_THE_INFINITE_FOREST,
             navpoint = Slot.AP_FOREST_PORTAL_80F55205,
             on_start = function(context)
                 move(context, {Slot.D_SHIELD_WALL_80F551DE}, "close")
+                context:activate_objects{slots = {Slot.LIGHTHOUSE_TELEPORT}, active = true}
             end,
             ends = {trigger = Slot.PT_ENTER_TUNNEL, region = "forest"}},
-        -- The Forest island. The generator is seeded as the shield goes up.
         {id = "forest", directive = Directive.TRAVERSE_THE_INFINITE_FOREST,
             navpoint = Slot.AP_FOREST_PORTAL_80F550C9,
             on_start = function(context)
@@ -303,22 +296,19 @@ return campaign.new{
             ends = {trigger = {Slot.PT_LOAD_POST, Slot.PT_SEE_PORTAL, Slot.PT_REACHED_PORTAL}}},
         {id = "barrier", directive = Directive.DISABLE_THE_BARRIER,
             navpoint = Slot.AP_FOREST_PORTAL_80F550C9,
-            ends = {clear = "portal"}},
+            barrier = true, ends = {clear = "portal"}},
         {id = "forest_exit", directive = Directive.TRAVERSE_THE_INFINITE_FOREST,
             navpoint = Slot.AP_FOREST_PORTAL_80F550C9,
             on_start = function(context)
                 move(context, {Slot.D_SHIELD_WALL_80F550B8}, "close")
             end,
             ends = {trigger = Slot.PT_LEAVING_FOREST, region = "chase"}},
-        -- The 21 laser objects stay as the map seeds them. A type-4 activation bumps the entry's
-        -- generation and spawns it again on top of the seeded copy.
         {id = "hostiles", directive = Directive.ELIMINATE_HOSTILES,
             navpoint = Slot.AP_FIGHT_ROOM,
             ends = {clear = "first_room"}},
         {id = "chase_reinforce", directive = Directive.ELIMINATE_HOSTILES,
             navpoint = Slot.AP_FIGHT_ROOM,
             ends = {clear = "chase_reinforce"}},
-        -- "Maybe a Sparrow could make that jump."
         {id = "mount_up", directive = Directive.MOUNT_UP_AND_MOVE_QUICKLY,
             navpoint = Slot.AP_BOSS_ROOM_80F55018,
             lines = {line(cue.CUE_13)},
@@ -326,7 +316,6 @@ return campaign.new{
         {id = "conflict", directive = Directive.FIND_THE_CABAL_LEADER,
             navpoint = Slot.AP_BOSS_ROOM_80F55018,
             ends = {region = "bomb"}},
-        -- Not ported: the Harvester that drops the Cabal reinforcements on this ledge.
         {id = "ledge", directive = Directive.FIND_THE_CABAL_LEADER,
             navpoint = Slot.AP_BOSS_ROOM_80F54E12,
             lines = {line(cue.CUE_17)},
@@ -338,50 +327,44 @@ return campaign.new{
         {id = "prefight", directive = Directive.FIND_THE_MAP_OF_THE_INFINITE_FOREST,
             navpoint = Slot.AP_BOSS_ROOM_80F54E12,
             barrier = true, ends = {clear = "prefight"}},
-        -- "So, where's this Valus?" The scene brings in the Minotaur.
         {id = "reveal", directive = Directive.FIND_THE_MAP_OF_THE_INFINITE_FOREST,
             navpoint = Slot.AP_BOSS_ROOM_80F54E12,
             lines = {line(cue.CUE_20)}, scene = Scene.SCENE_MINOTAUR,
             barrier = true, ends = {scene = Slot.SCENE_MINOTAUR}},
         {id = "minotaur", barrier = true, ends = {clear = "minotaur"}},
-        -- "Aaaand he's gonna be worse." Thuun follows the Minotaur.
         {id = "thuun", directive = Directive.DEFEAT_VALUS_THUUN,
             navpoint = Slot.AP_BOSS_ROOM_80F54E12,
             lines = {line(cue.CUE_21)},
-            barrier = true, ends = {monitor = Slot.PM_ROOM2}},
-        -- Position 0 removes a gate body, so a gate is opened by closing its position lane.
-        -- Thuun retreats at two thirds health and again at one third. The client reports that
-        -- fraction on his type-2 Sense.
+            barrier = true, ends = {}},
         {id = "room1", directive = Directive.DEFEAT_VALUS_THUUN,
             on_start = function(context)
                 move(context, {Slot.D_GATE_ROOM1_ENTRY}, "close")
             end,
-            barrier = true,
-            ends = {clear = "room1", health = {slot = Slot.SQ_BOSS_VAL_THOOUN, at = 2 / 3}}},
-        {id = "room2", directive = Directive.EVADE_VEX_DEFENSES, navpoint = Slot.AP_ROOM2,
+            barrier = true, ends = {health = {slot = Slot.SQ_BOSS_VAL_THOOUN, at = 2 / 3}}},
+        {id = "room1_clear", barrier = true, ends = {clear = "room1"}},
+        {id = "enter2", barrier = true,
             on_start = function(context)
                 move(context, {Slot.D_GATE_ROOM1_EXIT, Slot.D_GATE_ROOM2_ENTRY}, "close")
             end,
-            barrier = true,
-            ends = {monitor = Slot.PM_ROOM3,
-                health = {slot = Slot.SQ_BOSS_VAL_THOOUN, at = 1 / 3}}},
-        -- "He's going for the map! Hurry!"
-        {id = "room3", directive = Directive.DEFEAT_VALUS_THUUN,
-            navpoint = Slot.AP_BOSS_ROOM_80F54E12,
-            lines = {line(cue.CUE_24)},
+            ends = {monitor = Slot.PM_ROOM2}},
+        {id = "room2", directive = Directive.EVADE_VEX_DEFENSES, navpoint = Slot.AP_ROOM2,
+            barrier = true, ends = {health = {slot = Slot.SQ_BOSS_VAL_THOOUN, at = 1 / 3}}},
+        {id = "room2_clear", barrier = true, ends = {clear = "room2"}},
+        {id = "enter3", directive = Directive.DEFEAT_VALUS_THUUN,
+            lines = {line(cue.CUE_24)}, barrier = true,
             on_start = function(context)
                 move(context, {Slot.D_GATE_ROOM2_EXIT, Slot.D_GATE_ROOM3_ENTRY}, "close")
             end,
-            barrier = true, ends = {clear = {"boss", "room3"}}},
-        -- "Huh. I swear you did." The map terminal's own object carries no trigger we can arm, so
-        -- this goal shows its text without a marker.
+            ends = {monitor = Slot.PM_ROOM3}},
+        {id = "room3", directive = Directive.DEFEAT_VALUS_THUUN,
+            navpoint = Slot.AP_BOSS_ROOM_80F54E12,
+            barrier = true, ends = {health = {slot = Slot.SQ_BOSS_VAL_THOOUN, at = 0}}},
         {id = "access", directive = Directive.ACCESS_THE_MAP,
             lines = {line(cue.CUE_27)},
             on_start = function(context)
                 move(context, {Slot.D_GATE_ROOM3_EXIT}, "close")
             end,
             barrier = true, ends = {ghost_link = Slot.INTERACT_GHOST_LINK}},
-        -- "Scanning. I can't find Panoptes."
         {id = "scanned", lines = {line(cue.CUE_29)}},
     },
     encounters = {
@@ -390,3 +373,24 @@ return campaign.new{
         ledge, prefight, minotaur, boss, room1, room2, room3,
     },
 }
+
+local route_lines = {
+    [Slot.PT_ENTER_TUNNEL] = cue.CUE_5,
+    [Slot.PT_START_FOREST] = cue.CUE_4,
+    [Slot.PT_ENTER_CHASE] = cue.CUE_10,
+    [Slot.PT_REACHED_BOSS] = cue.CUE_19,
+}
+local triggered = script.on_event_player_trigger
+script.on_event_player_trigger = function(context, state, event)
+    local dialogue = event.slot ~= nil and route_lines[event.slot.id] or nil
+    if event.kind == "playerTrigger" and dialogue ~= nil then
+        local key = "pact.route." .. dialogue
+        if state:variable(key) ~= context.attempt_generation then
+            context:set_variable(key, context.attempt_generation)
+            context:slot(Slot.M_DIALOG_SENSOR):play_dialogue_cue{cue = dialogue}
+        end
+    end
+    triggered(context, state, event)
+end
+
+return script
