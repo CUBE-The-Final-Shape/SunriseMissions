@@ -94,16 +94,6 @@ local ARENAS = {
 				},
     },
 	{
-	
-		-- 0 Tank
-		-- 1 Servitors A,D,
-		-- 2 Snipers, Wave_A-C
-		-- 3 Servitor B, Wave_E
-		-- 4 Servitor C, Wave_D
-		-- 5 Catwalk 5
-		-- 6 Catwalk 4
-		-- 7 Catwalk 3
-		-- 8 Catwalk 1
         id = "military_a",
 		objective = "OBJ_MILITARY",
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_8153855C,
@@ -111,40 +101,40 @@ local ARENAS = {
         squads = {
 					-- Group 1 and 2 are bad groups that often make squads not report full strength and cleared.
 					-- Assigning invalid groups to enemies that are supposed to be stationary seems to fix the problem
-					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1, default_group = 9},
+					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1, default_group = 0},
 					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1, default_group = 9},
-					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1, default_group = 3},
-					{squad = Squad.SQ_TANK_SERVITOR_C, count = 1, default_group = 4},
+					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1, default_group = 9},
+					{squad = Squad.SQ_TANK_SERVITOR_C, count = 1, default_group = 9},
 					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1, default_group = 9}, 
-					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 4, default_group = 9}, -- Resilient Solar Shield Shank
+					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 3, default_group = 9}, -- Resilient Solar Shield Shank
 					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 3, default_group = 9}, -- Resilient Solar Shield Shank
 					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 3, default_group = 9}, -- Resilient Solar Shield Shank
 					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 2, default_group = 3}, -- Resilient Marauder
 					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 2, default_group = 4}, -- Resilient Marauder
-					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2, default_group = 5},
-					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2, default_group = 6},
 					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2, default_group = 7},
+					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2, default_group = 6},
+					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2, default_group = 5},
 					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 2, default_group = 8}, -- Inconsistent reconsider default_group
 					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1, default_group = 9},
 					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1, default_group = 9}
 				},
 		squad_slots = {
-					Slot.SQ_TANK_WAVE_ONE, -- Slot 0
-					Slot.SQ_TANK_SERVITOR_A, -- Slot 1
-					Slot.SQ_TANK_SERVITOR_B, -- Slot 1
-					Slot.SQ_TANK_SERVITOR_C, -- Slot 1
-					Slot.SQ_TANK_SERVITOR_D, -- Slot 1
-					Slot.SQ_A_WAVE_ONE_8153855C, -- Slot 2
-					Slot.SQ_B_WAVE_ONE_8153855C, -- Slot 2
-					Slot.SQ_C_WAVE_ONE_8153855C, -- Slot 2
-					Slot.SQ_D_WAVE_ONE_8153855C, -- Slot 3
-					Slot.SQ_E_WAVE_ONE_8153855C, -- Slot 4
-					Slot.SQ_CATWALK_C_WAVE_ONE, -- Slot 5
-					Slot.SQ_CATWALK_B_WAVE_ONE, -- Slot 6
-					Slot.SQ_CATWALK_A_WAVE_ONE, -- Slot 7
-					Slot.SQ_CATWALK_D_WAVE_ONE, -- Slot 8
-					Slot.SQ_SNIPE_A_WAVE_ONE, -- Slot 9
-					Slot.SQ_SNIPE_B_WAVE_ONE, -- Slot 9
+					Slot.SQ_TANK_WAVE_ONE,
+					Slot.SQ_TANK_SERVITOR_A,
+					Slot.SQ_TANK_SERVITOR_B,
+					Slot.SQ_TANK_SERVITOR_C,
+					Slot.SQ_TANK_SERVITOR_D,
+					Slot.SQ_A_WAVE_ONE_8153855C,
+					Slot.SQ_B_WAVE_ONE_8153855C, 
+					Slot.SQ_C_WAVE_ONE_8153855C,
+					Slot.SQ_D_WAVE_ONE_8153855C,
+					Slot.SQ_E_WAVE_ONE_8153855C,
+					Slot.SQ_CATWALK_A_WAVE_ONE,
+					Slot.SQ_CATWALK_B_WAVE_ONE,
+					Slot.SQ_CATWALK_C_WAVE_ONE,
+					Slot.SQ_CATWALK_D_WAVE_ONE,
+					Slot.SQ_SNIPE_A_WAVE_ONE,
+					Slot.SQ_SNIPE_B_WAVE_ONE,
 				},
     },
 	{
@@ -277,11 +267,11 @@ local ARENAS = {
 				{squad = Squad.SQ_A_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 4},
 				{squad = Squad.SQ_B_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 5},
 				{squad = Squad.SQ_C_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 6},
-				{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 7},
+				{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 11},
 				{squad = Squad.SQ_E_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 8}, 
 				{squad = Squad.SQ_F_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 9},
 				{squad = Squad.SQ_G_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 10},
-				{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 11},
+				{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 7},
 			},
 			on_provoked = {
 				{squad = Squad.SQ_VOID_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 0},
@@ -443,7 +433,7 @@ end
 
 local function place_squads(context, arena_data)
 	-- This function goes through the squads in a given arena.
-	-- It prepares them by giveing them an objective and a group slot.
+	-- It prepares them by giving them an objective and a group slot.
 	-- They are spawned once the preparation is done.
 	for i, sq in ipairs(arena_data.squads) do
 		local squad = context:squad(sq.squad)
@@ -544,7 +534,6 @@ end
 
 local function play_outro_scene(context)
 	context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
-	context:slot(Slot.M_DIRECTIVE_SENSOR):clear_directives()
 	context:start_timer("outro_mithrax_spawn_delay", 2000)
 	context:start_timer("mission_complete_delay", 6000)
 	
@@ -568,15 +557,14 @@ local function update_arena_status(context, state, arena)
 	end
 
 	if not state:variable(key) and check_cleared_status(context, arena) then
-		context:set_variable(key, true)
-		
-		local current_arena = state:variable("active_arena")
-		context:set_variable("active_arena", current_arena + 1)
-		
 		
 		-- If all conditions are met this should trigger the outro scene and mission complete.
-		if arena.id == "outro_arena" and state:variable("bosses_defeated") == 3 then
-			play_outro_scene(context)
+		if arena.id == "outro_arena" then
+			if state:variable("bosses_defeated") == 3 then
+				play_outro_scene(context)
+				context:set_variable(key, true)
+			end
+			return
 		end
 		
 		-- If the arena has a corresponding door that needs to be opened on it being cleared,
@@ -599,6 +587,11 @@ local function update_arena_status(context, state, arena)
 		if arena.clear_sensor then
 			set_directive(context, arena.clear_sensor)
 		end
+		
+		context:set_variable(key, true)
+		
+		local current_arena = state:variable("active_arena")
+		context:set_variable("active_arena", current_arena + 1)
 	end
 end
 
@@ -622,6 +615,17 @@ return {
         context:set_variable("reloaded", true)
 		-- play_outro_scene(context)
 		context:set_variable("active_arena", 6)
+		
+		--[[
+		local squad = context:squad(Squad.SQ_E_WAVE_ONE_8153855C)
+		local counts = squad:counts()
+		counts:set(1, 2)
+		context:slot(Slot.SQ_E_WAVE_ONE_8153855C):assign_combat_objective{
+			objective = context:slot(Slot.OBJ_MILITARY),
+			task_group = mission.TaskGroup.OBJ_MILITARY.GROUP_4
+		}
+		squad:place{counts = counts}
+		]]
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -803,6 +807,7 @@ return {
 			if lib.is_slot(context, event, entry.trigger) then
 				context:slot(entry.trigger):disarm_trigger()
 				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = entry.section}
+				return
 			end
 		end
     end,
