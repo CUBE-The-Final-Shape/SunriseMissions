@@ -15,6 +15,23 @@ local VENTILATION = mission.states.STATE_81538016_0002_0000_81538010.region_inde
 local VAULT = mission.states.STATE_81538016_0004_0000_81538012.region_index -- 32
 local OUTRO_REGION = mission.states.STATE_81538016_0001_0000_8153800F.region_index -- 8
 
+local music_lookup = {
+	{trigger = Slot.MPT_MILITARY, section = 4}, -- hanger_combat
+	{trigger = Slot.MPT_ITS_A_TRAP, section = 5}, -- its_a_trap
+	{trigger = Slot.MPT_LONG_WAY_DOWN, section = 11}, -- long_way_down
+	{trigger = Slot.MPT_LWD_END, section = 12}, -- lwd_end
+	{trigger = Slot.MPT_VENTS_TO_PUZZLES, section = 13}, -- vents_to_puzzles
+	{trigger = Slot.MPT_TO_THE_OUTSIDE, section = 14}, -- to_the_outside
+	{trigger = Slot.MPT_VERTIGO, section = 15}, -- vertigo
+	{trigger = Slot.MPT_VERTIGO_END, section = 16}, -- vertigo_end
+	{trigger = Slot.MPT_THE_FANS, section = 17}, -- the_fans
+	{trigger = Slot.MPT_ENTER_STAIRWELL, section = 18}, -- enter_stairwell
+	{trigger = Slot.MPT_T_R_E_V_O_R, section = 19}, -- figure_it_out
+	{trigger = Slot.MPT_ESCAPE_THE_VENTS, section = 20}, -- escape_the_vents
+	{trigger = Slot.MPT_VAULT, section = 21}, -- the_vault
+	{trigger = Slot.MPT_VAULT_END, section = 22}, -- vault_end
+}
+
 local ARENAS = {
     {
         id = "blvd",
@@ -253,53 +270,53 @@ local ARENAS = {
 		]]
 		squads = {
 			wave_one = {
-				{squad = Squad.SQ_VANDAL_A, count = 1, default_objective = "OBJ_INTRO", default_group = 0}, -- cleared
-				{squad = Squad.SQ_VANDAL_B, count = 1, default_objective = "OBJ_INTRO", default_group = 1}, -- cleared
-				{squad = Squad.SQ_VANDAL_C, count = 1, default_objective = "OBJ_INTRO", default_group = 2}, -- cleared
-				{squad = Squad.SQ_VANDAL_D, count = 1, default_objective = "OBJ_INTRO", default_group = 3}, -- cleared
-				{squad = Squad.SQ_A_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 4}, -- cleared
-				{squad = Squad.SQ_B_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 5}, -- cleared
-				{squad = Squad.SQ_C_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 6}, -- cleared
-				{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 7}, -- cleared
+				{squad = Squad.SQ_VANDAL_A, count = 1, default_objective = "OBJ_INTRO", default_group = 0},
+				{squad = Squad.SQ_VANDAL_B, count = 1, default_objective = "OBJ_INTRO", default_group = 1},
+				{squad = Squad.SQ_VANDAL_C, count = 1, default_objective = "OBJ_INTRO", default_group = 2},
+				{squad = Squad.SQ_VANDAL_D, count = 1, default_objective = "OBJ_INTRO", default_group = 3},
+				{squad = Squad.SQ_A_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 4},
+				{squad = Squad.SQ_B_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 5},
+				{squad = Squad.SQ_C_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 6},
+				{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 7},
 				{squad = Squad.SQ_E_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 8}, 
-				{squad = Squad.SQ_F_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 9}, -- cleared
-				{squad = Squad.SQ_G_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 10}, -- cleared
-				{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 11}, -- cleared
+				{squad = Squad.SQ_F_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 9},
+				{squad = Squad.SQ_G_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 10},
+				{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 11},
 			},
 			on_provoked = {
-				{squad = Squad.SQ_VOID_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 0}, -- cleared
-				{squad = Squad.SQ_VOID_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 1}, -- cleared
-				{squad = Squad.SQ_VOID_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 2}, -- cleared
-				{squad = Squad.SQ_VOID_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 3}, -- cleared
+				{squad = Squad.SQ_VOID_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 0},
+				{squad = Squad.SQ_VOID_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 1},
+				{squad = Squad.SQ_VOID_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 2},
+				{squad = Squad.SQ_VOID_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 3},
 			},
 
 			on_tp_left = {
-				{squad = Squad.SQ_ARC_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 8}, -- cleared
-				{squad = Squad.SQ_ARC_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 9}, -- cleared
+				{squad = Squad.SQ_ARC_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 8},
+				{squad = Squad.SQ_ARC_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 9},
 			},
 
 			on_tp_back = {
-				{squad = Squad.SQ_SOLAR_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 4}, -- cleared
-				{squad = Squad.SQ_SOLAR_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 5}, -- cleared
-				{squad = Squad.SQ_SOLAR_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 6}, -- cleared
-				{squad = Squad.SQ_SOLAR_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 7}, -- cleared
+				{squad = Squad.SQ_SOLAR_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 4},
+				{squad = Squad.SQ_SOLAR_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 5},
+				{squad = Squad.SQ_SOLAR_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 6},
+				{squad = Squad.SQ_SOLAR_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 7},
 			},
 
 			on_tp_right = {
-				{squad = Squad.SQ_ARC_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 11}, -- cleared
-				{squad = Squad.SQ_ARC_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 10}, -- cleared
+				{squad = Squad.SQ_ARC_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 10},
+				{squad = Squad.SQ_ARC_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 11},
 			},
 
 			on_tp_front = {
-				{squad = Squad.SQ_VANDAL_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 10}, -- cleared
-				{squad = Squad.SQ_VANDAL_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 11}, -- cleared
-				{squad = Squad.SQ_MARAUDER_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 7}, -- cleared
-				{squad = Squad.SQ_MARAUDER_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 8}, -- cleared
-				{squad = Squad.SQ_MARAUDER_FINAL_C, count = 1, default_objective = "OBJ_BOSS", default_group = 9}, -- cleared
-				{squad = Squad.SQ_ARC_SHANK_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 12}, -- cleared
-				{squad = Squad.SQ_ARC_SHANK_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 13}, -- cleared
-				{squad = Squad.SQ_TANK_A, count = 1, default_objective = "OBJ_BOSS", default_group = 5}, -- cleared
-				{squad = Squad.SQ_TANK_B, count = 1, default_objective = "OBJ_BOSS", default_group = 6}, -- cleared
+				{squad = Squad.SQ_VANDAL_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 10},
+				{squad = Squad.SQ_VANDAL_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 11},
+				{squad = Squad.SQ_MARAUDER_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 7},
+				{squad = Squad.SQ_MARAUDER_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 8},
+				{squad = Squad.SQ_MARAUDER_FINAL_C, count = 1, default_objective = "OBJ_BOSS", default_group = 9},
+				{squad = Squad.SQ_ARC_SHANK_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 12},
+				{squad = Squad.SQ_ARC_SHANK_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 13},
+				{squad = Squad.SQ_TANK_A, count = 1, default_objective = "OBJ_BOSS", default_group = 5},
+				{squad = Squad.SQ_TANK_B, count = 1, default_objective = "OBJ_BOSS", default_group = 6},
 			},
 		},
 		squad_slots = {
@@ -354,6 +371,11 @@ local ARENAS = {
 			},
 		},
     },
+}
+
+local WAVE_KEYS = {
+    "wave_one", "on_provoked", "on_tp_left",
+    "on_tp_back", "on_tp_right", "on_tp_front",
 }
 
 local toaster_path = { -- I don't think there is a way to read the current elemental singe yet.
@@ -450,6 +472,18 @@ local function place_boss_squads(context, arena_data, wave) -- wave is a string 
 	end
 end
 
+local function update_boss_c_group(context, id)
+	context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
+		objective = context:slot(Slot.OBJ_BOSS),
+		task_group = mission.TaskGroup.OBJ_BOSS["GROUP_" .. id],
+	}
+end
+
+local function update_bosses_defeated(context, state)
+	local bosses_defeated = state:variable("bosses_defeated")
+	context:set_variable("bosses_defeated", bosses_defeated + 1)
+end
+
 local function place_boss_actors(context, arena_data, wave, index)
 		-- The bosses in the outro arena have corresponding actor slots. This is an alternative way of spawning enemies
 		-- that is needed in this mission in order to make the bosses health values monitorable.
@@ -467,11 +501,6 @@ local function place_boss_actors(context, arena_data, wave, index)
 			task_group = mission.TaskGroup.OBJ_BOSS["GROUP_" .. arena_data.actor_squads[index].default_group],
 		}
 end
-
-local WAVE_KEYS = {
-    "wave_one", "on_provoked", "on_tp_left",
-    "on_tp_back", "on_tp_right", "on_tp_front",
-}
 
 local function flatten_squad_entries(list, out)
     if list[1] ~= nil then
@@ -527,52 +556,50 @@ local function play_outro_scene(context)
 	}}
 end
 
-local function update_arena_status(context, state)
-	-- This function should be modified to take arena arrays as an argument
-	-- to avoid unnecessary arena checks everytime it's called
-	-- Could be done with variable. current_active_arena = int, set when squads spawned.
-	-- Will allow on_event_squad_state to call the function with the correct arena array every call.
-    for _, arena in ipairs(ARENAS) do
-        local key = arena.id .. ".arena_cleared"
-		local entries = arena_squad_entries(arena)
+local function update_arena_status(context, state, arena)
+	local key = arena.id .. ".arena_cleared"
+	local entries = arena_squad_entries(arena)
 
-        -- Debug code that logs if a squad counts as cleared
-        for i, entry in ipairs(entries) do
-            if context:cohort{squads = {entry.squad}}.cleared then
-                context:set_variable(arena.id .. ".dbg." .. i-1, true)
-            end
-        end
+	-- Debug code that logs if a squad counts as cleared
+	for i, entry in ipairs(entries) do
+		if context:cohort{squads = {entry.squad}}.cleared then
+			context:set_variable(arena.id .. ".dbg." .. i-1, true)
+		end
+	end
 
-        if not state:variable(key) and check_cleared_status(context, arena) then
-            context:set_variable(key, true)
-			
-			-- If all conditions are met this should trigger the outro scene and mission complete.
-            if arena.id == "outro_arena" and state:variable("bosses_defeated") == 3 then
-				play_outro_scene(context)
-            end
-			
-			-- If the arena has a corresponding door that needs to be opened on it being cleared,
-			-- this will handle it.
-            if arena.doors then
-                for _, door in ipairs(arena.doors) do
-                    context:slot(door):transition{
-                        transition = context.sdk.device_transitions.open,
-                    }
-                end
-            end
-			
-			-- Some arenas end the current music segment when cleared, some don't.
-			-- This section checks if the arena has a clear_music_section and if it exists, plays it.
-            if arena.clear_music_section then
-                context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = arena.clear_music_section}
-            end
+	if not state:variable(key) and check_cleared_status(context, arena) then
+		context:set_variable(key, true)
+		
+		local current_arena = state:variable("active_arena")
+		context:set_variable("active_arena", current_arena + 1)
+		
+		
+		-- If all conditions are met this should trigger the outro scene and mission complete.
+		if arena.id == "outro_arena" and state:variable("bosses_defeated") == 3 then
+			play_outro_scene(context)
+		end
+		
+		-- If the arena has a corresponding door that needs to be opened on it being cleared,
+		-- this will handle it.
+		if arena.doors then
+			for _, door in ipairs(arena.doors) do
+				context:slot(door):transition{
+					transition = context.sdk.device_transitions.open,
+				}
+			end
+		end
+		
+		-- Some arenas end the current music segment when cleared, some don't.
+		-- This section checks if the arena has a clear_music_section and if it exists, plays it.
+		if arena.clear_music_section then
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = arena.clear_music_section}
+		end
 
-			-- If the arena has a corresponding engagement sensor that should be set on clear, it gets set here.
-            if arena.clear_sensor then
-                set_directive(context, arena.clear_sensor)
-            end
-        end
-    end
+		-- If the arena has a corresponding engagement sensor that should be set on clear, it gets set here.
+		if arena.clear_sensor then
+			set_directive(context, arena.clear_sensor)
+		end
+	end
 end
 
 
@@ -587,12 +614,14 @@ return {
         context:set_variable("zero_hour_script", "started")
 		context:slot(Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = false}
 		context:set_variable("is_heroic", is_heroic(context))
+		context:set_variable("active_arena", 1)
     end,
 
 	-- This function is currently used to debug features
     on_load = function(context, state)
         context:set_variable("reloaded", true)
-		play_outro_scene(context)
+		-- play_outro_scene(context)
+		context:set_variable("active_arena", 6)
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -724,7 +753,6 @@ return {
 				context:slot(Slot.PT_BOSS_SPAWN):fire_trigger()
 				set_directive(context, ARENAS[6].enter_sensor)
 				place_boss_squads(context, ARENAS[6], "wave_one")
-				
 			end
 		end
     end,
@@ -752,7 +780,6 @@ return {
 
         if lib.is_slot(context, event, Slot.PT_ENTRY) then
 			context:slot(Slot.PT_ENTRY):disarm_trigger()
-		
             context:squad(mission.Squad.SQ_FRIENDLY_8153806D):place{}
             context:scene(mission.Scene.SCENE_INTRO_FRIENDLY):send_event{key = 0x7d465556}
         end
@@ -760,7 +787,6 @@ return {
 		if lib.is_slot(context, event, Slot.PT_BOSS_SPAWN) then
 			context:slot(Slot.PT_BOSS_SPAWN):disarm_trigger()
 			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 23} -- final_battle
-			
 			place_boss_actors(context, ARENAS[6], "wave_one", 1)
 		end
 		
@@ -773,74 +799,11 @@ return {
 			end
 		end
 		
-		-- Find a way to combine all these music trigegrs into one...
-		if lib.is_slot(context, event, Slot.MPT_MILITARY) then
-			context:slot(Slot.MPT_MILITARY):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 4} -- hanger_combat
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_ITS_A_TRAP) then
-			context:slot(Slot.MPT_ITS_A_TRAP):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 5} -- its_a_trap
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_LONG_WAY_DOWN) then
-			context:slot(Slot.MPT_LONG_WAY_DOWN):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 11} -- long_way_down
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_LWD_END) then
-			context:slot(Slot.MPT_LWD_END):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 12} -- lwd_end
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_VENTS_TO_PUZZLES) then
-			context:slot(Slot.MPT_VENTS_TO_PUZZLES):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 13} -- vents_to_puzzles
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_TO_THE_OUTSIDE) then
-			context:slot(Slot.MPT_TO_THE_OUTSIDE):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 14} -- to_the_outside
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_VERTIGO) then
-			context:slot(Slot.MPT_VERTIGO):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 15} -- vertigo
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_VERTIGO_END) then
-			context:slot(Slot.MPT_VERTIGO_END):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 16} -- vertigo_end
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_THE_FANS) then
-			context:slot(Slot.MPT_THE_FANS):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 17} -- the_fans
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_ENTER_STAIRWELL) then
-			context:slot(Slot.MPT_ENTER_STAIRWELL):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 18} -- enter_stairwell
-		end
-		if lib.is_slot(context, event, Slot.MPT_T_R_E_V_O_R) then
-			context:slot(Slot.MPT_T_R_E_V_O_R):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 19} -- figure_it_out
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_ESCAPE_THE_VENTS) then
-			context:slot(Slot.MPT_ESCAPE_THE_VENTS):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 20} -- escape_the_vents
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_VAULT) then
-			context:slot(Slot.MPT_VAULT):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 21} -- the_vault
-		end
-		
-		if lib.is_slot(context, event, Slot.MPT_VAULT_END) then
-			context:slot(Slot.MPT_VAULT_END):disarm_trigger()
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 22} -- vault_end
+		for _, entry in ipairs(music_lookup) do
+			if lib.is_slot(context, event, entry.trigger) then
+				context:slot(entry.trigger):disarm_trigger()
+				context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = entry.section}
+			end
 		end
     end,
 
@@ -872,9 +835,9 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
-			-- Without this security_disabled is set to true as soon as the object
-			-- is spawned in. Objects fire once on initial spawn.
 			if not state:variable("object_spawn.trigger") then
+				-- Without this security_disabled is set to true as soon as the object
+				-- is spawned in since objects fire once on their initial spawn.
 				context:set_variable("object_spawn.trigger", true)
 			else
 			context:set_variable("security_disabled", true)
@@ -887,6 +850,7 @@ return {
 
 	on_event_damage_state = function(context, state, event)
 		-- This is a mess. Do something about it...
+		-- Not sure if it's possible to do anything with it.
 		if lib.is_slot(context, event, Slot.SQ_BOSS_C_ULTRA) then
 			if event.health ~= -1 and not state:variable("on_provoked.spawned") then
 				context:set_variable("on_provoked.spawned", true)
@@ -895,37 +859,25 @@ return {
 			elseif state:variable("on_provoked.spawned") then
 				if event.health <= 0.95 and not state:variable("on_tp_left.spawned") then
 					context:set_variable("on_tp_left.spawned", true)
-					context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
-						objective = context:slot(Slot.OBJ_BOSS),
-						task_group = mission.TaskGroup.OBJ_BOSS.GROUP_2,
-					}
+					update_boss_c_group(context, 2)
 					place_boss_squads(context, ARENAS[6], "on_tp_left")
 					
 				elseif event.health <= 0.90 and not state:variable("on_tp_back.spawned") then
 					context:set_variable("on_tp_back.spawned", true)
-					context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
-						objective = context:slot(Slot.OBJ_BOSS),
-						task_group = mission.TaskGroup.OBJ_BOSS.GROUP_3,
-					}
+					update_boss_c_group(context, 3)
 					place_boss_squads(context, ARENAS[6], "on_tp_back")
 					place_boss_actors(context, ARENAS[6], "on_tp_back", 3)
 					
 				elseif event.health <= 0.85 and not state:variable("on_tp_right.spawned") then
 					context:set_variable("on_tp_right.spawned", true)
-					context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
-						objective = context:slot(Slot.OBJ_BOSS),
-						task_group = mission.TaskGroup.OBJ_BOSS.GROUP_4,
-					}
+					update_boss_c_group(context, 4)
 					place_boss_squads(context, ARENAS[6], "on_tp_right")
 					
 				elseif event.health <= 0.80 and not state:variable("on_tp_front.spawned") then
 					context:set_variable("on_tp_front.spawned", true)
-					context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
-						objective = context:slot(Slot.OBJ_BOSS),
-						task_group = mission.TaskGroup.OBJ_BOSS.GROUP_1,
-					}
-					context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 24}
+					update_boss_c_group(context, 1)
 					place_boss_squads(context, ARENAS[6], "on_tp_front")
+					context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 24}
 					
 				elseif event.health <= 0.50 and not state:variable("music_shift.triggered") then
 					context:set_variable("music_shift.triggered", true)
@@ -933,9 +885,8 @@ return {
 					
 				elseif event.health <= 0 and not state:variable("boss_c.cleared") then
 					context:set_variable("boss_c.cleared", true)
-					local bosses_defeated = state:variable("bosses_defeated")
-					context:set_variable("bosses_defeated", bosses_defeated + 1)
-					update_arena_status(context, state)
+					update_bosses_defeated(context, state)
+					update_arena_status(context, state, ARENAS[6])
 				end
 			end
 		end
@@ -946,9 +897,8 @@ return {
 			elseif state:variable("boss_a.provoked") then
 				if event.health <= 0 and not state:variable("boss_a.cleared") then
 					context:set_variable("boss_a.cleared", true)
-					local bosses_defeated = state:variable("bosses_defeated")
-					context:set_variable("bosses_defeated", bosses_defeated + 1)
-					update_arena_status(context, state)
+					update_bosses_defeated(context, state)
+					update_arena_status(context, state, ARENAS[6])
 				end
 			end
 		end
@@ -959,9 +909,8 @@ return {
 			elseif state:variable("boss_b.provoked") then
 				if event.health <= 0 and not state:variable("boss_b.cleared") then
 					context:set_variable("boss_b.cleared", true)
-					local bosses_defeated = state:variable("bosses_defeated")
-					context:set_variable("bosses_defeated", bosses_defeated + 1)
-					update_arena_status(context, state)
+					update_bosses_defeated(context, state)
+					update_arena_status(context, state, ARENAS[6])
 				end
 			end
 		end
@@ -970,7 +919,7 @@ return {
 	on_event_squad_state = function(context, state, event)
 		-- Checks on every squad state update if the arena is cleared or not
 		-- and perform the relevant actions tied to the arena
-		update_arena_status(context, state)
+		update_arena_status(context, state, ARENAS[state:variable("active_arena")])
 	end,
 	
 	on_event_trigger_entered = function(context, state, event)
@@ -986,6 +935,11 @@ return {
 		-- If a trigger is entered, check which one.
 		-- If it's safe, do nothing.
 		-- If it isn't safe and burn is off, enable burn.
+		
+		-- Note: hop-ons with the current implementation have
+		-- a bug making them temporarily unable to update their state
+		-- if a player dies inside of them. This makes tiles "safe" until
+		-- you've entered and exited that tile after death.
 		for i = 0, 29 do
 			if lib.is_slot(
 				context,
@@ -1005,12 +959,11 @@ return {
 				if not is_safe
 					and state:variable("burn_enabled") == false
 					and state:variable("security_disabled") == false then
-
 					context:set_variable("burn_enabled", true)
+					
 					vault_puzzle_burn(context, state)
+					return
 				end
-
-				return
 			end
 		end
 	end,
