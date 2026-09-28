@@ -208,56 +208,6 @@ local ARENAS = {
 			{squad = Squad.SQ_BOSS_A_81538177, slot = Slot.SQ_BOSS_A_81538177, count = 1, default_group = 0, actor = Slot.SQ_BOSS_A_ULTRA},
 			{squad = Squad.SQ_BOSS_B_81538177, slot = Slot.SQ_BOSS_B_81538177, count = 1, default_group = 3, actor = Slot.SQ_BOSS_B_ULTRA},
 		},
-		--[[
-		OBJ_INTRO
-		Group 0 left tank vandal
-		Group 1 left tank vandal
-		Group 2 right tank vandal
-		Group 3 right tank vandal
-		Group 4 front right of front
-		Group 5 front left of front
-		Group 6 front, right box
-		Group 7 front, left box
-		Group 8 front, close left box
-		Group 9 front
-		Group 10 front
-		Group 11 front, close right box
-		
-		-----
-		
-		OBJ_ADDS, a.k.a shanks
-		Group 0 Flying, front | left
-		Group 1 Flying, front | left
-		Group 2 Flying, front | right
-		Group 3 Flying, front | right
-		Group 4 Flying, back
-		Group 5 Flying, back
-		Group 6 Flying, back
-		Group 7 Flying, back
-		Group 8 Flying, left
-		Group 9 Flying, left
-		Group 10 Flying, right
-		Group 11 Flying, right
-		
-		-----
-		
-		OBJ_BOSS
-		Group 0 Hovering in air at front
-		Group 1 Slow walk round front
-		Group 2 TP left
-		Group 3 TP back
-		Group 4 TP right
-		Group 5 TP tank right
-		Group 6 TP tank left
-		Group 7 Front of front
-		Group 8 Front of front
-		Group 9 Front of front
-		Group 10 Static back left of front
-		Group 11 Static back right of front
-		Group 12 No movement
-		Group 13 No normal movement, tp's round front
-		location order Front = -1 --> Left = 0.95  --> Back = 0.90 --> Right = 0.85 --> Front = 0.80
-		]]
 		squads = {
 			wave_one = {
 				{squad = Squad.SQ_VANDAL_A, count = 1, default_objective = "OBJ_INTRO", default_group = 0},
@@ -370,54 +320,20 @@ local WAVE_KEYS = {
 
 local toaster_path = { -- I don't think there is a way to read the current elemental singe yet.
 					   -- When it's implemented into Sunrise all old vault layouts can be implmented
-					{
-						id = "arc",
-						mode = "normal",
-						path = {3,5,6,7,8,10,15,17,18,19,20,21,22,24,29},
+					normal = {
+						arc_path = {3,5,6,7,8,10,15,17,18,19,20,21,22,24,29},
+						void_path = {0,5,7,8,9,10,11,12,14,19,20,21,22,23,24,25},
+						solar_path = {2,7,10,11,12,15,20,21,22,23,24,29},
 					},
-					{
-						id = "arc",
-						mode = "heroic",
-						path = {0,5,6,7,8,13,18,20,21,22,23,25},
-					},
-					{
-						id = "void",
-						mode = "normal",
-						path = {0,5,7,8,9,10,11,12,14,19,20,21,22,23,24,25},
-					},
-					{
-						id = "void",
-						mode = "heroic",
-						path = {0,5,10,12,13,14,15,17,19,20,21,22,24,29},
-					},
-					{
-						id = "solar",
-						mode = "normal",
-						path = {2,7,10,11,12,15,20,21,22,23,24,29},
-					},
-					{
-						id = "solar",
-						mode = "heroic",
-						path = {0,5,6,11,12,13,14,19,21,22,23,24,26},
+					heroic = {
+						arc_path = {0,5,6,7,8,13,18,20,21,22,23,25},
+						void_path = {0,5,10,12,13,14,15,17,19,20,21,22,24,29},
+						solar_path = {0,5,6,11,12,13,14,19,21,22,23,24,26},
 					},
 				}
 
 local function is_heroic(context)
     return context.activity_id == "act/0078/a2caefda"
-end
-
-local function vault_puzzle_burn(context, state)
-	context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
-		transition = context.sdk.device_transitions.open,
-	}
-	local var_revision = state:variable("revision")
-	context:slot(Slot.CRYPTARCH_MAZE_1_HO_KILL):set_mission_effect{
-		filter = context:slot(Slot.CRYPTARCH_MAZE_1_OF_KILL_AREA),
-		enabled = true,
-		revision = var_revision
-	}
-	context:set_variable("revision", var_revision + 1)
-	context:start_timer("end_burn", 3000)
 end
 
 local function set_directive(context, sensor)
@@ -462,18 +378,6 @@ local function place_boss_squads(context, arena_data, wave) -- wave is a string 
 	end
 end
 
-local function update_boss_c_group(context, id)
-	context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
-		objective = context:slot(Slot.OBJ_BOSS),
-		task_group = mission.TaskGroup.OBJ_BOSS["GROUP_" .. id],
-	}
-end
-
-local function update_bosses_defeated(context, state)
-	local bosses_defeated = state:variable("bosses_defeated")
-	context:set_variable("bosses_defeated", bosses_defeated + 1)
-end
-
 local function place_boss_actors(context, arena_data, wave, index)
 		-- The bosses in the outro arena have corresponding actor slots. This is an alternative way of spawning enemies
 		-- that is needed in this mission in order to make the bosses health values monitorable.
@@ -490,6 +394,18 @@ local function place_boss_actors(context, arena_data, wave, index)
 			objective = context:slot(Slot.OBJ_BOSS),
 			task_group = mission.TaskGroup.OBJ_BOSS["GROUP_" .. arena_data.actor_squads[index].default_group],
 		}
+end
+
+local function update_boss_c_group(context, id)
+	context:slot(Slot.SQ_BOSS_C_81538177):assign_combat_objective{
+		objective = context:slot(Slot.OBJ_BOSS),
+		task_group = mission.TaskGroup.OBJ_BOSS["GROUP_" .. id],
+	}
+end
+
+local function update_bosses_defeated(context, state)
+	local bosses_defeated = state:variable("bosses_defeated")
+	context:set_variable("bosses_defeated", bosses_defeated + 1)
 end
 
 local function flatten_squad_entries(list, out)
@@ -532,23 +448,10 @@ local function check_cleared_status(context, arena)
     return context:cohort{squads = squads}.cleared
 end
 
-local function play_outro_scene(context)
-	context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
-	context:start_timer("outro_mithrax_spawn_delay", 2000)
-	context:start_timer("mission_complete_delay", 6000)
-	
-	local kinds = context.sdk.atom_kinds
-	context:slot(Slot.SQ_SKIFF_PILOT):run_atoms{spawn = true, atoms = {
-		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_052C60A0, target = context:slot(Slot.SKIFF_ENTRY_SEQUENCE)},
-		{kind = kinds.sleep, seconds = 2},
-		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_1E35DF11, target = context:slot(Slot.SKIFF_EXIT_SEQUENCE)},
-	}}
-end
-
 local function update_arena_status(context, state, arena)
 	local key = arena.id .. ".arena_cleared"
 	local entries = arena_squad_entries(arena)
-
+	
 	-- Debug code that logs if a squad counts as cleared
 	for i, entry in ipairs(entries) do
 		if context:cohort{squads = {entry.squad}}.cleared then
@@ -557,18 +460,18 @@ local function update_arena_status(context, state, arena)
 	end
 
 	if not state:variable(key) and check_cleared_status(context, arena) then
-		
-		-- If all conditions are met this should trigger the outro scene and mission complete.
-		if arena.id == "outro_arena" then
-			if state:variable("bosses_defeated") == 3 then
-				play_outro_scene(context)
-				context:set_variable(key, true)
-			end
-			return
+		-- If the arena has a corresponding engagement sensor that should be set on clear, it gets set here.
+		if arena.clear_sensor then
+			set_directive(context, arena.clear_sensor)
 		end
 		
-		-- If the arena has a corresponding door that needs to be opened on it being cleared,
-		-- this will handle it.
+		-- Some arenas end the current music segment when cleared, some don't.
+		-- This section checks if the arena has a clear_music_section and if it exists, plays it.
+		if arena.clear_music_section then
+			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = arena.clear_music_section}
+		end
+		
+		-- Handles the opening of doors blocking progression. Doors open when the corresponding arena is cleared
 		if arena.doors then
 			for _, door in ipairs(arena.doors) do
 				context:slot(door):transition{
@@ -577,22 +480,48 @@ local function update_arena_status(context, state, arena)
 			end
 		end
 		
-		-- Some arenas end the current music segment when cleared, some don't.
-		-- This section checks if the arena has a clear_music_section and if it exists, plays it.
-		if arena.clear_music_section then
-			context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = arena.clear_music_section}
+		-- Conditional path that reroutes the outro arena to trigger the outro scene if cleared.
+		-- Instead of increasing the active_arena variable
+		if arena.id == "outro_arena" then
+			if state:variable("bosses_defeated") == 3 then
+				play_outro_scene(context)
+				context:set_variable(key, true)
+			end
+		else
+			local current_arena = state:variable("active_arena")
+			context:set_variable("active_arena", current_arena + 1)
+			context:set_variable(key, true)
 		end
-
-		-- If the arena has a corresponding engagement sensor that should be set on clear, it gets set here.
-		if arena.clear_sensor then
-			set_directive(context, arena.clear_sensor)
-		end
-		
-		context:set_variable(key, true)
-		
-		local current_arena = state:variable("active_arena")
-		context:set_variable("active_arena", current_arena + 1)
 	end
+end
+
+local function vault_puzzle_burn(context, state)
+	context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
+		transition = context.sdk.device_transitions.open,
+	}
+	
+	local var_revision = state:variable("revision")
+	context:slot(Slot.CRYPTARCH_MAZE_1_HO_KILL):set_mission_effect{
+		filter = context:slot(Slot.CRYPTARCH_MAZE_1_OF_KILL_AREA),
+		enabled = true,
+		revision = var_revision
+	}
+	
+	context:set_variable("revision", var_revision + 1)
+	context:start_timer("end_burn", 5000)
+end
+
+local function play_outro_scene(context)
+	context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
+	context:start_timer("outro_mithrax_spawn_delay", 2000)
+	context:start_timer("mission_complete_delay", 7000)
+	
+	local kinds = context.sdk.atom_kinds
+	context:slot(Slot.SQ_SKIFF_PILOT):run_atoms{spawn = true, atoms = {
+		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_052C60A0, target = context:slot(Slot.SKIFF_ENTRY_SEQUENCE)},
+		{kind = kinds.sleep, seconds = 3},
+		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_1E35DF11, target = context:slot(Slot.SKIFF_EXIT_SEQUENCE)},
+	}}
 end
 
 
@@ -613,19 +542,6 @@ return {
 	-- This function is currently used to debug features
     on_load = function(context, state)
         context:set_variable("reloaded", true)
-		-- play_outro_scene(context)
-		context:set_variable("active_arena", 6)
-		
-		--[[
-		local squad = context:squad(Squad.SQ_E_WAVE_ONE_8153855C)
-		local counts = squad:counts()
-		counts:set(1, 2)
-		context:slot(Slot.SQ_E_WAVE_ONE_8153855C):assign_combat_objective{
-			objective = context:slot(Slot.OBJ_MILITARY),
-			task_group = mission.TaskGroup.OBJ_MILITARY.GROUP_4
-		}
-		squad:place{counts = counts}
-		]]
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -720,11 +636,11 @@ return {
 				-- These variables are needed for propper vault functionality
 				
 				context:set_variable("security_disabled", false)
-				-- Security disabled allows a player to disable the vault
+				-- Security_disabled allows a player to disable the vault
 				-- by flipping a switch on the other side of the maze.
 				
 				context:set_variable("burn_enabled", false)
-				-- Burn enabled ensures that two tiles won't trigger the
+				-- Burn_enabled ensures that two tiles won't trigger the
 				-- burn sequence at the same time.
 				
 				context:set_variable("revision", 1)
@@ -740,7 +656,7 @@ return {
 				end
 				
 				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_object_active{active = true}
-				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_interactable_object{used = true}
+				context:slot(Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH):set_interactable_object{used = false}
 				
 				context:slot(Slot.CRYPTARCH_MAZE_1_PM_KILL_AREA):set_occupancy_condition{value = 1}
 				
@@ -814,8 +730,8 @@ return {
 
     on_event_timer_elapsed = function(context, state, event)
 		if event.timer_name == "outro_mithrax_spawn_delay" then
-			context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
 			context:squad(mission.Squad.SQ_FRIENDLY_81538177):place{}
+			context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):activate{}
 			context:scene(mission.Scene.SCENE_OUTRO_FRIENDLY):send_event{key = 0xdf24c893} -- outro_trigger
 		end
 		
@@ -840,16 +756,7 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, Slot.CRYPTARCH_MAZE_1_O_SECURITY_SWITCH) then
-			if not state:variable("object_spawn.trigger") then
-				-- Without this security_disabled is set to true as soon as the object
-				-- is spawned in since objects fire once on their initial spawn.
-				context:set_variable("object_spawn.trigger", true)
-			else
 			context:set_variable("security_disabled", true)
-			context:slot(Slot.CRYPTARCH_MAZE_1_D_SECURITY):transition{
-				transition = context.sdk.device_transitions.close,
-			}
-			end
 		end
 	end,
 
@@ -932,16 +839,16 @@ return {
 
 		-- Decides the maze path. Currently set to arc patterns
 		if state:variable("is_heroic") == true then
-			maze_pattern = toaster_path[2].path
+			maze_pattern = toaster_path.heroic.arc_path
 		else
-			maze_pattern = toaster_path[1].path
+			maze_pattern = toaster_path.normal.arc_path
 		end
 		
 		-- If a trigger is entered, check which one.
 		-- If it's safe, do nothing.
 		-- If it isn't safe and burn is off, enable burn.
 		
-		-- Note: hop-ons with the current implementation have
+		-- Note: player monitors with the current implementation have
 		-- a bug making them temporarily unable to update their state
 		-- if a player dies inside of them. This makes tiles "safe" until
 		-- you've entered and exited that tile after death.
