@@ -15,6 +15,17 @@ local VENTILATION = mission.states.STATE_81538016_0002_0000_81538010.region_inde
 local VAULT = mission.states.STATE_81538016_0004_0000_81538012.region_index -- 32
 local OUTRO_REGION = mission.states.STATE_81538016_0001_0000_8153800F.region_index -- 8
 
+local passage_mpts = {
+	Slot.MPT_A_SHIP,
+	Slot.MPT_LONG_WAY_DOWN,
+	Slot.MPT_LWD_END,
+	Slot.MPT_VENTS_TO_PUZZLES,
+	Slot.MPT_TO_THE_OUTSIDE,
+	Slot.MPT_VERTIGO,
+	Slot.MPT_VERTIGO_END,
+	Slot.MPT_THE_FANS
+	}
+
 local music_lookup = {
 	{trigger = Slot.MPT_MILITARY, section = 4}, -- hanger_combat
 	{trigger = Slot.MPT_ITS_A_TRAP, section = 5}, -- its_a_trap
@@ -41,20 +52,12 @@ local ARENAS = {
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538079,
 		doors = {Slot.D_EMITTER_BOULEVARD, Slot.D_SHIELD_BOULEVARD},
         squads = {
-					{squad = Squad.SQ_A_WAVE_ONE_8153806D, count = 2, default_group = 0}, -- Inconsistent
-					{squad = Squad.SQ_B_WAVE_ONE_8153806D, count = 3, default_group = 1},
-					{squad = Squad.SQ_C_WAVE_ONE_8153806D, count = 3, default_group = 2},
-					{squad = Squad.SQ_D_WAVE_ONE_8153806D, count = 2, default_group = 3},
-					{squad = Squad.SQ_E_WAVE_ONE_8153806D, count = 1, default_group = 4},
-					{squad = Squad.SQ_F_WAVE_ONE_8153806D, count = 1, default_group = 5}
-				},
-		squad_slots = {
-					Slot.SQ_A_WAVE_ONE_8153806D,
-					Slot.SQ_B_WAVE_ONE_8153806D,
-					Slot.SQ_C_WAVE_ONE_8153806D,
-					Slot.SQ_D_WAVE_ONE_8153806D,
-					Slot.SQ_E_WAVE_ONE_8153806D,
-					Slot.SQ_F_WAVE_ONE_8153806D,
+					{squad = "SQ_A_WAVE_ONE_8153806D", count = 2, default_group = 0}, -- Inconsistent
+					{squad = "SQ_B_WAVE_ONE_8153806D", count = 3, default_group = 1},
+					{squad = "SQ_C_WAVE_ONE_8153806D", count = 3, default_group = 2},
+					{squad = "SQ_D_WAVE_ONE_8153806D", count = 2, default_group = 3},
+					{squad = "SQ_E_WAVE_ONE_8153806D", count = 1, default_group = 4},
+					{squad = "SQ_F_WAVE_ONE_8153806D", count = 1, default_group = 5}
 				},
     },
     {
@@ -67,30 +70,17 @@ local ARENAS = {
         squads = {
 					-- Group 8 and 9 are bad groups that often make squads not report full strength and cleared.
 					-- Assigning invalid groups to enemies that are supposed to be stationary seems to fix the problem
-					{squad = Squad.SQ_A_WAVE_ONE_815385C6, count = 3, default_group = 0},
-					{squad = Squad.SQ_B_WAVE_ONE_815385C6, count = 3, default_group = 1},
-					{squad = Squad.SQ_C_WAVE_ONE_815385C6, count = 3, default_group = 2},
-					{squad = Squad.SQ_D_WAVE_ONE_815385C6, count = 2, default_group = 3},
-					{squad = Squad.SQ_E_WAVE_ONE_815385C6, count = 2, default_group = 4},
-					{squad = Squad.SQ_BOSS_A_815385C6, count = 1, default_group = 5},
-					{squad = Squad.SQ_BOSS_B_815385C6, count = 1, default_group = 6},
-					{squad = Squad.SQ_BOSS_C_815385C6, count = 1, default_group = 7},
-					{squad = Squad.SQ_SNIPER_A, count = 1, default_group = 11},
-					{squad = Squad.SQ_SNIPER_B, count = 1, default_group = 11},
-					{squad = Squad.SQ_SNIPER_C, count = 1, default_group = 10}
-				},
-		squad_slots = {
-					Slot.SQ_A_WAVE_ONE_815385C6,
-					Slot.SQ_B_WAVE_ONE_815385C6,
-					Slot.SQ_C_WAVE_ONE_815385C6,
-					Slot.SQ_D_WAVE_ONE_815385C6,
-					Slot.SQ_E_WAVE_ONE_815385C6,
-					Slot.SQ_BOSS_A_815385C6,
-					Slot.SQ_BOSS_B_815385C6,
-					Slot.SQ_BOSS_C_815385C6,
-					Slot.SQ_SNIPER_A,
-					Slot.SQ_SNIPER_B,
-					Slot.SQ_SNIPER_C,
+					{squad = "SQ_A_WAVE_ONE_815385C6", count = 3, default_group = 0},
+					{squad = "SQ_B_WAVE_ONE_815385C6", count = 3, default_group = 1},
+					{squad = "SQ_C_WAVE_ONE_815385C6", count = 3, default_group = 2},
+					{squad = "SQ_D_WAVE_ONE_815385C6", count = 2, default_group = 3},
+					{squad = "SQ_E_WAVE_ONE_815385C6", count = 2, default_group = 4},
+					{squad = "SQ_BOSS_A_815385C6", count = 1, default_group = 5},
+					{squad = "SQ_BOSS_B_815385C6", count = 1, default_group = 6},
+					{squad = "SQ_BOSS_C_815385C6", count = 1, default_group = 7},
+					{squad = "SQ_SNIPER_A", count = 1, default_group = 11},
+					{squad = "SQ_SNIPER_B", count = 1, default_group = 11},
+					{squad = "SQ_SNIPER_C", count = 1, default_group = 10}
 				},
     },
 	{
@@ -101,40 +91,22 @@ local ARENAS = {
         squads = {
 					-- Group 1 and 2 are bad groups that often make squads not report full strength and cleared.
 					-- Assigning invalid groups to enemies that are supposed to be stationary seems to fix the problem
-					{squad = Squad.SQ_TANK_WAVE_ONE, count = 1, default_group = 0},
-					{squad = Squad.SQ_TANK_SERVITOR_A, count = 1, default_group = 9},
-					{squad = Squad.SQ_TANK_SERVITOR_B, count = 1, default_group = 9},
-					{squad = Squad.SQ_TANK_SERVITOR_C, count = 1, default_group = 9},
-					{squad = Squad.SQ_TANK_SERVITOR_D, count = 1, default_group = 9}, 
-					{squad = Squad.SQ_A_WAVE_ONE_8153855C, count = 3, default_group = 9}, -- Resilient Solar Shield Shank
-					{squad = Squad.SQ_B_WAVE_ONE_8153855C, count = 3, default_group = 9}, -- Resilient Solar Shield Shank
-					{squad = Squad.SQ_C_WAVE_ONE_8153855C, count = 3, default_group = 9}, -- Resilient Solar Shield Shank
-					{squad = Squad.SQ_D_WAVE_ONE_8153855C, count = 2, default_group = 3}, -- Resilient Marauder
-					{squad = Squad.SQ_E_WAVE_ONE_8153855C, count = 2, default_group = 4}, -- Resilient Marauder
-					{squad = Squad.SQ_CATWALK_A_WAVE_ONE, count = 2, default_group = 7},
-					{squad = Squad.SQ_CATWALK_B_WAVE_ONE, count = 2, default_group = 6},
-					{squad = Squad.SQ_CATWALK_C_WAVE_ONE, count = 2, default_group = 5},
-					{squad = Squad.SQ_CATWALK_D_WAVE_ONE, count = 2, default_group = 8}, -- Inconsistent reconsider default_group
-					{squad = Squad.SQ_SNIPE_A_WAVE_ONE, count = 1, default_group = 9},
-					{squad = Squad.SQ_SNIPE_B_WAVE_ONE, count = 1, default_group = 9}
-				},
-		squad_slots = {
-					Slot.SQ_TANK_WAVE_ONE,
-					Slot.SQ_TANK_SERVITOR_A,
-					Slot.SQ_TANK_SERVITOR_B,
-					Slot.SQ_TANK_SERVITOR_C,
-					Slot.SQ_TANK_SERVITOR_D,
-					Slot.SQ_A_WAVE_ONE_8153855C,
-					Slot.SQ_B_WAVE_ONE_8153855C, 
-					Slot.SQ_C_WAVE_ONE_8153855C,
-					Slot.SQ_D_WAVE_ONE_8153855C,
-					Slot.SQ_E_WAVE_ONE_8153855C,
-					Slot.SQ_CATWALK_A_WAVE_ONE,
-					Slot.SQ_CATWALK_B_WAVE_ONE,
-					Slot.SQ_CATWALK_C_WAVE_ONE,
-					Slot.SQ_CATWALK_D_WAVE_ONE,
-					Slot.SQ_SNIPE_A_WAVE_ONE,
-					Slot.SQ_SNIPE_B_WAVE_ONE,
+					{squad = "SQ_TANK_WAVE_ONE", count = 1, default_group = 0},
+					{squad = "SQ_TANK_SERVITOR_A", count = 1, default_group = 9},
+					{squad = "SQ_TANK_SERVITOR_B", count = 1, default_group = 9},
+					{squad = "SQ_TANK_SERVITOR_C", count = 1, default_group = 9},
+					{squad = "SQ_TANK_SERVITOR_D", count = 1, default_group = 9}, 
+					{squad = "SQ_A_WAVE_ONE_8153855C", count = 3, default_group = 9}, -- Resilient Solar Shield Shank
+					{squad = "SQ_B_WAVE_ONE_8153855C", count = 3, default_group = 9}, -- Resilient Solar Shield Shank
+					{squad = "SQ_C_WAVE_ONE_8153855C", count = 3, default_group = 9}, -- Resilient Solar Shield Shank
+					{squad = "SQ_D_WAVE_ONE_8153855C", count = 2, default_group = 3}, -- Resilient Marauder
+					{squad = "SQ_E_WAVE_ONE_8153855C", count = 2, default_group = 4}, -- Resilient Marauder
+					{squad = "SQ_CATWALK_A_WAVE_ONE", count = 2, default_group = 7},
+					{squad = "SQ_CATWALK_B_WAVE_ONE", count = 2, default_group = 6},
+					{squad = "SQ_CATWALK_C_WAVE_ONE", count = 2, default_group = 5},
+					{squad = "SQ_CATWALK_D_WAVE_ONE", count = 2, default_group = 8}, -- Inconsistent reconsider default_group
+					{squad = "SQ_SNIPE_A_WAVE_ONE", count = 1, default_group = 9},
+					{squad = "SQ_SNIPE_B_WAVE_ONE", count = 1, default_group = 9}
 				},
     },
 	{
@@ -144,29 +116,17 @@ local ARENAS = {
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_8153856C,
 		doors = {Slot.D_EMITTER_MILITARY_B, Slot.D_SHIELD_MILITARY_B},
         squads = {
-					{squad = Squad.SQ_A_AMBUSH, count = 2, default_group = 0},
-					{squad = Squad.SQ_B_AMBUSH, count = 2, default_group = 0},
-					{squad = Squad.SQ_C_AMBUSH, count = 1, default_group = 0},
-					{squad = Squad.SQ_A_INDOOR, count = 1, default_group = 1},
-					{squad = Squad.SQ_B_INDOOR, count = 1, default_group = 2},
-					{squad = Squad.SQ_C_INDOOR, count = 1, default_group = 3},
-					{squad = Squad.SQ_D_INDOOR, count = 1, default_group = 4},
-					{squad = Squad.SQ_E_INDOOR, count = 1, default_group = 5},
-					{squad = Squad.SQ_F_INDOOR, count = 1, default_group = 6},
-					{squad = Squad.SQ_HEAVY_INDOOR, count = 1, default_group = 7}
+					{squad = "SQ_A_AMBUSH", count = 2, default_group = 0},
+					{squad = "SQ_B_AMBUSH", count = 2, default_group = 0},
+					{squad = "SQ_C_AMBUSH", count = 1, default_group = 0},
+					{squad = "SQ_A_INDOOR", count = 1, default_group = 1},
+					{squad = "SQ_B_INDOOR", count = 1, default_group = 2},
+					{squad = "SQ_C_INDOOR", count = 1, default_group = 3},
+					{squad = "SQ_D_INDOOR", count = 1, default_group = 4},
+					{squad = "SQ_E_INDOOR", count = 1, default_group = 5},
+					{squad = "SQ_F_INDOOR", count = 1, default_group = 6},
+					{squad = "SQ_HEAVY_INDOOR", count = 1, default_group = 7}
 					},
-		squad_slots = {
-					Slot.SQ_A_AMBUSH,
-					Slot.SQ_B_AMBUSH,
-					Slot.SQ_C_AMBUSH,
-					Slot.SQ_A_INDOOR,
-					Slot.SQ_B_INDOOR,
-					Slot.SQ_C_INDOOR,
-					Slot.SQ_D_INDOOR,
-					Slot.SQ_E_INDOOR,
-					Slot.SQ_F_INDOOR,
-					Slot.SQ_HEAVY_INDOOR,
-				},
     },
 	{
         id = "underwatch",
@@ -176,138 +136,75 @@ local ARENAS = {
 		clear_sensor = Slot.M_ENGAGEMENT_SENSOR_81538637,
 		doors = {Slot.D_EMITTER_UNDERWATCH, Slot.D_SHIELD_UNDERWATCH},
         squads = {
-					{squad = Squad.SQ_A_HALL, count = 1, default_group = 0}, -- Inconsistent
-					{squad = Squad.SQ_D_HALL, count = 1, default_group = 1},
-					{squad = Squad.SQ_B_HALL, count = 1, default_group = 2},
-					{squad = Squad.SQ_C_HALL, count = 1, default_group = 3},
-					{squad = Squad.SQ_A_PVP, count = 1, default_group = 4},
-					{squad = Squad.SQ_C_PVP, count = 1, default_group = 5},	
-					{squad = Squad.SQ_B_PVP, count = 1, default_group = 6},
-					{squad = Squad.SQ_A_RETREAT, count = 2, default_group = 7},
-					{squad = Squad.SQ_B_RETREAT, count = 2, default_group = 8},
-					{squad = Squad.SQ_C_RETREAT, count = 1, default_group = 9}
+					{squad = "SQ_A_HALL", count = 1, default_group = 0}, -- Inconsistent
+					{squad = "SQ_D_HALL", count = 1, default_group = 1},
+					{squad = "SQ_B_HALL", count = 1, default_group = 2},
+					{squad = "SQ_C_HALL", count = 1, default_group = 3},
+					{squad = "SQ_A_PVP", count = 1, default_group = 4},
+					{squad = "SQ_C_PVP", count = 1, default_group = 5},	
+					{squad = "SQ_B_PVP", count = 1, default_group = 6},
+					{squad = "SQ_A_RETREAT", count = 2, default_group = 7},
+					{squad = "SQ_B_RETREAT", count = 2, default_group = 8},
+					{squad = "SQ_C_RETREAT", count = 1, default_group = 9}
 					},
-		squad_slots = {
-					Slot.SQ_A_HALL,
-					Slot.SQ_D_HALL,
-					Slot.SQ_B_HALL,
-					Slot.SQ_C_HALL,
-					Slot.SQ_A_PVP,
-					Slot.SQ_C_PVP,
-					Slot.SQ_B_PVP,
-					Slot.SQ_A_RETREAT,
-					Slot.SQ_B_RETREAT,
-					Slot.SQ_C_RETREAT,
-				},
     },
 	{
         id = "outro_arena",
 		enter_sensor = Slot.M_ENGAGEMENT_SENSOR_81538177,
 		actor_squads = {
-			{squad = Squad.SQ_BOSS_C_81538177, slot = Slot.SQ_BOSS_C_81538177, count = 1, default_group = 1, actor = Slot.SQ_BOSS_C_ULTRA},
-			{squad = Squad.SQ_BOSS_A_81538177, slot = Slot.SQ_BOSS_A_81538177, count = 1, default_group = 0, actor = Slot.SQ_BOSS_A_ULTRA},
-			{squad = Squad.SQ_BOSS_B_81538177, slot = Slot.SQ_BOSS_B_81538177, count = 1, default_group = 3, actor = Slot.SQ_BOSS_B_ULTRA},
+			{squad = "SQ_BOSS_C_81538177", count = 1, default_group = 1, actor = Slot.SQ_BOSS_C_ULTRA},
+			{squad = "SQ_BOSS_A_81538177", count = 1, default_group = 0, actor = Slot.SQ_BOSS_A_ULTRA},
+			{squad = "SQ_BOSS_B_81538177", count = 1, default_group = 3, actor = Slot.SQ_BOSS_B_ULTRA},
 		},
 		squads = {
 			wave_one = {
-				{squad = Squad.SQ_VANDAL_A, count = 1, default_objective = "OBJ_INTRO", default_group = 0},
-				{squad = Squad.SQ_VANDAL_B, count = 1, default_objective = "OBJ_INTRO", default_group = 1},
-				{squad = Squad.SQ_VANDAL_C, count = 1, default_objective = "OBJ_INTRO", default_group = 2},
-				{squad = Squad.SQ_VANDAL_D, count = 1, default_objective = "OBJ_INTRO", default_group = 3},
-				{squad = Squad.SQ_A_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 4},
-				{squad = Squad.SQ_B_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 5},
-				{squad = Squad.SQ_C_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 6},
-				{squad = Squad.SQ_D_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 11},
-				{squad = Squad.SQ_E_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 8}, 
-				{squad = Squad.SQ_F_WAVE_ONE_81538177, count = 1, default_objective = "OBJ_INTRO", default_group = 9},
-				{squad = Squad.SQ_G_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 10},
-				{squad = Squad.SQ_H_WAVE_ONE, count = 1, default_objective = "OBJ_INTRO", default_group = 7},
+				{squad = "SQ_VANDAL_A", count = 1, default_objective = "OBJ_INTRO", default_group = 0},
+				{squad = "SQ_VANDAL_B", count = 1, default_objective = "OBJ_INTRO", default_group = 1},
+				{squad = "SQ_VANDAL_C", count = 1, default_objective = "OBJ_INTRO", default_group = 2},
+				{squad = "SQ_VANDAL_D", count = 1, default_objective = "OBJ_INTRO", default_group = 3},
+				{squad = "SQ_A_WAVE_ONE_81538177", count = 1, default_objective = "OBJ_INTRO", default_group = 4},
+				{squad = "SQ_B_WAVE_ONE_81538177", count = 1, default_objective = "OBJ_INTRO", default_group = 5},
+				{squad = "SQ_C_WAVE_ONE_81538177", count = 1, default_objective = "OBJ_INTRO", default_group = 6},
+				{squad = "SQ_D_WAVE_ONE_81538177", count = 1, default_objective = "OBJ_INTRO", default_group = 11},
+				{squad = "SQ_E_WAVE_ONE_81538177", count = 1, default_objective = "OBJ_INTRO", default_group = 8}, 
+				{squad = "SQ_F_WAVE_ONE_81538177", count = 1, default_objective = "OBJ_INTRO", default_group = 9},
+				{squad = "SQ_G_WAVE_ONE", count = 1, default_objective = "OBJ_INTRO", default_group = 10},
+				{squad = "SQ_H_WAVE_ONE", count = 1, default_objective = "OBJ_INTRO", default_group = 7},
 			},
 			on_provoked = {
-				{squad = Squad.SQ_VOID_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 0},
-				{squad = Squad.SQ_VOID_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 1},
-				{squad = Squad.SQ_VOID_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 2},
-				{squad = Squad.SQ_VOID_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 3},
+				{squad = "SQ_VOID_SHANK_A", count = 2, default_objective = "OBJ_ADDS", default_group = 0},
+				{squad = "SQ_VOID_SHANK_B", count = 2, default_objective = "OBJ_ADDS", default_group = 1},
+				{squad = "SQ_VOID_SHANK_C", count = 2, default_objective = "OBJ_ADDS", default_group = 2},
+				{squad = "SQ_VOID_SHANK_D", count = 2, default_objective = "OBJ_ADDS", default_group = 3},
 			},
 
 			on_tp_left = {
-				{squad = Squad.SQ_ARC_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 8},
-				{squad = Squad.SQ_ARC_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 9},
+				{squad = "SQ_ARC_SHANK_A", count = 2, default_objective = "OBJ_ADDS", default_group = 8},
+				{squad = "SQ_ARC_SHANK_B", count = 2, default_objective = "OBJ_ADDS", default_group = 9},
 			},
 
 			on_tp_back = {
-				{squad = Squad.SQ_SOLAR_SHANK_A, count = 2, default_objective = "OBJ_ADDS", default_group = 4},
-				{squad = Squad.SQ_SOLAR_SHANK_B, count = 2, default_objective = "OBJ_ADDS", default_group = 5},
-				{squad = Squad.SQ_SOLAR_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 6},
-				{squad = Squad.SQ_SOLAR_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 7},
+				{squad = "SQ_SOLAR_SHANK_A", count = 2, default_objective = "OBJ_ADDS", default_group = 4},
+				{squad = "SQ_SOLAR_SHANK_B", count = 2, default_objective = "OBJ_ADDS", default_group = 5},
+				{squad = "SQ_SOLAR_SHANK_C", count = 2, default_objective = "OBJ_ADDS", default_group = 6},
+				{squad = "SQ_SOLAR_SHANK_D", count = 2, default_objective = "OBJ_ADDS", default_group = 7},
 			},
 
 			on_tp_right = {
-				{squad = Squad.SQ_ARC_SHANK_C, count = 2, default_objective = "OBJ_ADDS", default_group = 10},
-				{squad = Squad.SQ_ARC_SHANK_D, count = 2, default_objective = "OBJ_ADDS", default_group = 11},
+				{squad = "SQ_ARC_SHANK_C", count = 2, default_objective = "OBJ_ADDS", default_group = 10},
+				{squad = "SQ_ARC_SHANK_D", count = 2, default_objective = "OBJ_ADDS", default_group = 11},
 			},
 
 			on_tp_front = {
-				{squad = Squad.SQ_VANDAL_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 10},
-				{squad = Squad.SQ_VANDAL_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 11},
-				{squad = Squad.SQ_MARAUDER_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 7},
-				{squad = Squad.SQ_MARAUDER_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 8},
-				{squad = Squad.SQ_MARAUDER_FINAL_C, count = 1, default_objective = "OBJ_BOSS", default_group = 9},
-				{squad = Squad.SQ_ARC_SHANK_FINAL_A, count = 1, default_objective = "OBJ_BOSS", default_group = 12},
-				{squad = Squad.SQ_ARC_SHANK_FINAL_B, count = 1, default_objective = "OBJ_BOSS", default_group = 13},
-				{squad = Squad.SQ_TANK_A, count = 1, default_objective = "OBJ_BOSS", default_group = 5},
-				{squad = Squad.SQ_TANK_B, count = 1, default_objective = "OBJ_BOSS", default_group = 6},
-			},
-		},
-		squad_slots = {
-			wave_one = {
-				Slot.SQ_VANDAL_A,
-				Slot.SQ_VANDAL_B,
-				Slot.SQ_VANDAL_C,
-				Slot.SQ_VANDAL_D,
-				Slot.SQ_A_WAVE_ONE_81538177,
-				Slot.SQ_B_WAVE_ONE_81538177,
-				Slot.SQ_C_WAVE_ONE_81538177,
-				Slot.SQ_D_WAVE_ONE_81538177,
-				Slot.SQ_E_WAVE_ONE_81538177,
-				Slot.SQ_F_WAVE_ONE_81538177,
-				Slot.SQ_G_WAVE_ONE,
-				Slot.SQ_H_WAVE_ONE,
-			},
-			on_provoked = {
-				Slot.SQ_VOID_SHANK_A,
-				Slot.SQ_VOID_SHANK_B,
-				Slot.SQ_VOID_SHANK_C,
-				Slot.SQ_VOID_SHANK_D,
-			},
-
-			on_tp_left = {
-				Slot.SQ_ARC_SHANK_A,
-				Slot.SQ_ARC_SHANK_B,
-			},
-
-			on_tp_back = {
-				Slot.SQ_SOLAR_SHANK_A,
-				Slot.SQ_SOLAR_SHANK_B,
-				Slot.SQ_SOLAR_SHANK_C,
-				Slot.SQ_SOLAR_SHANK_D,
-			},
-
-			on_tp_right = {
-				Slot.SQ_ARC_SHANK_C,
-				Slot.SQ_ARC_SHANK_D,
-			},
-
-			on_tp_front = {
-				Slot.SQ_VANDAL_FINAL_A,
-				Slot.SQ_VANDAL_FINAL_B,
-				Slot.SQ_MARAUDER_FINAL_A,
-				Slot.SQ_MARAUDER_FINAL_B,
-				Slot.SQ_MARAUDER_FINAL_C,
-				Slot.SQ_ARC_SHANK_FINAL_A,
-				Slot.SQ_ARC_SHANK_FINAL_B,
-				Slot.SQ_TANK_A,
-				Slot.SQ_TANK_B,
+				{squad = "SQ_VANDAL_FINAL_A", count = 1, default_objective = "OBJ_BOSS", default_group = 10},
+				{squad = "SQ_VANDAL_FINAL_B", count = 1, default_objective = "OBJ_BOSS", default_group = 11},
+				{squad = "SQ_MARAUDER_FINAL_A", count = 1, default_objective = "OBJ_BOSS", default_group = 7},
+				{squad = "SQ_MARAUDER_FINAL_B", count = 1, default_objective = "OBJ_BOSS", default_group = 8},
+				{squad = "SQ_MARAUDER_FINAL_C", count = 1, default_objective = "OBJ_BOSS", default_group = 9},
+				{squad = "SQ_ARC_SHANK_FINAL_A", count = 1, default_objective = "OBJ_BOSS", default_group = 12},
+				{squad = "SQ_ARC_SHANK_FINAL_B", count = 1, default_objective = "OBJ_BOSS", default_group = 13},
+				{squad = "SQ_TANK_A", count = 1, default_objective = "OBJ_BOSS", default_group = 5},
+				{squad = "SQ_TANK_B", count = 1, default_objective = "OBJ_BOSS", default_group = 6},
 			},
 		},
     },
@@ -352,10 +249,10 @@ local function place_squads(context, arena_data)
 	-- It prepares them by giving them an objective and a group slot.
 	-- They are spawned once the preparation is done.
 	for i, sq in ipairs(arena_data.squads) do
-		local squad = context:squad(sq.squad)
+		local squad = context:squad(Squad[sq.squad])
 		local counts = squad:counts()
 		counts:set(1, sq.count)
-		context:slot(arena_data.squad_slots[i]):assign_combat_objective{
+		context:slot(Slot[sq.squad]):assign_combat_objective{
 			objective = context:slot(Slot[arena_data.objective]),
 			task_group = mission.TaskGroup[arena_data.objective]["GROUP_" .. sq.default_group]
 		}
@@ -367,10 +264,10 @@ local function place_boss_squads(context, arena_data, wave) -- wave is a string 
 	-- This is essentially the same as place_squads() but modfied
 	-- to work with the unique structure of the outro_arena.
 	for i, sq in ipairs(arena_data.squads[wave]) do
-		local squad = context:squad(sq.squad) 
+		local squad = context:squad(Squad[sq.squad]) 
 		local counts = squad:counts()
 		counts:set(1, sq.count)
-		context:slot(arena_data.squad_slots[wave][i]):assign_combat_objective{
+		context:slot(Slot[sq.squad]):assign_combat_objective{
 			objective = context:slot(Slot[sq.default_objective]),
 			task_group = mission.TaskGroup[sq.default_objective]["GROUP_" .. sq.default_group]
 		}
@@ -390,7 +287,7 @@ local function place_boss_actors(context, arena_data, wave, index)
 			spawn = true,
 		}
 
-		context:slot(arena_data.actor_squads[index].slot):assign_combat_objective{
+		context:slot(Slot[arena_data.actor_squads[index].squad]):assign_combat_objective{
 			objective = context:slot(Slot.OBJ_BOSS),
 			task_group = mission.TaskGroup.OBJ_BOSS["GROUP_" .. arena_data.actor_squads[index].default_group],
 		}
@@ -442,10 +339,23 @@ local function check_cleared_status(context, arena)
 
     local squads = {}
     for _, entry in ipairs(entries) do
-        table.insert(squads, entry.squad)
+        table.insert(squads, Squad[entry.squad])
     end
 
     return context:cohort{squads = squads}.cleared
+end
+
+local function play_outro_scene(context)
+	context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
+	context:start_timer("outro_mithrax_spawn_delay", 2000)
+	context:start_timer("mission_complete_delay", 7000)
+	
+	local kinds = context.sdk.atom_kinds
+	context:slot(Slot.SQ_SKIFF_PILOT):run_atoms{spawn = true, atoms = {
+		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_052C60A0, target = context:slot(Slot.SKIFF_ENTRY_SEQUENCE)},
+		{kind = kinds.sleep, seconds = 3},
+		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_1E35DF11, target = context:slot(Slot.SKIFF_EXIT_SEQUENCE)},
+	}}
 end
 
 local function update_arena_status(context, state, arena)
@@ -454,7 +364,7 @@ local function update_arena_status(context, state, arena)
 	
 	-- Debug code that logs if a squad counts as cleared
 	for i, entry in ipairs(entries) do
-		if context:cohort{squads = {entry.squad}}.cleared then
+		if context:cohort{squads = {Squad[entry.squad]}}.cleared then
 			context:set_variable(arena.id .. ".dbg." .. i-1, true)
 		end
 	end
@@ -483,7 +393,7 @@ local function update_arena_status(context, state, arena)
 		-- Conditional path that reroutes the outro arena to trigger the outro scene if cleared.
 		-- Instead of increasing the active_arena variable
 		if arena.id == "outro_arena" then
-			if state:variable("bosses_defeated") == 3 then
+			if state:variable("bosses_defeated") == 3 and check_cleared_status(context, arena) then
 				play_outro_scene(context)
 				context:set_variable(key, true)
 			end
@@ -511,19 +421,6 @@ local function vault_puzzle_burn(context, state)
 	context:start_timer("end_burn", 5000)
 end
 
-local function play_outro_scene(context)
-	context:slot(Slot.M_MUSIC_SENSOR):set_music_section{section = 1}
-	context:start_timer("outro_mithrax_spawn_delay", 2000)
-	context:start_timer("mission_complete_delay", 7000)
-	
-	local kinds = context.sdk.atom_kinds
-	context:slot(Slot.SQ_SKIFF_PILOT):run_atoms{spawn = true, atoms = {
-		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_052C60A0, target = context:slot(Slot.SKIFF_ENTRY_SEQUENCE)},
-		{kind = kinds.sleep, seconds = 3},
-		{kind = kinds.ability, ability = mission.ActorAbility.SQ_SKIFF_PILOT.GROUP_07EBF354.KEY_1E35DF11, target = context:slot(Slot.SKIFF_EXIT_SEQUENCE)},
-	}}
-end
-
 
 return {
     initial_state = {
@@ -542,6 +439,7 @@ return {
 	-- This function is currently used to debug features
     on_load = function(context, state)
         context:set_variable("reloaded", true)
+		context:set_variable("active_arena", 6)
     end,
 
     on_event_region_changed = function(context, state, event)
@@ -587,14 +485,10 @@ return {
 				
 				-- Long zone, has a lot of music triggers. Some are only accessible on heroic and vice versa.
 				-- The unique triggers per difficulty could be put into the is_heroic check.
-				context:slot(Slot.MPT_A_SHIP):fire_trigger()
-				context:slot(Slot.MPT_LONG_WAY_DOWN):fire_trigger()
-				context:slot(Slot.MPT_LWD_END):fire_trigger()
-				context:slot(Slot.MPT_VENTS_TO_PUZZLES):fire_trigger()
-				context:slot(Slot.MPT_TO_THE_OUTSIDE):fire_trigger()
-				context:slot(Slot.MPT_VERTIGO):fire_trigger()
-				context:slot(Slot.MPT_VERTIGO_END):fire_trigger()
-				context:slot(Slot.MPT_THE_FANS):fire_trigger()
+				
+				for _, trigger in ipairs(passage_mpts) do
+					context:slot(trigger):fire_trigger()
+				end
 				-- context:slot(Slot.NORMAL_SHORT_TOP_VENT):fire_trigger() | Not sure how this trigger is used
 				
 				set_directive(context, Slot.M_ENGAGEMENT_SENSOR_815381BA)
