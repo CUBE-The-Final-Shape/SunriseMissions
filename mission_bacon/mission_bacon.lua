@@ -399,7 +399,7 @@ THRONE_ASSAULT_BOOMER_SQUAD_A
 THRONE_ASSAULT_BOOMER_SQUAD_B
 
 after arena clear play cue 24
-D_DOOR_1w
+D_DOOR_1
 
 pt_machine_god
 
