@@ -11,9 +11,10 @@ local BRAYTECH_FUTURESCAPES = mission.states.STATE_80F6A028_0001_0000_80F6A01C.r
 local AURORA_REACH = mission.states.STATE_80F6A028_0009_0000_80F6A99C.region_index -- 72
 local MINDLAB_RASPUTIN = mission.states.STATE_80F6A028_000A_0000_80F6A9A8.region_index -- 80
 
+--[[
 local ARENAS = {
     {
-        id = "placeholder",
+        id = "normal_arena_placeholder",
 		objective = "placeholder",
 		clear_music_section = "placeholder",
 		enter_sensor = "placeholder",
@@ -23,7 +24,20 @@ local ARENAS = {
 					{squad = "placeholder", count = "placeholder", default_group = "placeholder"},
 				},
     },
+	{
+        id = "nested_squads_arena_placeholder",
+		enter_sensor = "placeholder",
+		actor_squads = {
+			{squad = "placeholder", count = "placeholder", default_group = "placeholder", actor = "type-2 placeholder"},
+		},
+		squads = {
+			squad_name_placeholder = {
+				{squad = "placeholder", count = "placeholder", default_objective = "placeholder", default_group = "placeholder"},
+			},
+		},
+    },
 }
+]]
 
 local function set_directive(context, directive, navpoint, sensor)
 	context:slot(Slot.M_DIRECTIVE_SENSOR_80F6A396):set_directive{
@@ -140,6 +154,7 @@ return {
 
     on_load = function(context, state)
         context:set_variable("reloaded", true)
+		context:slot(Slot.PF_CINEMATIC_BOOKEND_CINEMATIC):set_cinematic_active{active = true}
 	end,
 
     -- Runs each time the player moves into another region.
@@ -166,7 +181,7 @@ return {
 	on_event_squad_state = function(context, state, event)
 		-- Checks on every squad state update if the arena is cleared or not
 		-- and perform the relevant actions tied to the arena
-		update_arena_status(context, state, ARENAS[state:variable("active_arena")])
+		-- update_arena_status(context, state, ARENAS[state:variable("active_arena")])
 	end,
 
     on_event_player_trigger = function(context, state, event)
@@ -280,9 +295,12 @@ context:slot(Slot.O_LARGE_NUTBLOCKER_2):set_object_active{active = true}
 context:slot(Slot.O_SMALL_NUTBLOCKER):set_object_active{active = true}
 context:slot(Slot.O_SMALL_NUTBLOCKER_2):set_object_active{active = true}
 
-context:scene(mission.Scene.SCN_ANA_POWER_UP_BRAY):activate{spawn = true} Nutblockers need to be active for the scene to function
-context:scene(mission.Scene.SCN_ANA_POWER_UP_BRAY):send_event{key = 0x8803483C} -- start vignette
+context:slot(Slot.M_MUSIC_SENSOR_80F6A396):set_music_section{section = 4}
+
+context:scene(mission.Scene.SCN_ANA_POWER_UP_BRAY):activate{} -- Nutblockers need to be active for the scene to function
 context:squad(mission.Squad.SQ_ANA_VIGNETTE):place{}
+context:scene(mission.Scene.SCN_ANA_POWER_UP_BRAY):send_event{key = 0x8803483C} -- start vignette
+
 context:scene(mission.Scene.SCN_ANA_POWER_UP_BRAY):send_event{key = 0x1526DC06} -- temper pacifist
 context:scene(mission.Scene.SCN_ANA_POWER_UP_BRAY):send_event{key = 0xF9521E4E} -- temper rooted
 context:scene(mission.Scene.SCN_ANA_POWER_UP_BRAY):send_event{key = 0xB38DB1E8} -- open the door
@@ -293,6 +311,7 @@ context:slot(Slot.O_START_VIGNETTE):set_object_active{active = true}
 context:slot(Slot.O_MINI_RAS_DOOR):set_object_active{active = true} -- scene door
 
 pt_end_phase
+cues: 14,
 
 context:slot(Slot.M_MUSIC_SENSOR_80F6A396):set_music_section{section = 2}
 
@@ -309,6 +328,8 @@ tv_dialog_hive_warning
 
 pt_mus_hive_attack
 pt_elevator_seed_props
+
+MAIN_OBJECTIVE_80F6A334 -- 20 groups
 
 pt_spawn_lower_encounters
 entrance_trooper_squad_a, entrance_trooper_squad_b
@@ -344,11 +365,41 @@ context:slot(Slot.O_JAVELIN_VFX):set_object_active{active = true}
 play music
 play cue 23
 
+FINALE_OBJECTIVE -- 16 groups
+
 D_JAVELIN_DOOR
 
 darkness zone
 
+HOOK_TROOPER_A_SQUAD
+HOOK_TROOPER_B_SQUAD
+HOOK_TROOPER_C_SQUAD
+HOOK_TROOPER_D_SQUAD
+
+THRONE_ASSAULT_TROOPER_SQUAD_A
+THRONE_ASSAULT_TROOPER_SQUAD_B
+THRONE_ASSAULT_TROOPER_SQUAD_C
+THRONE_ASSAULT_TROOPER_SQUAD_D
+
+THRONE_ASSAULT_CRUSADER_SQUAD_A
+THRONE_ASSAULT_CRUSADER_SQUAD_B
+THRONE_ASSAULT_CRUSADER_SQUAD_C
+THRONE_ASSAULT_CRUSADER_SQUAD_D
+
+THRONE_ASSAULT_THRALL_SQUAD_A1
+THRONE_ASSAULT_THRALL_SQUAD_A2
+
+THRONE_ASSAULT_ULTRA_SQUAD_A
+THRONE_ASSAULT_ULTRA_SQUAD_B
+
+THRONE_ASSAULT_SNIPER_SQUAD_A
+THRONE_ASSAULT_SNIPER_SQUAD_B
+
+THRONE_ASSAULT_BOOMER_SQUAD_A
+THRONE_ASSAULT_BOOMER_SQUAD_B
+
 after arena clear play cue 24
+D_DOOR_1w
 
 pt_machine_god
 
