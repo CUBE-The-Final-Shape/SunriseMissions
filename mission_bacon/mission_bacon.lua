@@ -5,45 +5,174 @@ local Slot, Directive, Squad, Scene = mission.Slot, mission.Directive, mission.S
 local sensor = mission.Slot.M_DIALOG_SENSOR_80F6A396
 local cues = mission.DialogueCue.M_DIALOG_SENSOR_80F6A396
 
-local GLACIAL_DRIFT = mission.states.STATE_80F6A028_0005_0000_80F6A984.region_index  -- 40 | Intro region
+local INTRO_REGION = mission.states.STATE_80F6A028_0005_0000_80F6A984.region_index  -- 40 | Glacial drift
 local DYNAMO_APPROACH = mission.states.STATE_80F6A028_0008_0000_80F6A99B.region_index -- 64
 local BRAYTECH_FUTURESCAPES = mission.states.STATE_80F6A028_0001_0000_80F6A01C.region_index -- 8
 local AURORA_REACH = mission.states.STATE_80F6A028_0009_0000_80F6A99C.region_index -- 72
 local MINDLAB_RASPUTIN = mission.states.STATE_80F6A028_000A_0000_80F6A9A8.region_index -- 80
 
---[[
 local ARENAS = {
-    {
-        id = "normal_arena_placeholder",
-		objective = "placeholder",
-		clear_music_section = "placeholder",
-		enter_sensor = "placeholder",
-		clear_sensor = "placeholder",
-		doors = {"placeholder"},
-        squads = {
-					{squad = "placeholder", count = "placeholder", default_group = "placeholder"},
-				},
+	{
+        id = "bray_futurescapes",
+		squads = {
+			squad_intro = {
+				{squad = "INTRO_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+				{squad = "INTRO_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+				{squad = "INTRO_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+				{squad = "INTRO_SQUAD_D", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+			},
+			squad_a = {
+				{squad = "COURTYARD_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+				{squad = "COURTYARD_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+				{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+			},
+			squad_reinforce_a1 = {
+				{squad = "REINFORCE_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+			},
+			squad_reinforce_a2 = {
+				{squad = "REINFORCE_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+			},
+			squad_b = {
+				{squad = "COURTYARD_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+				{squad = "COURTYARD_SQUAD_B_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+			},
+			squad_reinforce_b = {
+				{squad = "REINFORCE_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+			},
+			squad_c = {
+				{squad = "COURTYARD_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
+				{squad = "COURTYARD_SQUAD_C_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
+			},
+			squad_reinforce_c = {
+				{squad = "REINFORCE_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
+			},
+			squad_boss = {
+				{squad = "INTERIOR_SQUAD_BOSS", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 0},
+				{squad = "INTERIOR_SQUAD_A", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 1},
+				{squad = "INTERIOR_SQUAD_B", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 2},
+				{squad = "INTERIOR_SQUAD_C", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 3},
+				{squad = "INTERIOR_SQUAD_D", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 4},
+				{squad = "INTERIOR_SQUAD_E", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 5},
+			},
+		},
     },
 	{
-        id = "nested_squads_arena_placeholder",
-		enter_sensor = "placeholder",
-		actor_squads = {
-			{squad = "placeholder", count = "placeholder", default_group = "placeholder", actor = "type-2 placeholder"},
+        id = "elevator",
+		objective = "MAIN_OBJECTIVE_80F6A334",
+        squads = {
+			lower_encounter = {
+				{squad = "ENTRANCE_TROOPER_SQUAD_A", count = 1, default_group = 0},
+				{squad = "ENTRANCE_TROOPER_SQUAD_B", count = 1, default_group = 0},
+				{squad = "ELEVATOR_TROOPER_SQUAD_1", count = 1, default_group = 2},
+				{squad = "ELEVATOR_TROOPER_SQUAD_2", count = 3, default_group = 3},
+				{squad = "ELEVATOR_TROOPER_SQUAD_3", count = 1, default_group = 4},
+			},
+			elevator_melee = {
+				{squad = "ELEVATOR_THRALL_SQUAD_A", count = 1, default_group = 5},
+				{squad = "ELEVATOR_THRALL_SQUAD_B", count = 1, default_group = 5},
+				{squad = "ELEVATOR_THRALL_SQUAD_C", count = 1, default_group = 5},
+			},
+			elevator_wizards = {
+				{squad = "ELEVATOR_WIZARD_SQUAD_1", count = 1, default_group = 1},
+				{squad = "ELEVATOR_WIZARD_SQUAD_2", count = 1, default_group = 1},
+			},
 		},
-		squads = {
-			squad_name_placeholder = {
-				{squad = "placeholder", count = "placeholder", default_objective = "placeholder", default_group = "placeholder"},
+    },
+	{
+        id = "pipes",
+		objective = "MAIN_OBJECTIVE_80F6A334",
+        squads = {
+			pipes_front = {
+				{squad = "PIPES_TROOPER_SQUAD_A", count = 2, default_group = 6},
+				{squad = "PIPES_TROOPER_SQUAD_B", count = 2, default_group = 7},
+			},
+			pipes_back = {
+				{squad = "PIPES_KNIGHT_SQUAD_A", count = 2, default_group = 8},
+				{squad = "PIPES_KNIGHT_SQUAD_B", count = 1, default_group = 9},
+			},
+		},
+    },
+	{
+        id = "spear_intro",
+		objective = "MAIN_OBJECTIVE_80F6A334",
+        squads = {
+			{squad = "SPEAR_INTRO_SQUAD_A", count = 1, default_group = 10}, -- Knight
+			{squad = "SPEAR_INTRO_SQUAD_B", count = 2, default_group = 11}, -- Acolyte
+			{squad = "SPEAR_INTRO_SQUAD_C", count = 1, default_group = 12}, -- Ogre
+			{squad = "SPEAR_INTRO_SQUAD_D", count = 1, default_group = 11}, -- Acolyte
+			{squad = "SPEAR_INTRO_SQUAD_E", count = 1, default_group = 14}, -- Acolyte, jumps
+		},
+    },
+	{
+        id = "lower_gate",
+		objective = "MAIN_OBJECTIVE_80F6A334",
+        squads = {
+			{squad = "HOOK_TROOPER_A_SQUAD", count = 1, default_group = 15},
+			{squad = "HOOK_TROOPER_B_SQUAD", count = 4, default_group = 16},
+			{squad = "HOOK_TROOPER_C_SQUAD", count = 3, default_group = 19},
+			{squad = "HOOK_TROOPER_D_SQUAD", count = 3, default_group = 18},
+		},
+    },
+	{
+        id = "throne",
+		objective = "FINALE_OBJECTIVE",
+        squads = {
+			assault_trooper = {
+				{squad = "THRONE_ASSAULT_TROOPER_SQUAD_A", count = 1, default_group = 0},
+				{squad = "THRONE_ASSAULT_TROOPER_SQUAD_B", count = 1, default_group = 0},
+				{squad = "THRONE_ASSAULT_TROOPER_SQUAD_C", count = 1, default_group = 0},
+				{squad = "THRONE_ASSAULT_TROOPER_SQUAD_D", count = 1, default_group = 0},
+			},
+			assault_crusader = {
+				{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_A", count = 1, default_group = 0},
+				{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_B", count = 1, default_group = 0},
+				{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_C", count = 1, default_group = 0},
+				{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_D", count = 1, default_group = 0},
+			},
+			assault_thrall = {
+				{squad = "THRONE_ASSAULT_THRALL_SQUAD_A1", count = 1, default_group = 6},
+				{squad = "THRONE_ASSAULT_THRALL_SQUAD_A2", count = 1, default_group = 6},
+			},
+			assault_ultra = {
+				{squad = "THRONE_ASSAULT_ULTRA_SQUAD_A", count = 1, default_group = 13},
+				{squad = "THRONE_ASSAULT_ULTRA_SQUAD_B", count = 1, default_group = 13},
+			},
+			assault_sniper = {
+				{squad = "THRONE_ASSAULT_SNIPER_SQUAD_A", count = 1, default_group = 0},
+				{squad = "THRONE_ASSAULT_SNIPER_SQUAD_B", count = 1, default_group = 1},
+			},
+			assault_boomer = {
+				{squad = "THRONE_ASSAULT_BOOMER_SQUAD_A", count = 2, default_group = 2},
+				{squad = "THRONE_ASSAULT_BOOMER_SQUAD_B", count = 2, default_group = 3},
 			},
 		},
     },
 }
+--[[
+group
+0 sniper left
+1 sniper right
+2 middle platform
+3 upper platform
+4 lower platform
+5 middle platform
+6 roaming all three platforms
+7 middle platform
+8 lower platform
+9 lower platform
+10 middle platform front right
+11 lower platform
+12 middle platform
+13 upper platform
+14 roaming middle and upper platform
+15 roaming middle and upper platform
+16 roaming middle and upper platform
 ]]
 
-local function set_directive(context, directive, navpoint, sensor)
+local function set_directive(context, directive, navpoint)
 	context:slot(Slot.M_DIRECTIVE_SENSOR_80F6A396):set_directive{
-			directive = context:slot(directive),
+			directive = directive,
 			navpoint = context:slot(navpoint),
-			audience = context:slot(sensor),
 	}
 end
 
@@ -143,7 +272,7 @@ end
 
 return {
     initial_state = {
-        region_index = GLACIAL_DRIFT,
+        region_index = INTRO_REGION,
         spawn_set_hash = 0x09E1FC45,
     },
 
@@ -154,7 +283,46 @@ return {
 
     on_load = function(context, state)
         context:set_variable("reloaded", true)
-		context:slot(Slot.PF_CINEMATIC_BOOKEND_CINEMATIC):set_cinematic_active{active = true}
+		context:slot(Slot.PT_MACHINE_GOD):fire_trigger()
+		context:set_variable("debug.cine_requested", true)
+		-- context.lifetime:set{state = context.sdk.lifetime_states:at(7)}
+		--[[
+		context:slot(Slot.M_DIRECTIVE_SENSOR_80F6A396):set_directive{
+				directive = Directive.CLEAR_A_PATH_TO_CLOVIS_BRAY,
+				navpoint = context:slot(Slot.NP_GOTO_BRAY_80F6A1AB),
+		}]]
+		--[[
+		context:slot(Slot.O_SERAPH_TOWER0_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_AVOIDANCE_0_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_SERAPH_TOWER1_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_AVOIDANCE_1_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_SERAPH_TOWER2_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_AVOIDANCE_2_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_SERAPH_TOWER3_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_AVOIDANCE_3_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_SERAPH_TOWER4_80F739EA):set_object_active{active = true}
+		context:slot(Slot.O_AVOIDANCE_4_80F739EA):set_object_active{active = true}
+		]]
+		
+		--place_squads(context, ARENAS[2], "lower_encounter")
+		--place_squads(context, ARENAS[2], "elevator_melee")
+		--place_squads(context, ARENAS[2], "elevator_wizards")
+		
+		--place_squads(context, ARENAS[3], "pipes_front")
+		--place_squads(context, ARENAS[3], "pipes_back")
+		--place_squads(context, ARENAS[4])
+		--context:slot(Slot.O_JAVELIN_SPAWNER_LANDING):set_object_active{active = true}
+		--context:slot(Slot.O_JAVELIN_VFX):set_object_active{active = true}
+		--context:slot(Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = false}
+		--place_squads(context, ARENAS[5])
+		--context:slot(Slot.O_JAVELIN_SPAWNER_LOWER):set_object_active{active = true}
+		--context:slot(Slot.O_JAVELIN_SPAWNER_UPPER):set_object_active{active = true}
+		
+		--place_squads(context, ARENAS[6], "assault_thrall")
+		
+		--local key = context:select_state(mission.states.STATE_80F6A028_0003_0001_80F6A01F)
+		--context:set_variable("move_request", key.value)
+		--context:slot(Slot.PF_CINEMATIC_BOOKEND_CINEMATIC):set_cinematic_active{active = true}
 	end,
 
     -- Runs each time the player moves into another region.
@@ -171,10 +339,14 @@ return {
     -- Fires the intro dialogue and directive once the client actually holds the start region.
     on_event_client_state_changed = function(context, state, event)
         if event.entered == true
-            and event.held_region_index == GLACIAL_DRIFT
+            and event.held_region_index == INTRO_REGION
             and not state:variable("intro.sent") then
             context:set_variable("intro.sent", true)
-            -- Placeholder
+			context:slot(Slot.PT_INTRO_DIRECTIVE):fire_trigger()
+			context:slot(Slot.PT_ENDPHASE):fire_trigger()
+			context:slot(Slot.PT_ENDPHASE_ALT):fire_trigger()
+            context:slot(Slot.PT_GOTO_BRAY_RIGHT):fire_trigger()
+			context:slot(Slot.PT_GOTO_BRAY_LEFT):fire_trigger()
         end
     end,
 	
@@ -196,8 +368,12 @@ return {
 		-- Placeholder
     end,
 	
+	on_event_cinematic_started = function(context, state, event)
+		context:set_variable("debug.bookend_started", true)
+	end,
+
 	on_event_cinematic_terminated = function(context, state, event)
-		-- the cinematic ended, or its start was refused
+		context:set_variable("debug.bookend_terminated", true)
 	end,
 	
 	on_event_cinematic_skip_requested = function(context, state, event)
@@ -344,11 +520,9 @@ elevator_wizard_squad_1 spawns first, elevator_wizard_squad_2 spawns 1-2 secs af
 pt_ascension_elevator
 
 pt_spawn_overrides_off, plays cue 19
-
 pipes_trooper_squad_a, pipes_trooper_squad_b
 
 pt_pipes_spawn_back
-
 pipes_knight_squad_a count = 2 acolytes, pipes_knight_squad_b knight
 
 pt_spawn_overrides_on
@@ -365,17 +539,26 @@ context:slot(Slot.O_JAVELIN_VFX):set_object_active{active = true}
 play music
 play cue 23
 
-FINALE_OBJECTIVE -- 16 groups
-
 D_JAVELIN_DOOR
 
 darkness zone
+
+PT_SPAWN_LOWER_ENEMIES_GATE
+PT_HOOK_SPAWN_THRALL
+PT_HOOK_SPAWN_THRALL_1
+PT_HOOK_TROOPER_FALLBACK
 
 HOOK_TROOPER_A_SQUAD
 HOOK_TROOPER_B_SQUAD
 HOOK_TROOPER_C_SQUAD
 HOOK_TROOPER_D_SQUAD
 
+
+PT_THRONE_SPAWN_ENCOUNTER
+PT_THRONE_WAKE_COMBATANTS
+PT_ASCENSION_LEFT
+
+FINALE_OBJECTIVE -- 16 groups
 THRONE_ASSAULT_TROOPER_SQUAD_A
 THRONE_ASSAULT_TROOPER_SQUAD_B
 THRONE_ASSAULT_TROOPER_SQUAD_C
