@@ -3,6 +3,7 @@
 local missions = require("missions")
 local mission = require(missions.MISSION_PACT)
 local campaign = require("lib.campaign")
+local EventKind = require("sunrise.activity_sdk").EventKind
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
 local cue = mission.DialogueCue.M_DIALOG_SENSOR
@@ -383,7 +384,7 @@ local route_lines = {
 local triggered = script.on_event_player_trigger
 script.on_event_player_trigger = function(context, state, event)
     local dialogue = event.slot ~= nil and route_lines[event.slot.id] or nil
-    if event.kind == "playerTrigger" and dialogue ~= nil then
+    if event.kind == EventKind.PLAYER_TRIGGER and dialogue ~= nil then
         local key = "pact.route." .. dialogue
         if state:variable(key) ~= context.attempt_generation then
             context:set_variable(key, context.attempt_generation)

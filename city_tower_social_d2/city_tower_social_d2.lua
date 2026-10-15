@@ -7,12 +7,12 @@ local lib = require("lib.mission_lib")
 -- An object or scene binds under that bubble's lease.
 
 -- Kept out of every seed: the Festival of the Lost dressing.
-local SEED_OMIT = {
+local SEED_OMIT = lib.list(
     mission.Slot.M_ENGAGEMENT_SENSOR_80B4AF2C,
     mission.Slot.M_ENGAGEMENT_SENSOR_80B4AF3D,
     mission.Slot.SQ_EVA_LEVANTE_FOTL,
-    mission.Slot.M_ENGAGEMENT_SENSOR_80B4AF65,
-}
+    mission.Slot.M_ENGAGEMENT_SENSOR_80B4AF65
+)
 
 -- A repeated slot name carries its object tag, so each constant names one slot.
 -- A bubble's squads are the ones whose object sits in it. The client builds no vendor itself.
@@ -35,7 +35,7 @@ local BUBBLES = {
     {
         -- courtyard, the arrival bubble
         state = mission.states.STATE_80B4A0F4_0006_0000_80B4A229,
-        squads = {
+        squads = lib.list(
             mission.Squad.VENDOR_ZAVALA,
             mission.Squad.SQ_GUNSMITH,
             mission.Squad.SQ_VENDOR_CRYPTARCH,
@@ -95,9 +95,9 @@ local BUBBLES = {
             mission.Squad.MECHANIC_1_SQUAD_80B4AA4F,
             mission.Squad.MECHANIC_2_SQUAD_80B4AA4F,
             mission.Squad.MECHANIC_3_SQUAD_80B4AA4F,
-            mission.Squad.MECHANIC_4_SQUAD_80B4AA4F,
-        },
-        objects = {
+            mission.Squad.MECHANIC_4_SQUAD_80B4AA4F
+        ),
+        objects = lib.list(
             mission.Slot.O_FAN_1,
             mission.Slot.O_FAN_2,
             mission.Slot.O_FAN_3,
@@ -123,16 +123,16 @@ local BUBBLES = {
             -- 80B4AA2D repeats these posts with other actors. One per post.
             mission.Slot.O_FEM01_DPAD_TYPE_STAND,
             mission.Slot.O_STANDARD_TOWER_FOOTBALL,
-            mission.Slot.O_LAVA_ORB_0_OBJECT, -- the floor-is-lava pickup
-        },
-        scenes = {
+            mission.Slot.O_LAVA_ORB_0_OBJECT -- the floor-is-lava pickup
+        ),
+        scenes = lib.list(
             mission.Scene.DAY_BOULEVARD_PPONG_3_SCENE,
             mission.Scene.DAY_BOULEVARD_PPONG_4_SCENE,
             mission.Scene.DAY_GRASS_PPONG_1_SCENE,
             mission.Scene.DAY_GRASS_PPONG_2_SCENE,
             mission.Scene.SM_CMD_FRONT_DUMMY_GROUP_3_SCENE,
-            mission.Scene.SM_CMD_FRONT_DUMMY_GROUP_6_SCENE,
-        },
+            mission.Scene.SM_CMD_FRONT_DUMMY_GROUP_6_SCENE
+        ),
         idles = {
             {
                 sensor = mission.Slot.VENDOR_ZAVALA_IDLE,
@@ -164,7 +164,7 @@ local BUBBLES = {
     {
         -- bazaar
         state = mission.states.STATE_80B4A0F4_0001_0000_80B4A228,
-        squads = {
+        squads = lib.list(
             mission.Squad.SQ_VENDOR_HAWTHORNE,
             mission.Squad.SQ_VENDOR_NEW_MONARCHY,
             mission.Squad.BARMAN_SQUAD,
@@ -177,9 +177,9 @@ local BUBBLES = {
             mission.Squad.SM_PPONG_NOODLE_1_SQUAD,
             mission.Squad.SM_PPONG_NOODLE_2_SQUAD,
             mission.Squad.SM_PPONG_NOODLE_3_SQUAD,
-            mission.Squad.SM_PPONG_NOODLE_4_SQUAD,
-        },
-        objects = {
+            mission.Squad.SM_PPONG_NOODLE_4_SQUAD
+        ),
+        objects = lib.list(
             mission.Slot.O_IKORA_VENDOR,
             mission.Slot.O_CIV_0_80B4A140,
             mission.Slot.O_CIV_1_80B4A140,
@@ -254,9 +254,9 @@ local BUBBLES = {
             mission.Slot.O_CIV_2_80B4A4C1,
             mission.Slot.O_CIV_0_80B4A4CB,
             mission.Slot.O_CIV_1_80B4A4CB,
-            mission.Slot.O_CIV_2_80B4A4CB,
-        },
-        scenes = {
+            mission.Slot.O_CIV_2_80B4A4CB
+        ),
+        scenes = lib.list(
             mission.Scene.SC_BAR_SCENE,
             mission.Scene.SM_PPONG_WALKER_1_SCENE,
             mission.Scene.SM_PPONG_WALKER_2_SCENE,
@@ -267,8 +267,8 @@ local BUBBLES = {
             mission.Scene.SM_PPONG_NOODLE_1_SCENE,
             mission.Scene.SM_PPONG_NOODLE_2_SCENE,
             mission.Scene.SM_PPONG_NOODLE_3_SCENE,
-            mission.Scene.SM_PPONG_NOODLE_4_SCENE,
-        },
+            mission.Scene.SM_PPONG_NOODLE_4_SCENE
+        ),
         idles = {
             {
                 sensor = mission.Slot.SQ_VENDOR_HAWTHORNE_IDLE,
@@ -283,7 +283,7 @@ local BUBBLES = {
     {
         -- hangar
         state = mission.states.STATE_80B4A0F4_0007_0000_80B4A22A,
-        squads = {
+        squads = lib.list(
             mission.Squad.SQ_VENDOR_AMANDA_HOLLIDAY,
             mission.Squad.SQ_VENDOR_DEAD_ORBIT,
             mission.Squad.SQ_VENDOR_FUTURE_WAR_CULT,
@@ -321,9 +321,9 @@ local BUBBLES = {
             mission.Squad.BACK_MID_TEAM_2_MECHANIC_NPC_STATE_MACHINE_2_SQUAD,
             mission.Squad.BACK_RIGHT_TEAM_1_MECHANIC_DATA_PAD_STAND_PING_PONG_1_SQUAD,
             mission.Squad.BACK_RIGHT_TEAM_1_MECHANIC_NPC_STATE_MACHINE_1_SQUAD,
-            mission.Squad.BACK_RIGHT_TEAM_1_MECHANIC_NPC_STATE_MACHINE_2_SQUAD,
-        },
-        objects = {
+            mission.Squad.BACK_RIGHT_TEAM_1_MECHANIC_NPC_STATE_MACHINE_2_SQUAD
+        ),
+        objects = lib.list(
             mission.Slot.O_CAPTAIN,
             mission.Slot.O_PILOT,
             mission.Slot.O_COPILOT,
@@ -393,9 +393,9 @@ local BUBBLES = {
             mission.Slot.O_MECHANICS_13_2,
             mission.Slot.O_DO_HAWK,
             -- 80B4AC14 repeats every slot of 80B4ABB8, so its football is the same ball.
-            mission.Slot.O_MILITARY_FOOTBALL_80B4ABB8,
-        },
-        scenes = {
+            mission.Slot.O_MILITARY_FOOTBALL_80B4ABB8
+        ),
+        scenes = lib.list(
             mission.Scene.SC_DO_AWAY_TEAM,
             mission.Scene.SC_BACK_INVENTORY,
             mission.Scene.SC_MID_INVENTORY,
@@ -421,8 +421,8 @@ local BUBBLES = {
             mission.Scene.BACK_LEFT_TEAM_1_MECHANIC_DATA_PAD_STAND_PING_PONG_1_SCENE,
             mission.Scene.BACK_MID_TEAM_1_MECHANIC_DATA_PAD_STAND_PING_PONG_1_SCENE,
             mission.Scene.BACK_MID_TEAM_2_MECHANIC_DATA_PAD_STAND_PING_PONG_1_SCENE,
-            mission.Scene.BACK_RIGHT_TEAM_1_MECHANIC_DATA_PAD_STAND_PING_PONG_1_SCENE,
-        },
+            mission.Scene.BACK_RIGHT_TEAM_1_MECHANIC_DATA_PAD_STAND_PING_PONG_1_SCENE
+        ),
         idles = {
             {
                 sensor = mission.Slot.SQ_VENDOR_AMANDA_HOLLIDAY_IDLE,
@@ -441,12 +441,12 @@ local BUBBLES = {
     {
         -- annex
         state = mission.states.STATE_80B4A0F4_0000_0000_80B4A225,
-        squads = {
-            mission.Squad.SQ_ARMORY_VENDOR,
-        },
-        objects = {
-            mission.Slot.O_DRIFTER_VENDOR,
-        },
+        squads = lib.list(
+            mission.Squad.SQ_ARMORY_VENDOR
+        ),
+        objects = lib.list(
+            mission.Slot.O_DRIFTER_VENDOR
+        ),
         scenes = {},
         idles = {
             {

@@ -4,6 +4,7 @@
 local missions = require("missions")
 local mission = require(missions.INFINITE_ABYSS)
 local lib = require("lib.mission_lib")
+local EventKind = require("sunrise.activity_sdk").EventKind
 local Slot, Directive = mission.Slot, mission.Directive
 local REGION = mission.states.STATE_81550015_000D_0000_8155000E.region_index
 local SPAWN_SET = 0x79E3AB1F
@@ -56,7 +57,7 @@ end
 local function enter(context, state, event)
     if event.attempt_generation ~= context.attempt_generation then return end
     prepare(context, state)
-    local region = event.kind == "regionChanged" and event.region_index
+    local region = event.kind == EventKind.REGION_CHANGED and event.region_index
         or (event.entered == true and event.held_region_index or nil)
     if region == nil then return end
     context:set_variable(ARRIVED, region == REGION)
@@ -73,7 +74,7 @@ local function occupy(context, state, event)
         or not lib.is_slot(context, event, PLATE) then return end
     prepare(context, state)
     if state:variable(PHASE) ~= "entry" then return end
-    local inside = event.kind == "triggerEntered"
+    local inside = event.kind == EventKind.TRIGGER_ENTERED
     context:set_variable(INSIDE, inside)
     if inside then
         capture_if_occupied(context, state)

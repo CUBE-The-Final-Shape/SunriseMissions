@@ -5,8 +5,8 @@ The changes use Sunrise's native mission API. No client memory access, hooks or 
 Live play remains unverified. A listed gap means the current port lacks that behavior; it does
 not mean a server implementation is impossible.
 
-[Native squad profile support](DAWN_SPAWN_PROFILES.md) restores 105 support and scenery source
-requests through the generated SDK certificate. Their original encounter gates remain in place.
+Native squad profile support restores 105 support and scenery source requests through the
+generated SDK certificate. Their original encounter gates remain in place.
 
 ## Ported changes
 
@@ -18,7 +18,7 @@ requests through the generated SDK certificate. Their original encounter gates r
 | Beyond Infinity (`adventure_vod`) | Scene casts reserve their authored squads explicitly. Mixed casts activate their props. Both upper reflections start. The reveal stops before the return trip. Returning to the Forest or Lighthouse needs a new region report. |
 | Omega (`mission_scot`) | Ikora's squad is reserved before her scene. Island and Crown waves wait for their arrival triggers. Clearing the support waves cannot award mission completion. |
 | Homecoming (`mission_towerfall`) | The two hangar doors have separate hostile clear gates. The plaza has three assaults. The bazaar clear excludes Ikora and gates pickup. Ship populations prepare before approach. Turbine destruction lowers the matching light and drives the first two report lines. Reactor shutdown and four escape explosion scenes are requested through native slots. |
-| Mercury Lighthouse (`mercury_freeroam`) | Patrol recipes select exact generated fallback variants; [Mercury status](mercury_freeroam/PORT_STATUS.md) owns their coverage. |
+| Mercury Lighthouse (`mercury_freeroam`) | Patrol recipes select exact generated fallback variants. |
 
 Homecoming retains its original opening cinematic. Amanda's pickup and the ending use their
 authored cinematic states. Tests cover all three transitions.
@@ -34,10 +34,10 @@ inputs and anchor tables were not copied. The native default contract is documen
 | The Gateway | Module vulnerability; final cannon launch policy; marchers' movement; exact gate-contact positioning; Vance's turn, speech completion, ascent and lighting cues. The existing scene request does not establish those intermediate events. |
 | Tree of Probabilities | Eight of ten Forest exit defenders have no generated `Squad` entry. Harvester passenger delivery and departure are absent. Thuun's retreat movement, crossing immunity, scene cast ownership, room task assignment, music and checkpoints remain partial. Campaign scan dialogue has no playback-completion gate. |
 | A Garden World | Lens vulnerability; golem release inputs and tether immunity; Dendron's carriage movement, parked states, shield ownership and cover cycles; early boss death interrupting unfinished shield phases. The campaign scanner, tree cues, Panoptes wipe, Sagira capture and final movie are incomplete. |
-| Beyond Infinity | Plate capture/charge authority and lens exposure; reflection volume and scene-input gates; scene speech-completion gates; the Forest's two route recipes and faction selection; precise portal device poses; ambush shields. Basic scene activation is not parity with the full authored scene. |
+| Beyond Infinity | Plate capture/charge authority and lens exposure; reflection volume gates; scene inputs other than each scene's start input; scene speech-completion gates; the Forest's two route recipes and faction selection; precise portal device poses; ambush shields. Basic scene activation is not parity with the full authored scene. |
 | Omega | Panoptes combat; reveal camera ownership; arm movement and island transfers; Crown charge pickup, dunk and eye phases; Osiris rescue; final cinematic and Mercury handoff. The retained enemy waves are a partial route. |
 | Homecoming | Cayde, Shaxx, Centurion and Ikora scene entry choreography; frame combat-release inputs; Zavala arrival, Ward, death and revival; armory weapon rewards; carrier flights and impact sequences; mission music; exact scene-cast ownership and native scene-subtree receipts. The civilian and explosion scene requests need live validation. |
-| Mercury Lighthouse | [Mercury status](mercury_freeroam/PORT_STATUS.md) lists the remaining public activity behavior. |
+| Mercury Lighthouse | Vex Crossroads, faction-war progression and the adventure handoff. |
 
 The current Lua API can send a named scene event, but it does not report Dawn's native scene
 subtree observations. Type-53 dialogue has no playback-completion event in the current SDK.

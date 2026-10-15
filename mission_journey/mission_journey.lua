@@ -4,59 +4,69 @@ local missions = require("missions")
 local mission = require(missions.MISSION_JOURNEY)
 local campaign = require("lib.campaign")
 local lib = require("lib.mission_lib")
+local EventKind = require("sunrise.activity_sdk").EventKind
 local unit, line = campaign.unit, campaign.line
 local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80B5E02A
+local Input = mission.SceneInput
+local pride = lib.one(Input.SC_PRIDE_ROCK.T_PRIDE_ROCK, "pride rock event")
+local beast = lib.one(Input.SC_BEASTMASTER.KEY_286C14D7, "beastmaster event")
 
--- These input keys belong to the installed scene graphs.
-local Input = {bridge = 0xB687F07B, rooftop = 0xDD6D986F, rooftop_move = 0x5A9CAA14,
-    real_rooftop = 0x6A1120BD, rush = 0xA07DCECA, falcon = 0x159DFE1B,
-    follow = 0xF849C1B2, collapse = 0x86685186, pride = 0x50954B78, beast = 0x286C14D7,
-    ghost_exit1 = 0xFBA2AF26, ghost_exit2 = 0xFBA2AF25, ghost_exit3 = 0xFBA2AF24}
-
+-- A scene id is longer than a variable name may be, so the key uses the scene's row.
 local function scene_key(context, scene)
-    return "journey.scene." .. context.attempt_generation .. "." .. scene
+    return "journey.scene." .. context.attempt_generation .. "." .. context:scene(scene).row
 end
 
-local function start_scene(context, state, name, props)
-    local key = scene_key(context, name)
+local function start_scene(context, state, scene, props)
+    local key = scene_key(context, scene)
     if state:variable(key) ~= nil then return end
     if props ~= nil then context:activate_objects{slots = props, active = true} end
-    context:scene(Scene[name]):activate{}
+    context:scene(scene):activate{}
     context:set_variable(key, true)
 end
 
-local function stop_scene(context, state, name)
-    local key = scene_key(context, name)
+local function stop_scene(context, state, scene)
+    local key = scene_key(context, scene)
     if state:variable(key) ~= true then return end
-    context:scene(Scene[name]):stop{}
+    context:scene(scene):stop{}
     context:set_variable(key, false)
 end
 
 local scenery = {
-    {trigger = Slot.PT_SCENE_ROOFTOP, scene = "SC_ROOFTOP_SCENE",
-        inputs = {Input.rooftop, Input.rooftop_move}},
-    {trigger = Slot.PT_SCENE_ROOFTOP, scene = "SC_REAL_ROOFTOP", inputs = {Input.real_rooftop}},
-    {trigger = Slot.PT_SCENE_TANK, scene = "SC_BRIDGE_SCENE", inputs = {Input.bridge}},
-    {trigger = Slot.PT_SHADOW_SCENE, scene = "SC_SHADOW_SCENE", inputs = {Input.bridge}},
-    {trigger = Slot.PT_OMG_GOGOGO, scene = "SC_OMG_WHAT_ZBB", inputs = {Input.rush}},
-    {trigger = Slot.PT_GHOST_EXIT_1, scene = "SC_GHOST_SEARCHING", inputs = {Input.ghost_exit1}},
-    {trigger = Slot.PT_GHOST_EXIT_2, scene = "SC_GHOST_SEARCHING", inputs = {Input.ghost_exit2}},
-    {trigger = Slot.PT_GHOST_EXIT_3, scene = "SC_GHOST_SEARCHING", inputs = {Input.ghost_exit3}},
-    {trigger = Slot.PT_GHOST_FINDING, scene = "SC_GHOST_FINDING", props = {Slot.O_GHOST_FINDING}},
-    {trigger = Slot.PT_PLAYER_COLLAPSE, scene = "SC_GHOST_FINDING", props = {Slot.O_GHOST_FINDING},
-        inputs = {Input.collapse}},
-    {trigger = Slot.PT_FALCON_CLIMB, scene = "SC_FALCON_CLIMB_1", props = {Slot.O_FALCON_CLIMB_1},
-        inputs = {Input.falcon}},
-    {trigger = Slot.PT_FOLLOW_FALCON, scene = "SC_FALCON_CLIMB_2", props = {Slot.O_FALCON_CLIMB_2},
-        inputs = {Input.follow}},
-    {trigger = Slot.PT_FALCON_1, scene = "SC_FALCON_1", props = {Slot.O_FALCON_1},
-        inputs = {Input.falcon}},
-    {trigger = Slot.PT_FALCON_3, scene = "SC_FALCON_3", props = {Slot.O_FALCON_3},
-        inputs = {Input.falcon}},
-    {trigger = Slot.PT_FALCON_4, scene = "SC_FALCON_4", props = {Slot.O_FALCON_4},
-        inputs = {Input.follow}},
+    {trigger = Slot.PT_SCENE_ROOFTOP, scene = Scene.SC_ROOFTOP_SCENE,
+        inputs = lib.list(Input.SC_ROOFTOP_SCENE.PLAYER_TRIGGER,
+            Input.SC_ROOFTOP_SCENE.KEY_5A9CAA14)},
+    {trigger = Slot.PT_SCENE_ROOFTOP, scene = Scene.SC_REAL_ROOFTOP,
+        inputs = lib.list(Input.SC_REAL_ROOFTOP.KEY_6A1120BD)},
+    {trigger = Slot.PT_SCENE_TANK, scene = Scene.SC_BRIDGE_SCENE,
+        inputs = lib.list(Input.SC_BRIDGE_SCENE.T_COMPLETE)},
+    {trigger = Slot.PT_SHADOW_SCENE, scene = Scene.SC_SHADOW_SCENE,
+        inputs = lib.list(Input.SC_SHADOW_SCENE.T_COMPLETE)},
+    {trigger = Slot.PT_OMG_GOGOGO, scene = Scene.SC_OMG_WHAT_ZBB,
+        inputs = lib.list(Input.SC_OMG_WHAT_ZBB.T_OMG_GOGOGO)},
+    {trigger = Slot.PT_GHOST_EXIT_1, scene = Scene.SC_GHOST_SEARCHING,
+        inputs = lib.list(Input.SC_GHOST_SEARCHING.T_GHOST_EXIT_1)},
+    {trigger = Slot.PT_GHOST_EXIT_2, scene = Scene.SC_GHOST_SEARCHING,
+        inputs = lib.list(Input.SC_GHOST_SEARCHING.T_GHOST_EXIT_2)},
+    {trigger = Slot.PT_GHOST_EXIT_3, scene = Scene.SC_GHOST_SEARCHING,
+        inputs = lib.list(Input.SC_GHOST_SEARCHING.T_GHOST_EXIT_3)},
+    {trigger = Slot.PT_GHOST_FINDING, scene = Scene.SC_GHOST_FINDING,
+        props = {Slot.O_GHOST_FINDING}},
+    {trigger = Slot.PT_PLAYER_COLLAPSE, scene = Scene.SC_GHOST_FINDING,
+        props = {Slot.O_GHOST_FINDING}, inputs = lib.list(Input.SC_GHOST_FINDING.KEY_86685186)},
+    {trigger = Slot.PT_FALCON_CLIMB, scene = Scene.SC_FALCON_CLIMB_1,
+        props = {Slot.O_FALCON_CLIMB_1}, inputs = lib.list(Input.SC_FALCON_CLIMB_1.T_FALCON_FLY)},
+    {trigger = Slot.PT_FOLLOW_FALCON, scene = Scene.SC_FALCON_CLIMB_2,
+        props = {Slot.O_FALCON_CLIMB_2}, inputs = lib.list(Input.SC_FALCON_CLIMB_2.KEY_F849C1B2)},
+    {trigger = Slot.PT_FALCON_1, scene = Scene.SC_FALCON_1, props = {Slot.O_FALCON_1},
+        inputs = lib.list(Input.SC_FALCON_1.T_FALCON_FLY)},
+    {trigger = Slot.PT_FALCON_3, scene = Scene.SC_FALCON_3, props = {Slot.O_FALCON_3},
+        inputs = lib.list(Input.SC_FALCON_3.T_FALCON_FLY)},
+    {trigger = Slot.PT_FALCON_4, scene = Scene.SC_FALCON_4, props = {Slot.O_FALCON_4},
+        inputs = lib.list(Input.SC_FALCON_4.KEY_F849C1B2)},
 }
+-- A nil scene would only fail once its trigger fires.
+for _, action in ipairs(scenery) do lib.one(action.scene, "scenery scene") end
 
 -- The burning City around the canal is dressed, not fought. These squads carry no objective.
 local city = {
@@ -99,7 +109,7 @@ local city = {
         unit(Squad.SQ_SAD_GHOST_2, Slot.SQ_SAD_GHOST_2),
     },
     on_start = function(context, state)
-        start_scene(context, state, "SC_GHOST_SEARCHING")
+        start_scene(context, state, Scene.SC_GHOST_SEARCHING)
     end,
 }
 
@@ -124,8 +134,8 @@ local climb = {
         unit(Squad.SQ_CLIMB_BEAST_F_1, Slot.SQ_CLIMB_BEAST_F_1),
     },
     on_start = function(context, state)
-        start_scene(context, state, "SC_PRIDE_ROCK")
-        context:scene(Scene.SC_PRIDE_ROCK):send_event{key = Input.pride}
+        start_scene(context, state, Scene.SC_PRIDE_ROCK)
+        context:scene(Scene.SC_PRIDE_ROCK):send_event{key = pride}
     end,
 }
 
@@ -162,8 +172,8 @@ local beasts = {
         unit(Squad.SQ_BOWL_LEGS_1, Slot.SQ_BOWL_LEGS_1),
     },
     on_start = function(context, state)
-        start_scene(context, state, "SC_BEASTMASTER")
-        context:scene(Scene.SC_BEASTMASTER):send_event{key = Input.beast}
+        start_scene(context, state, Scene.SC_BEASTMASTER)
+        context:scene(Scene.SC_BEASTMASTER):send_event{key = beast}
     end,
 }
 
@@ -206,12 +216,12 @@ local script = campaign.new{
             ends = {trigger = Slot.PT_GOTO_CLIMB}},
         {id = "rally", directive = Directive.REGROUP, navpoint = Slot.AP_DEAD_GUARDIANS,
             on_start = function(context, state)
-                stop_scene(context, state, "SC_GHOST_SEARCHING")
-                stop_scene(context, state, "SC_GHOST_FINDING")
+                stop_scene(context, state, Scene.SC_GHOST_SEARCHING)
+                stop_scene(context, state, Scene.SC_GHOST_FINDING)
                 context:activate_objects{slots = {Slot.O_GHOST_FINDING, Slot.O_GHOST_SEARCHING},
                     active = false}
-                start_scene(context, state, "SC_FALCON_CLIMB_1", {Slot.O_FALCON_CLIMB_1})
-                start_scene(context, state, "SC_FALCON_CLIMB_2", {Slot.O_FALCON_CLIMB_2})
+                start_scene(context, state, Scene.SC_FALCON_CLIMB_1, {Slot.O_FALCON_CLIMB_1})
+                start_scene(context, state, Scene.SC_FALCON_CLIMB_2, {Slot.O_FALCON_CLIMB_2})
             end,
             ends = {trigger = Slot.PT_FIND_GUARDIANS_HIGH}},
         -- "These Guardians... They had no chance without their powers."
@@ -227,9 +237,9 @@ local script = campaign.new{
         {id = "mountain", directive = Directive.FOLLOW_YOUR_VISION_ABA9EFFB,
             navpoint = Slot.AP_GOTO_CANYON,
             on_start = function(context, state)
-                start_scene(context, state, "SC_FALCON_1", {Slot.O_FALCON_1})
-                start_scene(context, state, "SC_FALCON_3", {Slot.O_FALCON_3})
-                start_scene(context, state, "SC_FALCON_4", {Slot.O_FALCON_4})
+                start_scene(context, state, Scene.SC_FALCON_1, {Slot.O_FALCON_1})
+                start_scene(context, state, Scene.SC_FALCON_3, {Slot.O_FALCON_3})
+                start_scene(context, state, Scene.SC_FALCON_4, {Slot.O_FALCON_4})
             end,
             lines = {line(cue.CUE_28, Slot.SLOT_0008_80B5E434)},
             ends = {trigger = Slot.PT_GOTO_CANYON}},
@@ -246,7 +256,8 @@ local script = campaign.new{
 local handle_trigger = script.on_event_player_trigger
 script.on_event_player_trigger = function(context, state, event)
     handle_trigger(context, state, event)
-    if event.attempt_generation ~= context.attempt_generation or event.kind ~= "playerTrigger"
+    if event.attempt_generation ~= context.attempt_generation
+        or event.kind ~= EventKind.PLAYER_TRIGGER
         or state:variable("flow.journey.step.outro") ~= nil then return end
     for index, action in ipairs(scenery) do
         local key = "journey.scenery." .. context.attempt_generation .. "." .. index
@@ -255,7 +266,7 @@ script.on_event_player_trigger = function(context, state, event)
             start_scene(context, state, action.scene, action.props)
             if state:variable(scene_key(context, action.scene)) == true then
                 for _, input in ipairs(action.inputs or {}) do
-                    context:scene(Scene[action.scene]):send_event{key = input}
+                    context:scene(action.scene):send_event{key = input}
                 end
             end
         end

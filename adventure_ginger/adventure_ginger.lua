@@ -307,10 +307,9 @@ graph = flow.new{key = "deadly_trial", facts = facts, steps = {
     {id = "ambush", after = {"lair"}, run = spawn(content.encounters.lair),
         await = cleared_or(content.encounters.lair, bodies)},
     {id = "bodies", after = {"ambush"}, await = bodies},
-    -- Entering the room arms the ghost link, then spawns the device with its interaction row in one
-    -- body. Without the row the client never reports a use; a row not yet used shows a generic
-    -- prompt first, so it is sent used. The link also registers the revive object that owns the
-    -- goal's marker.
+    -- The ghost link registers the revive object that owns the goal's marker. The device needs its
+    -- interaction row or the client never reports a use; an unused row shows a generic prompt, so
+    -- it is sent used.
     {id = "revive", after = {"bodies"}, run = function(context)
         context:slot(content.ghost_link):set_ghost_link{active = true}
         show(context, content.goals.revive, content.dialogue.bodies)

@@ -1,36 +1,111 @@
 -- A Garden World. Native mission logic; live play remains unverified.
--- Absent: lens vulnerability, golem release inputs, boss motion and shield ownership.
+-- Absent: lens vulnerability, boss motion and shield ownership.
+-- A golem is released through its scene's only input, an unnamed key.
 -- The Panoptes ending is partial and cannot complete the mission.
 local missions = require("missions")
 local mission = require(missions.MISSION_BOND)
 local campaign = require("lib.campaign")
+local lib = require("lib.mission_lib")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
+local Input = mission.SceneInput
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80F474CC
 
-local function block(prefix)
-    return {
-        objects = {Slot[prefix .. "_O_VEX_LENS"], Slot[prefix .. "_O_WRAPPER"],
-            Slot[prefix .. "_O_VEX_BLOCK"]},
-        devices = {Slot[prefix .. "_D_VEX_LENS"], Slot[prefix .. "_D_VEX_BLOCK"],
-            Slot[prefix .. "_D_LASER_IN"], Slot[prefix .. "_D_LASER_OUT"],
-            Slot[prefix .. "_D_SHIELD"]},
-    }
+local blocks = {
+    {
+        objects = lib.list(Slot.PF_BLOCK_0_O_VEX_LENS, Slot.PF_BLOCK_0_O_WRAPPER,
+            Slot.PF_BLOCK_0_O_VEX_BLOCK),
+        devices = lib.list(Slot.PF_BLOCK_0_D_VEX_LENS, Slot.PF_BLOCK_0_D_VEX_BLOCK,
+            Slot.PF_BLOCK_0_D_LASER_IN, Slot.PF_BLOCK_0_D_LASER_OUT, Slot.PF_BLOCK_0_D_SHIELD),
+    },
+    {
+        objects = lib.list(Slot.PF_BLOCK_1_O_VEX_LENS, Slot.PF_BLOCK_1_O_WRAPPER,
+            Slot.PF_BLOCK_1_O_VEX_BLOCK),
+        devices = lib.list(Slot.PF_BLOCK_1_D_VEX_LENS, Slot.PF_BLOCK_1_D_VEX_BLOCK,
+            Slot.PF_BLOCK_1_D_LASER_IN, Slot.PF_BLOCK_1_D_LASER_OUT, Slot.PF_BLOCK_1_D_SHIELD),
+    },
+    {
+        objects = lib.list(Slot.PF_BLOCK_2_O_VEX_LENS, Slot.PF_BLOCK_2_O_WRAPPER,
+            Slot.PF_BLOCK_2_O_VEX_BLOCK),
+        devices = lib.list(Slot.PF_BLOCK_2_D_VEX_LENS, Slot.PF_BLOCK_2_D_VEX_BLOCK,
+            Slot.PF_BLOCK_2_D_LASER_IN, Slot.PF_BLOCK_2_D_LASER_OUT, Slot.PF_BLOCK_2_D_SHIELD),
+    },
+    {
+        objects = lib.list(Slot.PF_BLOCK_3_O_VEX_LENS, Slot.PF_BLOCK_3_O_WRAPPER,
+            Slot.PF_BLOCK_3_O_VEX_BLOCK),
+        devices = lib.list(Slot.PF_BLOCK_3_D_VEX_LENS, Slot.PF_BLOCK_3_D_VEX_BLOCK,
+            Slot.PF_BLOCK_3_D_LASER_IN, Slot.PF_BLOCK_3_D_LASER_OUT, Slot.PF_BLOCK_3_D_SHIELD),
+    },
+    {
+        objects = lib.list(Slot.PF_BLOCK_4_O_VEX_LENS, Slot.PF_BLOCK_4_O_WRAPPER,
+            Slot.PF_BLOCK_4_O_VEX_BLOCK),
+        devices = lib.list(Slot.PF_BLOCK_4_D_VEX_LENS, Slot.PF_BLOCK_4_D_VEX_BLOCK,
+            Slot.PF_BLOCK_4_D_LASER_IN, Slot.PF_BLOCK_4_D_LASER_OUT, Slot.PF_BLOCK_4_D_SHIELD),
+    },
+    {
+        objects = lib.list(Slot.PF_TOWER_BLOCK_O_VEX_LENS, Slot.PF_TOWER_BLOCK_O_WRAPPER,
+            Slot.PF_TOWER_BLOCK_O_VEX_BLOCK),
+        devices = lib.list(Slot.PF_TOWER_BLOCK_D_VEX_LENS, Slot.PF_TOWER_BLOCK_D_VEX_BLOCK,
+            Slot.PF_TOWER_BLOCK_D_LASER_IN, Slot.PF_TOWER_BLOCK_D_LASER_OUT,
+            Slot.PF_TOWER_BLOCK_D_SHIELD),
+    },
+}
+local golems = {
+    {
+        objects = lib.list(Slot.PF_TERRACE_GOLEM_O_LENS, Slot.PF_TERRACE_GOLEM_O_WRAPPER),
+        devices = lib.list(Slot.PF_TERRACE_GOLEM_D_LENS, Slot.PF_TERRACE_GOLEM_D_LASER,
+            Slot.PF_TERRACE_GOLEM_D_SHIELD),
+        scene = Scene.PF_TERRACE_GOLEM_SN_GOLEM,
+        release = Input.PF_TERRACE_GOLEM_SN_GOLEM.KEY_33E63A8B,
+    },
+    {
+        objects = lib.list(Slot.PF_CANNON_GOLEM_O_LENS, Slot.PF_CANNON_GOLEM_O_WRAPPER),
+        devices = lib.list(Slot.PF_CANNON_GOLEM_D_LENS, Slot.PF_CANNON_GOLEM_D_LASER,
+            Slot.PF_CANNON_GOLEM_D_SHIELD),
+        scene = Scene.PF_CANNON_GOLEM_SN_GOLEM,
+        release = Input.PF_CANNON_GOLEM_SN_GOLEM.KEY_33E63A8B,
+    },
+    {
+        objects = lib.list(Slot.PF_TOWER_GOLEM_O_LENS, Slot.PF_TOWER_GOLEM_O_WRAPPER),
+        devices = lib.list(Slot.PF_TOWER_GOLEM_D_LENS, Slot.PF_TOWER_GOLEM_D_LASER,
+            Slot.PF_TOWER_GOLEM_D_SHIELD),
+        scene = Scene.PF_TOWER_GOLEM_SN_GOLEM,
+        release = Input.PF_TOWER_GOLEM_SN_GOLEM.KEY_33E63A8B,
+    },
+    {
+        objects = lib.list(Slot.PF_GOLEM_0_O_LENS, Slot.PF_GOLEM_0_O_WRAPPER),
+        devices = lib.list(Slot.PF_GOLEM_0_D_LENS, Slot.PF_GOLEM_0_D_LASER,
+            Slot.PF_GOLEM_0_D_SHIELD),
+        scene = Scene.PF_GOLEM_0_SN_GOLEM,
+        release = Input.PF_GOLEM_0_SN_GOLEM.KEY_33E63A8B,
+    },
+    {
+        objects = lib.list(Slot.PF_GOLEM_1_O_LENS, Slot.PF_GOLEM_1_O_WRAPPER),
+        devices = lib.list(Slot.PF_GOLEM_1_D_LENS, Slot.PF_GOLEM_1_D_LASER,
+            Slot.PF_GOLEM_1_D_SHIELD),
+        scene = Scene.PF_GOLEM_1_SN_GOLEM,
+        release = Input.PF_GOLEM_1_SN_GOLEM.KEY_33E63A8B,
+    },
+    {
+        objects = lib.list(Slot.PF_GOLEM_2_O_LENS, Slot.PF_GOLEM_2_O_WRAPPER),
+        devices = lib.list(Slot.PF_GOLEM_2_D_LENS, Slot.PF_GOLEM_2_D_LASER,
+            Slot.PF_GOLEM_2_D_SHIELD),
+        scene = Scene.PF_GOLEM_2_SN_GOLEM,
+        release = Input.PF_GOLEM_2_SN_GOLEM.KEY_33E63A8B,
+    },
+    {
+        objects = lib.list(Slot.PF_GOLEM_3_O_LENS, Slot.PF_GOLEM_3_O_WRAPPER),
+        devices = lib.list(Slot.PF_GOLEM_3_D_LENS, Slot.PF_GOLEM_3_D_LASER,
+            Slot.PF_GOLEM_3_D_SHIELD),
+        scene = Scene.PF_GOLEM_3_SN_GOLEM,
+        release = Input.PF_GOLEM_3_SN_GOLEM.KEY_33E63A8B,
+    },
+}
+-- A golem scene waits on one input; it is sent once the golem's lens is destroyed.
+local function release(context, golem)
+    context:scene(golem.scene):send_event{key = golem.release}
 end
-
-local function golem(prefix)
-    return {
-        objects = {Slot[prefix .. "_O_LENS"], Slot[prefix .. "_O_WRAPPER"]},
-        devices = {Slot[prefix .. "_D_LENS"], Slot[prefix .. "_D_LASER"],
-            Slot[prefix .. "_D_SHIELD"]},
-    }
-end
-
-local blocks = {block("PF_BLOCK_0"), block("PF_BLOCK_1"), block("PF_BLOCK_2"),
-    block("PF_BLOCK_3"), block("PF_BLOCK_4"), block("PF_TOWER_BLOCK")}
-local golems = {golem("PF_TERRACE_GOLEM"), golem("PF_CANNON_GOLEM"),
-    golem("PF_TOWER_GOLEM"), golem("PF_GOLEM_0"), golem("PF_GOLEM_1"),
-    golem("PF_GOLEM_2"), golem("PF_GOLEM_3")}
+for _, golem in ipairs(golems) do lib.one(golem.release, "golem release input") end
 
 local function prepare(context, group)
     context:activate_objects{slots = group.objects, active = true}
@@ -337,7 +412,8 @@ local closing = {
         unit(Squad.PANOPTES_SQUAD, Slot.PANOPTES_SQUAD),
     },
 }
-local function open_block(context, slots)
+-- Closing a block's devices drops the barrier that prepare raised.
+local function clear_block(context, slots)
     move(context, slots, "close")
 end
 
@@ -392,7 +468,7 @@ return campaign.new{
             ends = {destroyed = {Slot.PF_BLOCK_0_O_VEX_LENS}}},
         {id = "first_block",
             on_start = function(context)
-                open_block(context, {Slot.PF_BLOCK_0_D_VEX_BLOCK, Slot.PF_BLOCK_0_D_LASER_IN,
+                clear_block(context, {Slot.PF_BLOCK_0_D_VEX_BLOCK, Slot.PF_BLOCK_0_D_LASER_IN,
                     Slot.PF_BLOCK_0_D_LASER_OUT, Slot.PF_BLOCK_0_D_SHIELD})
             end,
             ends = {trigger = {Slot.PT_TERRACE_STEPS, Slot.PT_TERRACE_FAR}}},
@@ -403,13 +479,14 @@ return campaign.new{
             navpoint = Slot.AP_TERRACE_GOLEM_LENS,
             scene = Scene.PF_TERRACE_GOLEM_SN_GOLEM,
             on_start = function(context)
-                open_block(context, {Slot.PF_BLOCK_1_D_VEX_BLOCK, Slot.PF_BLOCK_1_D_LASER_IN,
+                clear_block(context, {Slot.PF_BLOCK_1_D_VEX_BLOCK, Slot.PF_BLOCK_1_D_LASER_IN,
                     Slot.PF_BLOCK_1_D_LASER_OUT, Slot.PF_BLOCK_1_D_SHIELD})
                 prepare(context, golems[1])
             end,
             barrier = true, ends = {destroyed = {Slot.PF_TERRACE_GOLEM_O_LENS}}},
         {id = "terrace_clear", barrier = true,
             on_start = function(context)
+                release(context, golems[1])
                 move(context, {Slot.PF_TERRACE_GOLEM_D_LASER,
                     Slot.PF_TERRACE_GOLEM_D_SHIELD}, "close")
             end,
@@ -419,7 +496,7 @@ return campaign.new{
             barrier = true, ends = {destroyed = {Slot.PF_BLOCK_2_O_VEX_LENS}}},
         {id = "corridor", directive = Directive.SABOTAGE_VEX_SECURITY_PROTOCOLS,
             on_start = function(context)
-                open_block(context, {Slot.PF_BLOCK_1_D_VEX_BLOCK, Slot.PF_BLOCK_1_D_LASER_IN,
+                clear_block(context, {Slot.PF_BLOCK_1_D_VEX_BLOCK, Slot.PF_BLOCK_1_D_LASER_IN,
                     Slot.PF_BLOCK_1_D_LASER_OUT, Slot.PF_BLOCK_1_D_SHIELD,
                     Slot.PF_BLOCK_2_D_VEX_BLOCK, Slot.PF_BLOCK_2_D_LASER_IN,
                     Slot.PF_BLOCK_2_D_LASER_OUT, Slot.PF_BLOCK_2_D_SHIELD})
@@ -430,7 +507,7 @@ return campaign.new{
             ends = {destroyed = {Slot.PF_BLOCK_3_O_VEX_LENS}}},
         {id = "gate2",
             on_start = function(context)
-                open_block(context, {Slot.PF_BLOCK_3_D_VEX_BLOCK, Slot.PF_BLOCK_3_D_LASER_IN,
+                clear_block(context, {Slot.PF_BLOCK_3_D_VEX_BLOCK, Slot.PF_BLOCK_3_D_LASER_IN,
                     Slot.PF_BLOCK_3_D_LASER_OUT, Slot.PF_BLOCK_3_D_SHIELD})
             end,
             ends = {}},
@@ -439,6 +516,7 @@ return campaign.new{
             barrier = true, ends = {destroyed = {Slot.PF_CANNON_GOLEM_O_LENS}}},
         {id = "cannon_clear", barrier = true,
             on_start = function(context)
+                release(context, golems[2])
                 move(context, {Slot.PF_CANNON_GOLEM_D_LASER,
                     Slot.PF_CANNON_GOLEM_D_SHIELD}, "close")
             end,
@@ -450,7 +528,7 @@ return campaign.new{
             on_start = function(context)
                 move(context, {Slot.PF_CANNON_GOLEM_D_LASER, Slot.PF_CANNON_GOLEM_D_SHIELD},
                     "close")
-                open_block(context, {Slot.PF_BLOCK_4_D_VEX_BLOCK, Slot.PF_BLOCK_4_D_LASER_IN,
+                clear_block(context, {Slot.PF_BLOCK_4_D_VEX_BLOCK, Slot.PF_BLOCK_4_D_LASER_IN,
                     Slot.PF_BLOCK_4_D_LASER_OUT, Slot.PF_BLOCK_4_D_SHIELD})
                 context:activate_objects{slots = {Slot.O_MAIN_CANNON}, active = true}
             end,
@@ -472,6 +550,7 @@ return campaign.new{
             barrier = true, ends = {destroyed = {Slot.PF_TOWER_GOLEM_O_LENS}}},
         {id = "tower_clear", barrier = true,
             on_start = function(context)
+                release(context, golems[3])
                 move(context, {Slot.PF_TOWER_GOLEM_D_LASER,
                     Slot.PF_TOWER_GOLEM_D_SHIELD}, "close")
             end,
@@ -483,7 +562,7 @@ return campaign.new{
             barrier = true, ends = {destroyed = {Slot.PF_TOWER_BLOCK_O_VEX_LENS}}},
         {id = "top", directive = Directive.CLIMB, navpoint = Slot.AP_LENS_GOLEM,
             on_start = function(context)
-                open_block(context, {Slot.PF_TOWER_BLOCK_D_VEX_BLOCK,
+                clear_block(context, {Slot.PF_TOWER_BLOCK_D_VEX_BLOCK,
                     Slot.PF_TOWER_BLOCK_D_LASER_IN, Slot.PF_TOWER_BLOCK_D_LASER_OUT,
                     Slot.PF_TOWER_BLOCK_D_SHIELD})
                 move(context, {Slot.BOSS_PLATFORM_D}, "close")
@@ -515,6 +594,8 @@ return campaign.new{
             ends = {destroyed = {Slot.PF_GOLEM_0_O_LENS, Slot.PF_GOLEM_1_O_LENS}}},
         {id = "shield1_clear", barrier = true,
             on_start = function(context)
+                release(context, golems[4])
+                release(context, golems[5])
                 move(context, {Slot.PF_GOLEM_0_D_LASER, Slot.PF_GOLEM_0_D_SHIELD,
                     Slot.PF_GOLEM_1_D_LASER, Slot.PF_GOLEM_1_D_SHIELD}, "close")
             end,
@@ -534,6 +615,8 @@ return campaign.new{
             ends = {destroyed = {Slot.PF_GOLEM_2_O_LENS, Slot.PF_GOLEM_3_O_LENS}}},
         {id = "shield2_clear", barrier = true,
             on_start = function(context)
+                release(context, golems[6])
+                release(context, golems[7])
                 move(context, {Slot.PF_GOLEM_2_D_LASER, Slot.PF_GOLEM_2_D_SHIELD,
                     Slot.PF_GOLEM_3_D_LASER, Slot.PF_GOLEM_3_D_SHIELD}, "close")
             end,

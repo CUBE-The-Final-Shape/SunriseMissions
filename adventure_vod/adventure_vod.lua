@@ -1,16 +1,18 @@
 -- Beyond Infinity. Native mission logic; live play remains unverified.
--- Absent: lens exposure, scene input gates, Forest faction selection and ambush immunity.
+-- Absent: lens exposure, Forest faction selection and ambush immunity.
+-- Only each scene's start input is sent; t_if_entered and the future echo keys are not.
 local missions = require("missions")
 local mission = require(missions.ADVENTURE_VOD)
 local campaign = require("lib.campaign")
+local lib = require("lib.mission_lib")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
+local Input = mission.SceneInput
 local cue = mission.DialogueCue.M_DIALOG_SENSOR
+local echo_six = lib.one(Input.SCENE_ECHO_INTRO_SIX_RIGHT.T_ECHO_SIX, "right echo six input")
 
 local function reserve(context, squads)
-    for _, squad in ipairs(squads) do
-        context:squad(squad):place{mode = context.sdk.squad_modes.reserve}
-    end
+    lib.place_all(context, squads, context.sdk.squad_modes.reserve)
 end
 local ambush_front = {
     id = "ambush_front",
@@ -111,6 +113,7 @@ return campaign.new{
                 })
             end},
         {id = "safety", scene = Scene.SCENE_ECHO_INTRO_TWO,
+            inputs = lib.list(Input.SCENE_ECHO_INTRO_TWO.T_ECHO_TWO),
             lines = {line(cue.CUE_9), line(cue.CUE_10)},
             ends = {scene = Slot.SCENE_ECHO_INTRO_TWO}},
         {id = "cast_timelines", on_start = function(context)
@@ -130,8 +133,11 @@ return campaign.new{
                 })
             end},
         {id = "upper", scene = Scene.SCENE_ECHO_INTRO_SIX,
+            inputs = lib.list(Input.SCENE_ECHO_INTRO_SIX.T_ECHO_SIX),
             on_start = function(context)
-                context:scene(Scene.SCENE_ECHO_INTRO_SIX_RIGHT):activate{}
+                local right = context:scene(Scene.SCENE_ECHO_INTRO_SIX_RIGHT)
+                right:activate{}
+                right:send_event{key = echo_six}
             end,
             lines = {line(cue.CUE_17)},
             ends = {scene = Slot.SCENE_ECHO_INTRO_SIX}},
@@ -149,6 +155,7 @@ return campaign.new{
                 })
             end},
         {id = "reveal", scene = Scene.SCENE_IF_REVEAL,
+            inputs = lib.list(Input.SCENE_IF_REVEAL.T_START_SCENE),
             ends = {scene = Slot.SCENE_IF_REVEAL}},
         {id = "retire_reveal", on_start = function(context)
             context:scene(Scene.SCENE_IF_REVEAL):stop{}
@@ -177,6 +184,7 @@ return campaign.new{
             end},
         {id = "study", directive = Directive.LEARN_FROM_THE_REFLECTIONS_OF_OSIRIS_D60FA7DF,
             scene = Scene.SCENE_PAST_ECHO,
+            inputs = lib.list(Input.SCENE_PAST_ECHO.START_TRIGGER),
             lines = {line(cue.CUE_32)},
             ends = {trigger = Slot.PT_PAST_ECHO}},
         {id = "machines", lines = {line(cue.CUE_33)},

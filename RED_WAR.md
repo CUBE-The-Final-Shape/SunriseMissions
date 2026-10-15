@@ -32,6 +32,6 @@ name is also the script's folder and filename.
 | 1AU | `mission_ember` | `0x38F926B2` | `0x80B3C09E` | cabal_ship |
 | Chosen | `mission_reunion` | `0x20FE51B3` | `0x80B62030` | arcade_reunion |
 
-Two other definitions carry a Red War display name and no scenario, so neither is playable:
+Six other definitions carry a Red War display name and no scenario, so none is playable:
 `0xF07A75D3` "Homecoming" and the five `arcade_*` activities, whose description is "Relive the
 X experience".

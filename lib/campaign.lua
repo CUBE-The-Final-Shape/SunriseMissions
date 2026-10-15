@@ -4,6 +4,7 @@
 -- trigger or monitor.
 local lib = require("lib.mission_lib")
 local flow = require("lib.flow")
+local EventKind = require("sunrise.activity_sdk").EventKind
 
 local campaign = {}
 
@@ -116,7 +117,10 @@ local function begin(content, step)
             context:slot(ends.interact):set_interactable_object{used = true}
         end
         if step.scene ~= nil then
-            context:scene(step.scene):activate{spawn = step.scene_spawn == true}
+            local scene = context:scene(step.scene)
+            scene:activate{spawn = step.scene_spawn == true}
+            -- An input fires a trigger the scene's graph waits on; it follows the activation.
+            for _, key in ipairs(step.inputs or {}) do scene:send_event{key = key} end
         end
         if step.directive ~= nil then show(content, context, step) end
         speak(content, context, step)
@@ -177,6 +181,12 @@ local function check(content)
     for _, step in ipairs(content.steps) do
         lib.one(step.id, "step id")
         if step.lines ~= nil then lib.one(content.dialogue_sensor, "dialogue sensor") end
+        if step.inputs ~= nil then lib.one(step.scene, step.id .. " input scene") end
+        local output = (step.ends or {}).output
+        if output ~= nil then
+            lib.one(output.slot, step.id .. " output slot")
+            lib.one(output.key, step.id .. " output key")
+        end
         for _, trigger in ipairs(list((step.ends or {}).trigger)) do
             assert(armed[trigger], step.id .. " ends on a trigger no leg arms")
         end
@@ -211,10 +221,9 @@ local function check(content)
 end
 
 --- Builds the mission table from a content declaration.
---- @param content Table with key, sensors, legs with their trigger and monitor lists, steps and
---- encounters,
---- an optional intro list of {state, cinematic} cutscenes played before the first leg, and an
---- optional spawn_set naming the launch points the client filters its spawn by.
+--- @param content Table with key, sensors, legs with their trigger and monitor lists, steps,
+--- encounters, optional intro and outro lists of {state, cinematic} cutscenes, and an optional
+--- spawn_set naming the launch points the client filters its spawn by.
 --- @return The table the runtime loads: initial_state, on_start, on_load and event handlers.
 function campaign.new(content)
     check(content)
@@ -245,8 +254,8 @@ function campaign.new(content)
         context:set_variable(owner, context.attempt_generation)
     end
     local function entered_region(event)
-        if event.kind == "regionChanged" then return event.region_index end
-        if event.kind == "clientStateChanged" and event.entered == true then
+        if event.kind == EventKind.REGION_CHANGED then return event.region_index end
+        if event.kind == EventKind.CLIENT_STATE_CHANGED and event.entered == true then
             return event.held_region_index
         end
         return nil
@@ -257,7 +266,7 @@ function campaign.new(content)
     -- the region report also counts.
     facts[#facts + 1] = {id = "arrival", observe = function(_, state, event)
         local region = first.state.region_index
-        if event.kind == "clientStateChanged" and event.entered == true
+        if event.kind == EventKind.CLIENT_STATE_CHANGED and event.entered == true
             and event.held_region_index == region then return true end
         return #intro > 0 and intro_done(state) and entered_region(event) == region
     end}
@@ -287,15 +296,15 @@ function campaign.new(content)
             if step.revisit then
                 facts[#facts + 1] = {id = step.id .. ".t" .. number,
                     observe = function(context, state, event)
-                        return event.kind == "playerTrigger"
+                        return event.kind == EventKind.PLAYER_TRIGGER
                             and graph:started(context, state, step.id)
                             and lib.is_slot(context, event, trigger)
                     end}
             else
-                watch(trigger, "playerTrigger")
+                watch(trigger, EventKind.PLAYER_TRIGGER)
             end
         end
-        for _, monitor in ipairs(list(ends.monitor)) do watch(monitor, "triggerEntered") end
+        for _, monitor in ipairs(list(ends.monitor)) do watch(monitor, EventKind.TRIGGER_ENTERED) end
         if step.revisit and ends.region ~= nil then
             local region = nil
             for _, leg in ipairs(legs) do
@@ -311,13 +320,13 @@ function campaign.new(content)
         if ends.ghost_link ~= nil then
             local link, started = ends.ghost_link, step.id .. ".scan"
             facts[#facts + 1] = {id = started, observe = function(context, state, event)
-                return event.kind == "ghostLinkState" and graph:started(context, state, step.id)
+                return event.kind == EventKind.GHOST_LINK_STATE and graph:started(context, state, step.id)
                     and lib.is_slot(context, event, link)
                     and event.active == true and (event.progress or 0) > 0
             end}
             facts[#facts + 1] = {id = step.id .. ".scanned",
                 observe = function(context, state, event)
-                    return event.kind == "ghostLinkState" and graph:fact(context, state, started)
+                    return event.kind == EventKind.GHOST_LINK_STATE and graph:fact(context, state, started)
                         and lib.is_slot(context, event, link) and event.active == false
                 end}
         end
@@ -330,7 +339,7 @@ function campaign.new(content)
             end
             facts[#facts + 1] = {id = step.id .. ".gone" .. number,
                 observe = function(context, state, event)
-                    return event.kind == "objectState" and graph:started(context, state, step.id)
+                    return event.kind == EventKind.OBJECT_STATE and graph:started(context, state, step.id)
                         and lib.is_slot(context, event, object) and event.present == false
                         and type(event.generation) == "number" and event.generation > 0
                         and state:variable(watched.key) == event.generation
@@ -339,7 +348,7 @@ function campaign.new(content)
         if ends.interact ~= nil then
             local object = ends.interact
             facts[#facts + 1] = {id = step.id .. ".used", observe = function(context, state, event)
-                return event.kind == "objectInteracted" and graph:started(context, state, step.id)
+                return event.kind == EventKind.OBJECT_INTERACTED and graph:started(context, state, step.id)
                     and lib.is_slot(context, event, object)
             end}
         end
@@ -347,7 +356,7 @@ function campaign.new(content)
         if ends.health ~= nil then
             local target, at = ends.health.slot, ends.health.at
             facts[#facts + 1] = {id = step.id .. ".hurt", observe = function(context, _, event)
-                return event.kind == "damageState"
+                return event.kind == EventKind.DAMAGE_STATE
                     and lib.is_slot(context, event, target)
                     and type(event.health) == "number" and event.health >= 0
                     and event.health <= at
@@ -358,8 +367,17 @@ function campaign.new(content)
             local scene = ends.scene
             facts[#facts + 1] = {id = step.id .. ".played",
                 observe = function(context, state, event)
-                return event.kind == "sceneFinished" and graph:started(context, state, step.id)
+                return event.kind == EventKind.SCENE_FINISHED and graph:started(context, state, step.id)
                     and lib.is_slot(context, event, scene)
+            end}
+        end
+        -- An output reported before its step started belongs to an earlier run.
+        if ends.output ~= nil then
+            local scene, key = ends.output.slot, ends.output.key
+            facts[#facts + 1] = {id = step.id .. ".output",
+                observe = function(context, state, event)
+                return event.kind == EventKind.SCENE_OUTPUT and graph:started(context, state, step.id)
+                    and lib.is_slot(context, event, scene) and event.key == key
             end}
         end
     end
@@ -367,7 +385,7 @@ function campaign.new(content)
     local encounter_facts, encounter_fact, encounter_graph = {}, {}, nil
     for _, encounter in ipairs(content.encounters or {}) do
         local source = encounter.trigger or encounter.monitor
-        local kind = encounter.trigger ~= nil and "playerTrigger" or "triggerEntered"
+        local kind = encounter.trigger ~= nil and EventKind.PLAYER_TRIGGER or EventKind.TRIGGER_ENTERED
         if source ~= nil and encounter_fact[source] == nil then
             local id = "t" .. (#encounter_facts + 1)
             encounter_fact[source] = id
@@ -408,6 +426,7 @@ function campaign.new(content)
         if ends.ghost_link ~= nil then options[#options + 1] = flow.fact(step.id .. ".scanned") end
         if ends.interact ~= nil then options[#options + 1] = flow.fact(step.id .. ".used") end
         if ends.scene ~= nil then options[#options + 1] = flow.fact(step.id .. ".played") end
+        if ends.output ~= nil then options[#options + 1] = flow.fact(step.id .. ".output") end
         if ends.health ~= nil then options[#options + 1] = flow.fact(step.id .. ".hurt") end
         if ends.await ~= nil then options[#options + 1] = ends.await end
         if ends.destroyed ~= nil then
@@ -519,7 +538,7 @@ function campaign.new(content)
     end
     -- Positive generations are present; negative generations retain the last absent report.
     local function observe_object(context, state, event)
-        if event.kind ~= "objectState" or event.slot == nil
+        if event.kind ~= EventKind.OBJECT_STATE or event.slot == nil
             or type(event.generation) ~= "number" or event.generation <= 0 then return nil end
         local watched = object_watches[event.slot.id]
         if watched == nil then return nil end
@@ -676,6 +695,7 @@ function campaign.new(content)
         -- A watched monitor reports here, not through the player-trigger event.
         on_event_trigger_entered = handle,
         on_event_scene_finished = handle,
+        on_event_scene_output = handle,
         on_event_damage_state = handle,
         on_event_timer_elapsed = handle,
         on_event_squad_state = handle,

@@ -14,7 +14,7 @@ local ENTERED_KEY = "in"
 
 -- The service cadence bounds how late a respawn can be, so it stays well under the wait.
 local DEFAULT_TICK_MS = 5000
--- Dawn's freeroam_respawn_ms default.
+-- A dead patrol squad returns after this wait.
 local DEFAULT_RESPAWN_MS = 30000
 local DEFAULT_EVENT_COOLDOWN_MS = 120000
 
@@ -358,7 +358,6 @@ function freeroam.new(definition)
             zone.sector.doors = zone.sector.doors or {}
             zone.sector.blockers = zone.sector.blockers or {}
             zone.sector.crystals = zone.sector.crystals or {}
-            zone.sector.gates = zone.sector.gates or {}
             local guarded = 0
             for _, crystal in ipairs(zone.sector.crystals) do
                 if not crystal.boss then
@@ -415,10 +414,9 @@ function freeroam.new(definition)
     end
 
     local program = {
-        -- A sector starts as soon as the client names it, not when it finishes switching slice
-        -- sets. This places no state, so it cannot stall behind the switch or disturb a spawn.
-        -- It needs a region already held: during the first load nothing is, and building then
-        -- black-screens the client.
+        -- A sector starts when the client names it, not after its slice-set switch. It selects no
+        -- state, so it cannot stall behind the switch or disturb a spawn. It needs a held region:
+        -- building during the first load black-screens the client.
         on_event_client_state_changed = function(context, state, event)
             if event.held_region_index == nil or event.region_index == nil then
                 return
@@ -475,9 +473,7 @@ function freeroam.new(definition)
                 sector_squad_cleared(context, scope, sector)
                 return
             end
-            if open_crystal(context, event, sector) then
-                return
-            end
+            open_crystal(context, event, sector)
         end,
 
         -- The type-20 monitor echoes the crystal's health, so destruction needs no client read.

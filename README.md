@@ -32,6 +32,7 @@ One folder per activity, named after the activity. The script inside carries the
 | `lib/flow.lua` | step graphs, with retained early facts and start conditions |
 | `lib/campaign.lua` | the step chain the Red War drafts run on |
 | `lib/combat.lua` | shared task group choice |
+| `lib/freeroam.lua` | open-world zones: respawning patrols, public event sites and Lost Sectors |
 
 ## Contributing
 

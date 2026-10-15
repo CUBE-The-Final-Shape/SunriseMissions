@@ -4,8 +4,10 @@
 local missions = require("missions")
 local mission = require(missions.MISSION_SCOT)
 local campaign = require("lib.campaign")
+local lib = require("lib.mission_lib")
 local unit, line, move = campaign.unit, campaign.line, campaign.move
 local Slot, Squad, Directive, Scene = mission.Slot, mission.Squad, mission.Directive, mission.Scene
+local Input = mission.SceneInput
 local cue = mission.DialogueCue.M_DIALOG_SENSOR_80F47BDD
 local lair_left = {
     id = "lair_left",
@@ -225,6 +227,7 @@ return campaign.new{
             context:squad(Squad.SQUAD_IKORA):place{mode = context.sdk.squad_modes.reserve}
         end},
         {id = "ikora", scene = Scene.SCENE_IKORA_OPENS_PORTAL,
+            inputs = lib.list(Input.SCENE_IKORA_OPENS_PORTAL.T_START_SCENE),
             ends = {scene = Slot.SCENE_IKORA_OPENS_PORTAL}},
         {id = "portal",
             on_start = function(context)
