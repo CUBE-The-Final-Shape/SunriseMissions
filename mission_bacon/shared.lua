@@ -9,10 +9,12 @@ return function(mission)
 		bray_region = lib.one(mission.states.STATE_80F6A028_0001_0000_80F6A01C, "braytech futurecapes state"), -- 8 | Braytech Futurecapes
 		miniras_region = lib.one(mission.states.STATE_80F6A028_0009_0000_80F6A99C, "aurora reach state"), -- 72 | Aurora Reach
 		rasputin_region = lib.one(mission.states.STATE_80F6A028_000A_0000_80F6A9A8, "mindlab: rasputin state"), -- 80 | Mindlab: Rasputin
-		outro_state_region = lib.one(mission.states.STATE_80F6A028_0003_0001_80F6A01F, "outro cutscene state"),
+		outro_state_region = lib.one(mission.states.STATE_80F6A028_0003_0001_80F6A01F, "outro cutscene state"), -- unsure | Outro cutscene
 		
 		music = lib.one(Slot.M_MUSIC_SENSOR_80F6A396, "music sensor"),
 		dialog = lib.one(Slot.M_DIALOG_SENSOR_80F6A396, "dialog sensor"),
+		
+		hard_wipes = lib.one(Slot.HARD_WIPE_GLOBALS, "hard wipes"),
 		
 		goals = lib.one(Slot.M_DIRECTIVE_SENSOR_80F6A396, "goal sensor"),
 		goal_goto_bray = lib.one(Directive.CLEAR_A_PATH_TO_CLOVIS_BRAY, "intro goal"),
@@ -23,5 +25,7 @@ return function(mission)
 		goal_ascend = lib.one(Directive.ASCEND_TO_RASPUTIN, "rasputin 2nd goal"),
 		goal_ascend_77B8EA63 = lib.one(Directive.ASCEND_TO_RASPUTIN_77B8EA63, "rasputin 3rd goal"),
 		goal_ascend_F1426ED1 = lib.one(Directive.ASCEND_TO_RASPUTIN_F1426ED1, "rasputin cleared goal"),
+		
+		bookend_cinematic = lib.one(Slot.PF_CINEMATIC_BOOKEND_CINEMATIC, "bookend cinematic"),
 	}
 end

@@ -69,7 +69,6 @@ return function(mission)
 		d_rasputin_door = lib.one(Slot.D_RASPUTIN_DOOR, "rasputin door"),
 		
 		arena = {
-			arena_id = "bray_futurescapes",
 			WAVE_KEYS = {
 				"squad_intro",
 				"squad_a", "squad_reinforce_a1", "squad_reinforce_a1_alt", "squad_reinforce_a2",
@@ -104,6 +103,38 @@ return function(mission)
 					{squad = "INTERIOR_SQUAD_C", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 3},
 					{squad = "INTERIOR_SQUAD_D", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 4},
 					{squad = "INTERIOR_SQUAD_E", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 5},
+				},
+			},
+		},
+		
+		arena_reinforce = {
+			WAVE_KEYS = {
+				"squad_reinforce_a1", "squad_reinforce_a1_alt",
+				"squad_reinforce_a2",
+				"squad_reinforce_b", "squad_reinforce_b_alt",
+				"squad_reinforce_c", "squad_reinforce_c_alt",
+			},
+			squads = {
+				squad_reinforce_a1 = {
+					{squad = "REINFORCE_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+				},
+				squad_reinforce_a1_alt = {
+					{squad = "REINFORCE_SQUAD_A_1_ALT", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+				},
+				squad_reinforce_a2 = {
+					{squad = "REINFORCE_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+				},
+				squad_reinforce_b = {
+					{squad = "REINFORCE_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+				},
+				squad_reinforce_b_alt = {
+					{squad = "REINFORCE_SQUAD_B_ALT", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+				},
+				squad_reinforce_c = {
+					{squad = "REINFORCE_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
+				},
+				squad_reinforce_c_alt = {
+					{squad = "REINFORCE_SQUAD_C_ALT", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
 				},
 			},
 		},
