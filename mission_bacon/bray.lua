@@ -40,6 +40,13 @@ return function(mission)
 		o_large_nutblocker_2 = lib.one(Slot.O_LARGE_NUTBLOCKER_2, "large nutblocker 2"),
 		o_small_nutblocker = lib.one(Slot.O_SMALL_NUTBLOCKER, "small nutblocker"),
 		o_small_nutblocker_2 = lib.one(Slot.O_SMALL_NUTBLOCKER_2, "small nutblocker 2"),
+		
+		o_javelin_floor0_80F739EA = lib.one(Slot.O_JAVELIN_FLOOR0_80F739EA, "javelin floor 0"),
+		o_javelin_floor1_80F739EA = lib.one(Slot.O_JAVELIN_FLOOR1_80F739EA, "javelin floor 1"),
+		o_javelin_floor2_80F739EA = lib.one(Slot.O_JAVELIN_FLOOR2_80F739EA, "javelin floor 2"),
+		o_javelin_floor3_80F739EA = lib.one(Slot.O_JAVELIN_FLOOR3_80F739EA, "javelin floor 3"),
+		o_javelin_floor4_80F739EA = lib.one(Slot.O_JAVELIN_FLOOR4_80F739EA, "javelin floor 4"),
+
 
 		d_door_lights = lib.one(Slot.D_DOOR_LIGHTS, "door lights"),
 
@@ -78,31 +85,31 @@ return function(mission)
 			},
 			squads = {
 				squad_intro = {
-					{squad = "INTRO_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
-					{squad = "INTRO_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
-					{squad = "INTRO_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
-					{squad = "INTRO_SQUAD_D", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+					{squad = "INTRO_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
+					{squad = "INTRO_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
+					{squad = "INTRO_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
+					{squad = "INTRO_SQUAD_D", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
 				},
 				squad_a = {
-					{squad = "COURTYARD_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
-					{squad = "COURTYARD_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
-					{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+					{squad = "COURTYARD_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
+					{squad = "COURTYARD_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
+					{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
 				},
 				squad_b = {
-					{squad = "COURTYARD_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
-					{squad = "COURTYARD_SQUAD_B_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+					{squad = "COURTYARD_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
+					{squad = "COURTYARD_SQUAD_B_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
 				},
 				squad_c = {
-					{squad = "COURTYARD_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
-					{squad = "COURTYARD_SQUAD_C_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
+					{squad = "COURTYARD_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
+					{squad = "COURTYARD_SQUAD_C_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99},
 				},
 				squad_boss = {
-					{squad = "INTERIOR_SQUAD_BOSS", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 0},
-					{squad = "INTERIOR_SQUAD_A", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 1},
-					{squad = "INTERIOR_SQUAD_B", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 2},
-					{squad = "INTERIOR_SQUAD_C", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 3},
-					{squad = "INTERIOR_SQUAD_D", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 4},
-					{squad = "INTERIOR_SQUAD_E", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 5},
+					{squad = "INTERIOR_SQUAD_BOSS", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 99},
+					{squad = "INTERIOR_SQUAD_A", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 99},
+					{squad = "INTERIOR_SQUAD_B", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 99},
+					{squad = "INTERIOR_SQUAD_C", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 99},
+					{squad = "INTERIOR_SQUAD_D", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 99},
+					{squad = "INTERIOR_SQUAD_E", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 99},
 				},
 			},
 		},

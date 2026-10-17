@@ -37,13 +37,14 @@ return function(mission)
 		at_throne_wake_combatants = lib.one(Slot.PT_THRONE_WAKE_COMBATANTS, "throne wake combatants trigger"),
 		at_machine_god = lib.one(Slot.PT_MACHINE_GOD, "machine god trigger"),
 
+		o_javelin_hint = lib.one(Slot.O_JAVELIN_HINT, "javelin hint"),
 		o_javelin_spawner_landing = lib.one(Slot.O_JAVELIN_SPAWNER_LANDING, "javelin spawner landing"),
 		o_javelin_vfx = lib.one(Slot.O_JAVELIN_VFX, "javelin vfx"),
 		o_javelin_spawner_lower = lib.one(Slot.O_JAVELIN_SPAWNER_LOWER, "javelin spawner lower"),
 		o_javelin_spawner_upper = lib.one(Slot.O_JAVELIN_SPAWNER_UPPER, "javelin spawner upper"),
 
 		d_javelin_door = lib.one(Slot.D_JAVELIN_DOOR, "javelin door"),
-		-- d_door_1 = lib.one(Slot.D_DOOR_1, "door 1"),
+		d_door_1 = lib.one(Slot.D_DOOR_1_80F6A334, "door 1"),
 		
 		arena_elevator = {
 			objective = "MAIN_OBJECTIVE_80F6A334",

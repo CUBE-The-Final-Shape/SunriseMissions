@@ -203,6 +203,11 @@ local graph = flow.new{
 			activate(context, bray.o_avoidance_2)
 			activate(context, bray.o_avoidance_3)
 			activate(context, bray.o_avoidance_4)
+			activate(context, bray.o_javelin_floor0_80F739EA)
+			activate(context, bray.o_javelin_floor1_80F739EA)
+			activate(context, bray.o_javelin_floor2_80F739EA)
+			activate(context, bray.o_javelin_floor3_80F739EA)
+			activate(context, bray.o_javelin_floor4_80F739EA)
 			power_off(context, bray.d_door_lights)
 			power_off(context, bray.d_screen_bank_1_0)
 			power_off(context, bray.d_screen_bank_1_1)
@@ -229,9 +234,9 @@ local graph = flow.new{
 		{id = "at_dropships", after = {"arm_bray"}, run = function(context)
 			context:slot(shared.music):set_music_section{section = 2}
 			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_goto_bray_179)
-			place_squads(context, bray.arena, "squad_a")
 			place_squads(context, bray.arena, "squad_b")
 			place_squads(context, bray.arena, "squad_c")
+			context:start_timer("dropship_a_delay", 1500)
 		end},
 		{id = "at_seed_props", after = {"at_dropships"}, await = flow.any(flow.fact("at_seed_props"), flow.fact("at_dropships_left"))},
 		{id = "spawn_bray", after = {"at_seed_props"}, run = function(context)
@@ -266,7 +271,9 @@ local graph = flow.new{
 		{id = "at_bray_end_phase", after = {"at_signal_ana"}, run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = bray.line_sensor_14}
 		end},
-		{id = "arrive_miniras_area", after = {"at_bray_end_phase"}, await = flow.fact("arrive_miniras_area")},
+		{id = "arrive_miniras_area", after = {"at_bray_end_phase"}, await = flow.fact("arrive_miniras_area"), run = function(context)
+			context:slot(shared.music):set_music_section{section = 1}
+		end},
 		{id = "at_locate_entrance", after = {"arrive_miniras_area"}, await = flow.fact("at_locate_entrance"), run = function(context)
 			arm(context, miniras.at_locate_entrance)
 			arm(context, miniras.at_end_phase)
@@ -276,7 +283,8 @@ local graph = flow.new{
 		{id = "aurora_dialog", after = {"at_locate_entrance"}, await = flow.fact("at_end_phase"), run = function(context)
 			show(context, shared.goal_goto_bray, miniras.goto_rasputin_nav)
 			context:slot(shared.music):set_music_section{section = 5}
-			context:start_timer("aurora_dialog_delay", 4000)
+			context:slot(mission.Slot.SE_RASPUTIN_ALERT_AUDIO):play_sequence() -- Integrate into rasputin.lua
+			context:slot(shared.dialog):play_dialogue_cue{cue = miniras.line_sensor_15}
 		end},
 		{id = "at_end_phase", after = {"aurora_dialog"}, run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = miniras.line_sensor_18}
@@ -301,17 +309,6 @@ local graph = flow.new{
 			arm(context, rasputin.at_left_ascension_cable)
 			arm(context, rasputin.at_left_ascension_cable_2)
 			arm(context, rasputin.at_spawn_spear_intro_alt)
-			--[[
-				Post spear intro
-				arm(context, rasputin.at_hook_trooper_fallback)
-				arm(context, rasputin.at_hook_spawn_thrall)
-				arm(context, rasputin.at_hook_spawn_thrall_1)
-				arm(context, rasputin.at_throne_spawn_encounter)
-				arm(context, rasputin.at_spawn_lower_enemies_gate)
-				arm(context, rasputin.at_ascension_left)
-				arm(context, rasputin.at_throne_wake_combatants)
-				arm(context, rasputin.at_machine_god)
-			]]
 		end},
 		{id = "at_spawn_lower_encounters", after = {"armed_rasputin_triggers"}, await = flow.fact("at_mus_hive_attack"), run = function(context)
 			place_squads(context, rasputin.arena_elevator, "lower_encounter")
@@ -328,30 +325,31 @@ local graph = flow.new{
 		{id = "at_ascension_elevator", after = {"at_elevator_spawn_melee"}, await = flow.fact("at_spawn_overrides_off"), run = function(context)
 			place_squads(context, rasputin.arena_pipes, "pipes_front")
 		end},
-		{id = "at_spawn_overrides_off", after = {"at_ascension_elevator"}, await = flow.any(flow.fact("at_pipes_spawn_back"), flow.fact("at_left_hive_music_end")), run = function(context)
+		{id = "at_spawn_overrides_off", after = {"at_ascension_elevator"}, await = flow.any(flow.fact("at_hive_music_end"), flow.fact("at_left_hive_music_end")), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_19}
 		end},
 		
-		{id = "at_pipes_spawn_back", after = {"at_spawn_overrides_off"}, await = flow.fact("at_hive_music_end"), run = function(context)
-			place_squads(context, rasputin.arena_pipes, "pipes_back")
-		end},
-		
-		{id = "at_hive_music_end", after = {"at_pipes_spawn_back"}, await = flow.fact("at_ascension_cable"), run = function(context)
+		{id = "at_hive_music_end", after = {"at_spawn_overrides_off"}, await = flow.any(flow.fact("at_ascension_cable"), flow.fact("at_left_ascension_cable")), run = function(context)
 			context:slot(shared.music):set_music_section{section = 7}
 		end},
 		
-		{id = "at_ascension_cable", after = {"at_hive_music_end"}, await = flow.fact("at_ascension_cable_2"), run = function(context)
+		{id = "at_ascension_cable", after = {"at_hive_music_end"}, await = flow.any(flow.fact("at_ascension_cable_2"), flow.fact("at_left_ascension_cable_2")), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_20}
+			place_squads(context, rasputin.arena_spear_intro)
 		end},
 		
-		{id = "at_ascension_cable_2", after = {"at_ascension_cable"}, await = flow.fact("at_spawn_spear_intro"), run = function(context)
+		{id = "at_ascension_cable_2", after = {"at_ascension_cable"}, await = flow.any(flow.fact("at_spawn_spear_intro"), flow.fact("at_spawn_spear_intro_alt")), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_21}
 		end},
 		
-		{id = "at_spawn_spear_intro", after = {"at_ascension_cable_2"}, run = function(context)
-			place_squads(context, rasputin.arena_spear_intro)
+		{id = "at_spawn_spear_intro", after = {"at_ascension_cable_2"}, await = flow.fact("at_hook_trooper_fallback"), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_22}
-			context:start_timer("spear_delay", 8000)
+			context:start_timer("spear_delay", 7000)
+		end},
+		{id = "at_hook_trooper_fallback", after = {"at_spawn_spear_intro"}, run = function(context)
+			context:slot(shared.music):set_music_section{section = 9}
+			activate(context, rasputin.o_javelin_spawner_lower)
+			activate(context, rasputin.o_javelin_spawner_upper)
 		end},
 	},
 }
@@ -378,6 +376,13 @@ return {
 
     on_event_player_trigger = function(context, state, event)
         local slot = event.slot
+		
+		if lib.is_slot(context, event, rasputin.at_pipes_spawn_back) then
+			context:slot(rasputin.at_pipes_spawn_back):disarm_trigger()
+			place_squads(context, rasputin.arena_pipes, "pipes_back")
+			return
+		end
+		
         if slot ~= nil and state:variable("armed/" .. slot.id) == true then
             context:clear_variable("armed/" .. slot.id)
             slot:disarm_trigger()
@@ -387,16 +392,35 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_landing) then
-			context:set_variable("javelin_interacted", true)
+			context:slot(mission.Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = true} -- Integrate into rasputin.lua
+			open(context, rasputin.d_javelin_door)
+			arm(context, rasputin.at_hook_trooper_fallback)
+			arm(context, rasputin.at_hook_spawn_thrall)
+			arm(context, rasputin.at_hook_spawn_thrall_1)
+			arm(context, rasputin.at_throne_spawn_encounter)
+			arm(context, rasputin.at_spawn_lower_enemies_gate)
+			arm(context, rasputin.at_ascension_left)
+			arm(context, rasputin.at_throne_wake_combatants)
+			arm(context, rasputin.at_machine_god)
+		end
+		if lib.is_slot(context, event, rasputin.o_javelin_spawner_lower) then
+			context:start_timer("respawn_spear_lower", 16000)
+		end
+		if lib.is_slot(context, event, rasputin.o_javelin_spawner_upper) then
+			context:start_timer("respawn_spear_upper", 16000)
 		end
 	end,
-	
+
 	on_event_timer_elapsed = function(context, state, event)
 		if event.timer_name == "directive_delay" then
 			show(context, shared.goal_goto_bray, glacier.navpoint)
             context:slot(shared.dialog):play_dialogue_cue{cue = glacier.line_open_cont}
 		end
-	
+		
+		if event.timer_name == "dropship_a_delay" then
+			place_squads(context, bray.arena, "squad_a")
+		end
+		
 		if event.timer_name == "ana_terminal_delay" then
 			open(context, bray.d_ana_terminal)
 		end
@@ -429,16 +453,31 @@ return {
 			show(context, shared.goal_goto_bray, bray.np_slot_0014)
 		end
 		
-		if event.timer_name == "aurora_dialog_delay" then
-			context:slot(shared.dialog):play_dialogue_cue{cue = miniras.line_sensor_15}
-		end
-		
 		if event.timer_name == "spear_delay" then
+			context:slot(shared.music):set_music_section{section = 8}
 			activate(context, rasputin.o_javelin_spawner_landing)
 			activate(context, rasputin.o_javelin_vfx)
-			context:slot(shared.music):set_music_section{section = 8}
-			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_23}
+			context:start_timer("spear_dialog_delay", 2000)
 			place_squads(context, rasputin.arena_lower_gate)
+		end
+		
+		if event.timer_name == "spear_dialog_delay" then
+			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_23}
+		end
+		
+		if event.timer_name == "respawn_spear_lower" then
+			activate(context, rasputin.o_javelin_spawner_lower)
+		end
+		
+		if event.timer_name == "respawn_spear_upper" then
+			activate(context, rasputin.o_javelin_spawner_upper)
 		end
 	end,
 }
+
+--[[
+SE_RASPUTIN_ALERT_AUDIO | miniras, type-5
+HIVE_ANNOUNCE_SEQ | rasputin, type-5
+SE_RASPUTIN_ALERT_SPEAR | rasputin, type-5
+SE_RASPUTIN_ALERT_DOOR_TELL | rasputin, type-5
+]]
