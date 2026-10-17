@@ -1,4 +1,18 @@
 --[[
+context:slot(Slot.M_MUSIC_SENSOR_80F6A396):set_music_section{section = X}
+	Section:
+	1, intro music
+	2, no music
+	3, combat music
+	4, ana vignette
+	5, pt_locate_entrance, rasputin_reveal
+	6, combat music
+	7, no music
+	8, combat music, spear?
+	9, combat music
+	10, no music
+	11, eerie music
+--------
 INTRO REGION
 --------
 context:slot(Slot.PT_INTRO_DIRECTIVE):fire_trigger()
@@ -9,14 +23,14 @@ context:slot(Slot.PT_GOTO_BRAY_LEFT):fire_trigger()
 context:slot(Slot.PT_SPAWN_DROPSHIPS_RIGHT):fire_trigger()
 context:slot(Slot.PT_SPAWN_DROPSHIPS_LEFT):fire_trigger()
 
-context:slot(sensor):play_dialogue_cue{cue = cues.CUE_1}
+context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_1}
 
 context:slot(Slot.M_DIRECTIVE_SENSOR_80F6A396):set_directive{
 		directive = Directive.CLEAR_A_PATH_TO_CLOVIS_BRAY,
 		navpoint = context:slot(Slot.NP_GOTO_BRAY_80F6A1AB),
 }
 
-context:slot(sensor):play_dialogue_cue{cue = cues.CUE_2}
+context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_2}
 
 -- Some directive update needed
 
@@ -27,6 +41,10 @@ BRAYTECH FUTURESCAPES
 context:slot(Slot.PT_SEED_PROPS):fire_trigger()
 context:slot(Slot.PT_BYPASS_RIGHT):fire_trigger()
 context:slot(Slot.PT_BYPASSED_LEFT):fire_trigger()
+context:slot(Slot.PT_GOTO_BRAY_RIGHT):fire_trigger()
+context:slot(Slot.PT_GOTO_BRAY_LEFT):fire_trigger()
+context:slot(Slot.PT_SPAWN_DROPSHIPS_RIGHT):fire_trigger()
+context:slot(Slot.PT_SPAWN_DROPSHIPS_LEFT):fire_trigger()
 
 context:slot(Slot.PT_ACTIVATE_BOSS_WAYPOINT):fire_trigger()
 context:slot(Slot.PT_START_BALCONY_MONITOR):fire_trigger()
@@ -76,12 +94,12 @@ context:slot(Slot.PT_SIGNAL_ANA):fire_trigger()
 	
 	context:slot(Slot.PT_END_PHASE_80F6A179):fire_trigger()
 		-- On PT_END_PHASE_80F6A179 triggered
-		context:slot(sensor):play_dialogue_cue{cue = cues.CUE_14}
+		context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_14}
 	
 	--After scene
 	context:slot(Slot.M_DIRECTIVE_SENSOR_80F6A396):set_directive{
 		directive = Directive.CLEAR_A_PATH_TO_CLOVIS_BRAY,
-		navpoint = context:slot(Slot.PLACEHOLDER),
+		navpoint = context:slot(Slot.SLOT_0015_80F6A179),
 	}
 
 --------
@@ -95,11 +113,11 @@ context:slot(Slot.PT_LOCATE_ENTRANCE):fire_trigger()
 	-- On PT_LOCATE_ENTRANCE
 	context:slot(Slot.M_MUSIC_SENSOR_80F6A396):set_music_section{section = 2}
 	-- delayed dialouge ca 5 sec
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_15}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_15}
 
 context:slot(Slot.PT_END_PHASE_80F6A1DD):fire_trigger()
 	-- On PT_END_PHASE_80F6A1DD
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_18}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_18}
 
 --------
 MINDLAB: RASPUTIN
@@ -127,7 +145,7 @@ context:slot(Slot.PT_ASCENSION_ELEVATOR):fire_trigger()
 
 context:slot(Slot.PT_SPAWN_OVERRIDES_OFF):fire_trigger()
 	-- On PT_SPAWN_OVERRIDES_OFF
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_19}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_19}
 	
 context:slot(Slot.PT_PIPES_SPAWN_BACK):fire_trigger()
 	-- On PT_PIPES_SPAWN_BACK
@@ -147,19 +165,19 @@ context:slot(Slot.PT_LEFT_ASCENSION_CABLE_2):fire_trigger()
 context:slot(Slot.PT_SPAWN_SPEAR_INTRO_ALT):fire_trigger()
 
 	-- On PT_ASCENSION_CABLE or PT_LEFT_ASCENSION_CABLE
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_20}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_20}
 	
 	-- On PT_ASCENSION_CABLE_2 or PT_LEFT_ASCENSION_CABLE_2
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_21}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_21}
 	
 	-- On PT_SPAWN_SPEAR_INTRO or PT_SPAWN_SPEAR_INTRO_ALT
 	place_squads(context, ARENAS[4])
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_22}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_22}
 	-- wait x sec
 	context:slot(Slot.O_JAVELIN_SPAWNER_LANDING):set_object_active{active = true}
 	context:slot(Slot.O_JAVELIN_VFX):set_object_active{active = true}
 	context:slot(Slot.M_MUSIC_SENSOR_80F6A396):set_music_section{section = ?}
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_23}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_23}
 	place_squads(context, ARENAS[5])
 
 
@@ -198,7 +216,7 @@ context:slot(Slot.PT_THRONE_WAKE_COMBATANTS):fire_trigger()
 	
 context:slot(Slot.PT_MACHINE_GOD):fire_trigger()
 	-- On PT_MACHINE_GOD
-	context:slot(sensor):play_dialogue_cue{cue = cues.CUE_24}
+	context:slot(dialog_sensor):play_dialogue_cue{cue = cues.CUE_24}
 		-- After cue 24
 		local key = context:select_state(mission.states.STATE_80F6A028_0003_0001_80F6A01F)
 		context:set_variable("move_request", key.value)

@@ -1,0 +1,111 @@
+-- scripts/mission_bacon/bray.lua
+local lib = require("lib.mission_lib")
+
+return function(mission)
+	local Slot = mission.Slot
+	return {
+		line_sensor_14 = lib.one(mission.DialogueCue.M_DIALOG_SENSOR_80F6A396.CUE_14, "sensor line 14"),
+
+		scene_ana_power_up = lib.one(mission.Scene.SCN_ANA_POWER_UP_BRAY, "ana power up bray scene"),
+		scene_ana_squad = lib.one(mission.Squad.SQ_ANA_VIGNETTE, "squad ana scene"),
+		scene_ana_power_up_key = 0x8803483C,
+
+		np_goto_bray_168 = lib.one(Slot.NP_GOTO_BRAY_80F6A168, "goto bray navpoint 80F6A168"),
+		np_goto_bray_179 = lib.one(Slot.NP_GOTO_BRAY_80F6A179, "goto bray navpoint 80F6A179"),
+		np_slot_0015 = lib.one(Slot.SLOT_0015_80F6A179, "slot 0015 navpoint"),
+		np_activate_console = lib.one(Slot.NP_ACTIVATE_CONSOLE, "activate console navpoint"),
+		np_slot_0014 = lib.one(Slot.SLOT_0014_80F6A179, "slot 0014 navpoint"),
+
+		at_seed_props = lib.one(Slot.PT_SEED_PROPS, "seed props trigger"),
+		at_bypass_right = lib.one(Slot.PT_BYPASS_RIGHT, "bypass right trigger"),
+		at_bypassed_left = lib.one(Slot.PT_BYPASSED_LEFT, "bypassed left trigger"),
+		at_activate_boss_waypoint = lib.one(Slot.PT_ACTIVATE_BOSS_WAYPOINT, "activate boss waypoint trigger"),
+		at_start_balcony_monitor = lib.one(Slot.PT_START_BALCONY_MONITOR, "start balcony monitor trigger"),
+		at_signal_ana = lib.one(Slot.PT_SIGNAL_ANA, "signal ana trigger"),
+		at_end_phase = lib.one(Slot.PT_END_PHASE_80F6A179, "end phase trigger"),
+
+		o_mini_ras_door = lib.one(Slot.O_MINI_RAS_DOOR, "mini ras door"),
+		o_seraph_tower_0 = lib.one(Slot.O_SERAPH_TOWER0_80F739EA, "seraph tower 0"),
+		o_seraph_tower_1 = lib.one(Slot.O_SERAPH_TOWER1_80F739EA, "seraph tower 1"),
+		o_seraph_tower_2 = lib.one(Slot.O_SERAPH_TOWER2_80F739EA, "seraph tower 2"),
+		o_seraph_tower_3 = lib.one(Slot.O_SERAPH_TOWER3_80F739EA, "seraph tower 3"),
+		o_seraph_tower_4 = lib.one(Slot.O_SERAPH_TOWER4_80F739EA, "seraph tower 4"),
+		o_avoidance_0 = lib.one(Slot.O_AVOIDANCE_0_80F739EA, "avoidance 0"),
+		o_avoidance_1 = lib.one(Slot.O_AVOIDANCE_1_80F739EA, "avoidance 1"),
+		o_avoidance_2 = lib.one(Slot.O_AVOIDANCE_2_80F739EA, "avoidance 2"),
+		o_avoidance_3 = lib.one(Slot.O_AVOIDANCE_3_80F739EA, "avoidance 3"),
+		o_avoidance_4 = lib.one(Slot.O_AVOIDANCE_4_80F739EA, "avoidance 4"),
+		o_start_vignette = lib.one(Slot.O_START_VIGNETTE, "start vignette"),
+		o_large_nutblocker = lib.one(Slot.O_LARGE_NUTBLOCKER, "large nutblocker"),
+		o_large_nutblocker_2 = lib.one(Slot.O_LARGE_NUTBLOCKER_2, "large nutblocker 2"),
+		o_small_nutblocker = lib.one(Slot.O_SMALL_NUTBLOCKER, "small nutblocker"),
+		o_small_nutblocker_2 = lib.one(Slot.O_SMALL_NUTBLOCKER_2, "small nutblocker 2"),
+
+		d_door_lights = lib.one(Slot.D_DOOR_LIGHTS, "door lights"),
+
+		d_screen_bank_1_0 = lib.one(Slot.D_SCREEN_BANK_1_0, "screen bank 1-0"),
+		d_screen_bank_1_1 = lib.one(Slot.D_SCREEN_BANK_1_1, "screen bank 1-1"),
+		d_screen_bank_1_2 = lib.one(Slot.D_SCREEN_BANK_1_2, "screen bank 1-2"),
+		d_screen_bank_1_3 = lib.one(Slot.D_SCREEN_BANK_1_3, "screen bank 1-3"),
+		d_screen_bank_1_4 = lib.one(Slot.D_SCREEN_BANK_1_4, "screen bank 1-4"),
+		d_screen_bank_1_5 = lib.one(Slot.D_SCREEN_BANK_1_5, "screen bank 1-5"),
+		d_screen_bank_1_6 = lib.one(Slot.D_SCREEN_BANK_1_6, "screen bank 1-6"),
+		d_screen_bank_1_7 = lib.one(Slot.D_SCREEN_BANK_1_7, "screen bank 1-7"),
+		d_screen_bank_1_8 = lib.one(Slot.D_SCREEN_BANK_1_8, "screen bank 1-8"),
+		d_screen_bank_1_9 = lib.one(Slot.D_SCREEN_BANK_1_9, "screen bank 1-9"),
+
+		d_screen_bank_2_0 = lib.one(Slot.D_SCREEN_BANK_2_0, "screen bank 2-0"),
+		d_screen_bank_2_1 = lib.one(Slot.D_SCREEN_BANK_2_1, "screen bank 2-1"),
+		d_screen_bank_2_2 = lib.one(Slot.D_SCREEN_BANK_2_2, "screen bank 2-2"),
+		d_screen_bank_2_3 = lib.one(Slot.D_SCREEN_BANK_2_3, "screen bank 2-3"),
+		d_screen_bank_2_4 = lib.one(Slot.D_SCREEN_BANK_2_4, "screen bank 2-4"),
+		d_screen_bank_2_5 = lib.one(Slot.D_SCREEN_BANK_2_5, "screen bank 2-5"),
+		d_screen_bank_2_6 = lib.one(Slot.D_SCREEN_BANK_2_6, "screen bank 2-6"),
+		d_screen_bank_2_7 = lib.one(Slot.D_SCREEN_BANK_2_7, "screen bank 2-7"),
+		d_screen_bank_2_8 = lib.one(Slot.D_SCREEN_BANK_2_8, "screen bank 2-8"),
+		
+		d_ana_terminal = lib.one(Slot.D_ANA_TERMINAL, "ana terminal"),
+		
+		d_rasputin_door = lib.one(Slot.D_RASPUTIN_DOOR, "rasputin door"),
+		
+		arena = {
+			arena_id = "bray_futurescapes",
+			WAVE_KEYS = {
+				"squad_intro",
+				"squad_a", "squad_reinforce_a1", "squad_reinforce_a1_alt", "squad_reinforce_a2",
+				"squad_b", "squad_reinforce_b", "squad_reinforce_b_alt",
+				"squad_c", "squad_reinforce_c", "squad_reinforce_c_alt",
+				"squad_boss",
+			},
+			squads = {
+				squad_intro = {
+					{squad = "INTRO_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+					{squad = "INTRO_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+					{squad = "INTRO_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+					{squad = "INTRO_SQUAD_D", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+				},
+				squad_a = {
+					{squad = "COURTYARD_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+					{squad = "COURTYARD_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+					{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
+				},
+				squad_b = {
+					{squad = "COURTYARD_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+					{squad = "COURTYARD_SQUAD_B_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 1},
+				},
+				squad_c = {
+					{squad = "COURTYARD_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
+					{squad = "COURTYARD_SQUAD_C_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 2},
+				},
+				squad_boss = {
+					{squad = "INTERIOR_SQUAD_BOSS", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 0},
+					{squad = "INTERIOR_SQUAD_A", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 1},
+					{squad = "INTERIOR_SQUAD_B", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 2},
+					{squad = "INTERIOR_SQUAD_C", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 3},
+					{squad = "INTERIOR_SQUAD_D", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 4},
+					{squad = "INTERIOR_SQUAD_E", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 5},
+				},
+			},
+		},
+	}
+end
