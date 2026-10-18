@@ -15,5 +15,7 @@ return function(mission)
 		initial_nav = lib.one(Slot.AP_RASPUTIN_ALARM_SOURCE, "initial navpoint"),
 		goto_rasputin_nav = lib.one(Slot.NP_GOTO_RASPUTIN, "goto rasputin navpoint"),
 		alt_nav = lib.one(Slot.SLOT_0009_80F6A1DD, "alt navpoint"),
+		
+		sequence_locate_entrane = lib.one(Slot.SE_RASPUTIN_ALERT_AUDIO, "entrance audio"),
 	}
 end

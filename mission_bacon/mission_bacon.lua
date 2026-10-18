@@ -170,6 +170,7 @@ local graph = flow.new{
 	},
 	steps = {
 		{id = "arrive", await = flow.fact("arrived"), await = flow.fact("at_intro_directive"), run = function(context)
+			context:set_variable("alt_reinforce", false)
 			arm(context, glacier.at_intro_directive)
 			arm(context, glacier.at_endphase)
 			arm(context, glacier.at_endphase_alt)
@@ -271,9 +272,7 @@ local graph = flow.new{
 		{id = "at_bray_end_phase", after = {"at_signal_ana"}, run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = bray.line_sensor_14}
 		end},
-		{id = "arrive_miniras_area", after = {"at_bray_end_phase"}, await = flow.fact("arrive_miniras_area"), run = function(context)
-			context:slot(shared.music):set_music_section{section = 1}
-		end},
+		{id = "arrive_miniras_area", after = {"at_bray_end_phase"}, await = flow.fact("arrive_miniras_area")},
 		{id = "at_locate_entrance", after = {"arrive_miniras_area"}, await = flow.fact("at_locate_entrance"), run = function(context)
 			arm(context, miniras.at_locate_entrance)
 			arm(context, miniras.at_end_phase)
@@ -281,10 +280,10 @@ local graph = flow.new{
 			show(context, shared.goal_goto_bray, miniras.initial_nav)
 		end},
 		{id = "aurora_dialog", after = {"at_locate_entrance"}, await = flow.fact("at_end_phase"), run = function(context)
-			show(context, shared.goal_goto_bray, miniras.goto_rasputin_nav)
 			context:slot(shared.music):set_music_section{section = 5}
-			context:slot(mission.Slot.SE_RASPUTIN_ALERT_AUDIO):play_sequence() -- Integrate into rasputin.lua
+			context:slot(miniras.sequence_locate_entrane):play_sequence()
 			context:slot(shared.dialog):play_dialogue_cue{cue = miniras.line_sensor_15}
+			show(context, shared.goal_goto_bray, miniras.goto_rasputin_nav)
 		end},
 		{id = "at_end_phase", after = {"aurora_dialog"}, run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = miniras.line_sensor_18}
@@ -309,6 +308,13 @@ local graph = flow.new{
 			arm(context, rasputin.at_left_ascension_cable)
 			arm(context, rasputin.at_left_ascension_cable_2)
 			arm(context, rasputin.at_spawn_spear_intro_alt)
+			arm(context, rasputin.at_hook_spawn_thrall)
+			arm(context, rasputin.at_hook_spawn_thrall_1)
+			arm(context, rasputin.at_throne_spawn_encounter)
+			arm(context, rasputin.at_spawn_lower_enemies_gate)
+			arm(context, rasputin.at_ascension_left)
+			arm(context, rasputin.at_throne_wake_combatants)
+			arm(context, rasputin.at_machine_god)
 		end},
 		{id = "at_spawn_lower_encounters", after = {"armed_rasputin_triggers"}, await = flow.fact("at_mus_hive_attack"), run = function(context)
 			place_squads(context, rasputin.arena_elevator, "lower_encounter")
@@ -317,7 +323,8 @@ local graph = flow.new{
 			context:slot(shared.music):set_music_section{section = 6}
 		end},
 		{id = "at_elevator_spawn_wizards", after = {"at_mus_hive_attacks"}, await = flow.fact("at_elevator_spawn_melee"), run = function(context)
-			place_squads(context, rasputin.arena_elevator, "elevator_wizards")
+			place_squads(context, rasputin.arena_elevator, "elevator_wizard")
+			context:start_timer("wizard_2_delay", 1000)
 		end},
 		{id = "at_elevator_spawn_melee", after = {"at_elevator_spawn_wizards"}, await = flow.fact("at_ascension_elevator"), run = function(context)
 			place_squads(context, rasputin.arena_elevator, "elevator_melee")
@@ -340,45 +347,47 @@ local graph = flow.new{
 		
 		{id = "at_ascension_cable_2", after = {"at_ascension_cable"}, await = flow.any(flow.fact("at_spawn_spear_intro"), flow.fact("at_spawn_spear_intro_alt")), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_21}
+			place_squads(context, rasputin.arena_lower_gate)
 		end},
 		
 		{id = "at_spawn_spear_intro", after = {"at_ascension_cable_2"}, await = flow.fact("at_hook_trooper_fallback"), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_22}
 			context:start_timer("spear_delay", 7000)
 		end},
-		{id = "at_spawn_lower_enemies_gate", after = {"at_spawn_spear_intro"}, run = function(context)
-			place_squads(context, rasputin.arena_lower_gate)
-		end},
-		{id = "at_hook_trooper_fallback", after = {"at_spawn_lower_enemies_gate"}, await = flow.fact("at_hook_spawn_thrall"), run = function(context)
+		{id = "at_hook_trooper_fallback", after = {"at_spawn_spear_intro"}, await = flow.fact("at_hook_spawn_thrall"), run = function(context)
 			activate(context, rasputin.o_javelin_spawner_lower)
 			activate(context, rasputin.o_javelin_spawner_upper)
 		end},
-		{id = "at_hook_spawn_thrall", after = {"at_hook_trooper_fallback"}, run = function(context)
-			-- Placeholder
-		end},
-		{id = "at_throne_spawn_encounter", after = {"at_hook_spawn_thrall"}, run = function(context)
-			place_squads(context, rasputin.arena_throne, "assault_trooper")
-			place_squads(context, rasputin.arena_throne, "assault_crusader")
-			place_squads(context, rasputin.arena_throne, "assault_thrall")
-			place_squads(context, rasputin.arena_throne, "assault_ultra")
-			place_squads(context, rasputin.arena_throne, "assault_sniper")
+		{id = "at_throne_spawn_encounter", after = {"at_hook_trooper_fallback"}, run = function(context)
+			place_squads(context, rasputin.arena_throne, "assault_trooper_wave1")
 			place_squads(context, rasputin.arena_throne, "assault_boomer")
-		end},
-		{id = "at_hook_spawn_thrall_1", after = {"at_throne_spawn_encounter"}, run = function(context)
-			-- Placeholder
-		end},
-		{id = "at_ascension_left", after = {"at_hook_spawn_thrall_1"}, run = function(context)
-			-- Placeholder
-		end},
-		{id = "at_throne_wake_combatants", after = {"at_ascension_left"}, run = function(context)
-			-- Placeholder
+			place_squads(context, rasputin.arena_throne, "assault_sniper")
+			place_squads(context, rasputin.arena_throne, "assault_crusader_wave1")
+			--[[
+				On start
+				assault_trooper_wave1
+				assault_boomer
+				assault_sniper
+				assault_crusader_wave1
+				
+				On assault_trooper_wave1 dead
+				assault_thrall
+				
+				On assault_boomer and assault_crusader_wave1 dead
+				assault_trooper_wave2
+				
+				On assault_trooper_wave2 and assault_sniper dead
+				assault_crusader_wave2
+				assault_ultra
+			]]
 		end, await = function(context)
 			return context:cohort{squads = squads_of_fight(rasputin.arena_throne)}.cleared
 		end},
-		{id = "at_machine_god", after = {"at_throne_wake_combatants"}, await = flow.fact("at_machine_god"), run = function(context)
-			context:slot(mission.Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = false}
+		{id = "at_machine_god", after = {"at_throne_spawn_encounter"}, await = flow.fact("at_machine_god"), run = function(context)
+			context:slot(shared.hard_wipes):set_darkness_zone{enabled = false}
 			context:slot(shared.music):set_music_section{section = 9}
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_24}
+			open(context, rasputin.d_door_1)
 		end},
 		--[[
 			At final directive TV
@@ -400,11 +409,7 @@ return {
 	},
 
     on_start = function(context, state) graph:advance(context, state) end,
-    on_load = function(context, state) 
-		context:start_timer("spear_delay", 7000)
-	end,
-	
-	--[[graph:advance(context, state) end,]]
+    on_load = function(context, state) graph:advance(context, state) end,
 
     on_event_client_state_changed = function(context, state, event)
         if event.entered == true then handle(context, state, event) end
@@ -415,6 +420,10 @@ return {
 
     on_event_player_trigger = function(context, state, event)
         local slot = event.slot
+		
+		if lib.is_slot(context, event, glacier.at_dropships_left) then
+			context:set_variable("alt_reinforce", true)
+		end
 		
 		if lib.is_slot(context, event, rasputin.at_pipes_spawn_back) then
 			context:slot(rasputin.at_pipes_spawn_back):disarm_trigger()
@@ -431,15 +440,8 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_landing) then
-			context:start_timer("rasputin_spear_door_delay", 4000)
+			context:start_timer("rasputin_spear_door_delay", 2000)
 			arm(context, rasputin.at_hook_trooper_fallback)
-			arm(context, rasputin.at_hook_spawn_thrall)
-			arm(context, rasputin.at_hook_spawn_thrall_1)
-			arm(context, rasputin.at_throne_spawn_encounter)
-			arm(context, rasputin.at_spawn_lower_enemies_gate)
-			arm(context, rasputin.at_ascension_left)
-			arm(context, rasputin.at_throne_wake_combatants)
-			arm(context, rasputin.at_machine_god)
 		end
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_lower) then
 			context:start_timer("respawn_spear_lower", 16000)
@@ -491,9 +493,13 @@ return {
 			show(context, shared.goal_goto_bray, bray.np_slot_0014)
 		end
 		
+		if event.timer_name == "wizard_2_delay" then
+			place_squads(context, rasputin.arena_elevator, "elevator_wizard_delayed")
+		end
+
 		if event.timer_name == "spear_delay" then
+			context:slot(rasputin.sequence_javelin_audio):play_sequence()
 			context:slot(shared.music):set_music_section{section = 8}
-			context:slot(mission.Slot.SE_RASPUTIN_ALERT_SPEAR):play_sequence()
 			activate(context, rasputin.o_javelin_spawner_landing)
 			activate(context, rasputin.o_javelin_vfx)
 			context:start_timer("spear_dialog_delay", 2000)
@@ -504,8 +510,8 @@ return {
 		end
 		
 		if event.timer_name == "rasputin_spear_door_delay" then
+			context:slot(shared.hard_wipes):set_darkness_zone{enabled = true}
 			context:slot(shared.music):set_music_section{section = 9}
-			context:slot(mission.Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = true} -- Integrate into rasputin.lua
 			open(context, rasputin.d_javelin_door)
 		end
 		
@@ -515,6 +521,36 @@ return {
 		
 		if event.timer_name == "respawn_spear_upper" then
 			activate(context, rasputin.o_javelin_spawner_upper)
+		end
+	end,
+	
+	on_event_entity_died = function(context, state, event)
+		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_A_1) and event.alive_count == 0 then
+			if state:variable("alt_reinforce") ~= true then
+				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_A_1")
+			else
+				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_A_1_ALT")
+			end
+		end
+		
+		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_A_2) and event.alive_count == 0 then
+			place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_A_2")
+		end
+		
+		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_B) and event.alive_count == 0 then
+			if state:variable("alt_reinforce") ~= true then
+				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_B")
+			else
+				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_B_ALT")
+			end
+		end
+		
+		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_C) and event.alive_count == 0 then
+			if state:variable("alt_reinforce") ~= true then
+				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_C")
+			else
+				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_C_ALT")
+			end
 		end
 	end,
 }
