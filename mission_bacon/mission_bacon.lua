@@ -376,6 +376,7 @@ local graph = flow.new{
 			return context:cohort{squads = squads_of_fight(rasputin.arena_throne)}.cleared
 		end},
 		{id = "at_machine_god", after = {"at_throne_wake_combatants"}, await = flow.fact("at_machine_god"), run = function(context)
+			context:slot(mission.Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = false}
 			context:slot(shared.music):set_music_section{section = 9}
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_24}
 		end},
