@@ -346,11 +346,45 @@ local graph = flow.new{
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_22}
 			context:start_timer("spear_delay", 7000)
 		end},
-		{id = "at_hook_trooper_fallback", after = {"at_spawn_spear_intro"}, run = function(context)
-			context:slot(shared.music):set_music_section{section = 9}
+		{id = "at_spawn_lower_enemies_gate", after = {"at_spawn_spear_intro"}, run = function(context)
+			place_squads(context, rasputin.arena_lower_gate)
+		end},
+		{id = "at_hook_trooper_fallback", after = {"at_spawn_lower_enemies_gate"}, await = flow.fact("at_hook_spawn_thrall"), run = function(context)
 			activate(context, rasputin.o_javelin_spawner_lower)
 			activate(context, rasputin.o_javelin_spawner_upper)
 		end},
+		{id = "at_hook_spawn_thrall", after = {"at_hook_trooper_fallback"}, run = function(context)
+			-- Placeholder
+		end},
+		{id = "at_throne_spawn_encounter", after = {"at_hook_spawn_thrall"}, run = function(context)
+			place_squads(context, rasputin.arena_throne, "assault_trooper")
+			place_squads(context, rasputin.arena_throne, "assault_crusader")
+			place_squads(context, rasputin.arena_throne, "assault_thrall")
+			place_squads(context, rasputin.arena_throne, "assault_ultra")
+			place_squads(context, rasputin.arena_throne, "assault_sniper")
+			place_squads(context, rasputin.arena_throne, "assault_boomer")
+		end},
+		{id = "at_hook_spawn_thrall_1", after = {"at_throne_spawn_encounter"}, run = function(context)
+			-- Placeholder
+		end},
+		{id = "at_ascension_left", after = {"at_hook_spawn_thrall_1"}, run = function(context)
+			-- Placeholder
+		end},
+		{id = "at_throne_wake_combatants", after = {"at_ascension_left"}, run = function(context)
+			-- Placeholder
+		end, await = function(context)
+			return context:cohort{squads = squads_of_fight(rasputin.arena_throne)}.cleared
+		end},
+		{id = "at_machine_god", after = {"at_throne_wake_combatants"}, await = flow.fact("at_machine_god"), run = function(context)
+			context:slot(shared.music):set_music_section{section = 9}
+			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_24}
+		end},
+		--[[
+			At final directive TV
+				local key = context:select_state(mission.states.STATE_80F6A028_0003_0001_80F6A01F)
+				context:set_variable("move_request", key.value)
+				context:slot(Slot.PF_CINEMATIC_BOOKEND_CINEMATIC):set_cinematic_active{active = true}
+		]]
 	},
 }
 
@@ -365,7 +399,11 @@ return {
 	},
 
     on_start = function(context, state) graph:advance(context, state) end,
-    on_load = function(context, state) graph:advance(context, state) end,
+    on_load = function(context, state) 
+		context:start_timer("spear_delay", 7000)
+	end,
+	
+	--[[graph:advance(context, state) end,]]
 
     on_event_client_state_changed = function(context, state, event)
         if event.entered == true then handle(context, state, event) end
@@ -392,8 +430,7 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_landing) then
-			context:slot(mission.Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = true} -- Integrate into rasputin.lua
-			open(context, rasputin.d_javelin_door)
+			context:start_timer("rasputin_spear_door_delay", 4000)
 			arm(context, rasputin.at_hook_trooper_fallback)
 			arm(context, rasputin.at_hook_spawn_thrall)
 			arm(context, rasputin.at_hook_spawn_thrall_1)
@@ -455,14 +492,20 @@ return {
 		
 		if event.timer_name == "spear_delay" then
 			context:slot(shared.music):set_music_section{section = 8}
+			context:slot(mission.Slot.SE_RASPUTIN_ALERT_SPEAR):play_sequence()
 			activate(context, rasputin.o_javelin_spawner_landing)
 			activate(context, rasputin.o_javelin_vfx)
 			context:start_timer("spear_dialog_delay", 2000)
-			place_squads(context, rasputin.arena_lower_gate)
 		end
 		
 		if event.timer_name == "spear_dialog_delay" then
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_23}
+		end
+		
+		if event.timer_name == "rasputin_spear_door_delay" then
+			context:slot(shared.music):set_music_section{section = 9}
+			context:slot(mission.Slot.HARD_WIPE_GLOBALS):set_darkness_zone{enabled = true} -- Integrate into rasputin.lua
+			open(context, rasputin.d_javelin_door)
 		end
 		
 		if event.timer_name == "respawn_spear_lower" then
@@ -474,10 +517,3 @@ return {
 		end
 	end,
 }
-
---[[
-SE_RASPUTIN_ALERT_AUDIO | miniras, type-5
-HIVE_ANNOUNCE_SEQ | rasputin, type-5
-SE_RASPUTIN_ALERT_SPEAR | rasputin, type-5
-SE_RASPUTIN_ALERT_DOOR_TELL | rasputin, type-5
-]]

@@ -4,6 +4,8 @@ local lib = require("lib.mission_lib")
 return function(mission)
 	local Slot = mission.Slot
 	return {
+		hard_wipe_respawn = 0x80CDF71C,
+	
 		line_sensor_19 = lib.one(mission.DialogueCue.M_DIALOG_SENSOR_80F6A396.CUE_19, "sensor line 19"),
 		line_sensor_20 = lib.one(mission.DialogueCue.M_DIALOG_SENSOR_80F6A396.CUE_20, "sensor line 20"),
 		line_sensor_21 = lib.one(mission.DialogueCue.M_DIALOG_SENSOR_80F6A396.CUE_21, "sensor line 21"),
@@ -133,34 +135,54 @@ return function(mission)
 					16 roaming middle and upper platform
 				]]
 				assault_trooper = {
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_A", count = 1, default_group = 0},
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_B", count = 1, default_group = 0},
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_C", count = 1, default_group = 0},
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_D", count = 1, default_group = 0},
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_A", count = 4, default_group = 0}, -- acolyte
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_B", count = 4, default_group = 0}, -- acolyte
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_C", count = 2, default_group = 0}, -- acolyte
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_D", count = 2, default_group = 0}, -- acolyte
 				},
 				assault_crusader = {
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_A", count = 1, default_group = 0},
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_B", count = 1, default_group = 0},
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_C", count = 1, default_group = 0},
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_D", count = 1, default_group = 0},
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_A", count = 1, default_group = 0}, -- knight
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_B", count = 1, default_group = 0}, -- knight
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_C", count = 1, default_group = 0}, -- knight
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_D", count = 1, default_group = 0}, -- knight
 				},
 				assault_thrall = {
-					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A1", count = 1, default_group = 6},
-					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A2", count = 1, default_group = 6},
+					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A1", count = 4, default_group = 6}, -- thrall
+					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A2", count = 4, default_group = 6}, -- thrall
 				},
 				assault_ultra = {
-					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_A", count = 1, default_group = 13},
-					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_B", count = 1, default_group = 13},
+					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_A", count = 1, default_group = 13}, -- ultra
+					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_B", count = 1, default_group = 13}, -- ultra
 				},
 				assault_sniper = {
-					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_A", count = 1, default_group = 0},
-					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_B", count = 1, default_group = 1},
+					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_A", count = 1, default_group = 0}, -- sniper
+					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_B", count = 1, default_group = 1}, -- sniper
 				},
 				assault_boomer = {
-					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_A", count = 2, default_group = 2},
-					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_B", count = 2, default_group = 3},
+					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_A", count = 2, default_group = 2}, -- boomer
+					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_B", count = 2, default_group = 3}, -- boomer
 				},
 			},
 		},
 	}
+	--[[
+		On start
+		4 acolytes on front right
+		2 big guys middle -- boomer
+		2 big guys back -- boomer
+		2 snipers on sniper sides
+		4 acolytes in front
+		2 roaming knights
+		8 thralls
+		
+		1:10 after start?
+		On wave two
+		2 acolytes left
+		1 knight left
+		
+		2 acolytes right
+		1 knight right
+		
+		2 ultras
+	]]
 end
