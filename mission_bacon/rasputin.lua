@@ -53,7 +53,8 @@ return function(mission)
 		arena_elevator = {
 			objective = "MAIN_OBJECTIVE_80F6A334",
 			WAVE_KEYS = {
-				"lower_encounter", "elevator_melee", "elevator_wizard", "elevator_wizard_delayed",
+				"lower_encounter", "elevator_melee",
+				"elevator_wizard", "elevator_wizard_delayed",
 			},
 			squads = {
 				lower_encounter = {
@@ -82,11 +83,11 @@ return function(mission)
 			},
 			squads = {
 				pipes_front = {
-					{squad = "PIPES_TROOPER_SQUAD_A", count = 1, default_group = 7},
-					{squad = "PIPES_TROOPER_SQUAD_B", count = 2, default_group = 6},
+					{squad = "PIPES_TROOPER_SQUAD_A", count = 2, default_group = 6},
+					{squad = "PIPES_TROOPER_SQUAD_B", count = 2, default_group = 7},
+					{squad = "PIPES_KNIGHT_SQUAD_A", count = 1, default_group = 8},
 				},
 				pipes_back = {
-					{squad = "PIPES_KNIGHT_SQUAD_A", count = 1, default_group = 8},
 					{squad = "PIPES_KNIGHT_SQUAD_B", count = 1, default_group = 9},
 				},
 			},
@@ -111,45 +112,66 @@ return function(mission)
 			},
 		},
 		arena_throne = {
+			id = "throne",
 			objective = "FINALE_OBJECTIVE",
 			WAVE_KEYS = {
-				"assault_trooper_wave1", "assault_trooper_wave2", "assault_crusader_wave1", "assault_crusader_wave2",
-				"assault_thrall", "assault_ultra", "assault_sniper", "assault_boomer",
+				"assault_sniper", "assault_boomer", "assault_trooper_wave1", "assault_crusader_wave1", "assault_thrall",
+				"assault_trooper_wave2", "assault_crusader_wave2", "assault_ultra",
 			},
 			squads = {
-				assault_trooper_wave1 = {
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_A", count = 4, default_group = 8}, -- acolyte, shared spawn rule
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_B", count = 4, default_group = 10}, -- acolyte, shared spawn rule
-				},
-				assault_trooper_wave2 = {
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_C", count = 2, default_group = 2}, -- acolyte, left side spawn
-					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_D", count = 2, default_group = 5}, -- acolyte, right side spawn
-				},
-				assault_crusader_wave1 = {
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_A", count = 1, default_group = 9}, -- knight, shared spawn rule
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_B", count = 1, default_group = 11}, -- knight, shared spawn rule
-				},
-				assault_crusader_wave2 = {
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_C", count = 1, default_group = 7}, -- knight, left side spawn
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_D", count = 1, default_group = 12}, -- knight, right side spawn
-				},
-				assault_thrall = {
-					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A1", count = 4, default_group = 4}, -- thrall, left side spawn
-					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A2", count = 4, default_group = 6}, -- thrall, left side spawn
-				},
-				assault_ultra = {
-					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_A", count = 1, default_group = 3}, -- ultra, right side spawn
-					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_B", count = 1, default_group = 13}, -- ultra, left side spawn
-				},
 				assault_sniper = {
-					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_A", count = 1, default_group = 0}, -- sniper, shared spawn rule
-					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_B", count = 1, default_group = 1}, -- sniper, shared spawn rule
+					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_A", count = 1, default_group = 1}, -- 1x sniper, shared spawn rule
+					{squad = "THRONE_ASSAULT_SNIPER_SQUAD_B", count = 1, default_group = 0}, -- 1x sniper, shared spawn rule
 				},
 				assault_boomer = {
-					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_A", count = 2, default_group = 15}, -- boomer
-					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_B", count = 2, default_group = 14}, -- boomer
+					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_A", count = 2, default_group = 2}, -- 2x boomer
+					{squad = "THRONE_ASSAULT_BOOMER_SQUAD_B", count = 2, default_group = 3}, -- 2x boomer
+				},
+				assault_trooper_wave1 = {
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_A", count = 4, default_group = 9}, -- 4x acolyte, shared spawn rule
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_B", count = 3, default_group = 10}, -- 4x acolyte, shared spawn rule
+				},
+				assault_crusader_wave1 = {
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_A", count = 1, default_group = 4}, -- 1x knight, shared spawn rule
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_B", count = 1, default_group = 6}, -- 1x knight, shared spawn rule
+				},
+				assault_thrall = {
+					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A1", count = 4, default_group = 8}, -- 4x thrall, left side spawn
+					{squad = "THRONE_ASSAULT_THRALL_SQUAD_A2", count = 4, default_group = 11}, -- 4x thrall, left side spawn
+				},
+				assault_trooper_wave2 = {
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_C", count = 2, default_group = 11}, -- 2x acolyte, left side spawn
+					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_D", count = 2, default_group = 2}, -- 2x acolyte, right side spawn
+				},
+				assault_crusader_wave2 = {
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_C", count = 1, default_group = 12}, -- 1x knight, left side spawn
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_D", count = 1, default_group = 3}, -- 1x knight, right side spawn -- Failed
+				},
+				assault_ultra = {
+					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_A", count = 1, default_group = 14}, -- 1x ultra, right side spawn
+					{squad = "THRONE_ASSAULT_ULTRA_SQUAD_B", count = 1, default_group = 15}, -- 1x ultra, left side spawn
 				},
 			},
 		},
 	}
 end
+--[[
+FINALE_OBJECTIVE
+Group:
+	0: Sniper left ledge
+	1: Sniper right ledge
+	2: Only middle platform
+	3: Only top platform
+	4: All platforms, does not leave arena
+	5: Only middle platform
+	6: All platforms, does not leave arena
+	7: Only middle platform
+	8: All platforms, does not leave arena
+	9: Lower platform and middle arms
+	10: Middle platform, right arm
+	11: Middle and lower platform
+	12: Only middle platform
+	13: Only top platform
+	14: Middle and top platform
+	15: Middle and top platform
+]]

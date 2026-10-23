@@ -4,6 +4,7 @@ local mission = require(missions.MISSION_BACON)
 local lib = require("lib.mission_lib")
 local flow = require("lib.flow")
 local shared = require("mission_bacon.shared")(mission)
+local combat = require("lib.combat")
 
 local glacier = require("mission_bacon.glacier")(mission)
 local bray = require("mission_bacon.bray")(mission)
@@ -11,10 +12,11 @@ local miniras = require("mission_bacon.miniras")(mission)
 local rasputin = require("mission_bacon.rasputin")(mission)
 
 -- Show one goal, with an optional marker.
-local function show(context, directive, marker)
+local function show(context, directive, marker, audience)
     context:slot(shared.goals):set_directive{
         directive = directive,
         navpoint = marker ~= nil and context:slot(marker) or nil,
+		audience = audience ~= nil and context:slot(audience) or nil,
     }
 end
 
@@ -27,6 +29,11 @@ end
 local function activate(context, id)
     context:set_variable("activated/" .. id, true)
     context:slot(id):set_object_active{active = true}
+end
+
+local function deactivate(context, id)
+    context:set_variable("activated/" .. id, true)
+    context:slot(id):set_object_active{active = false}
 end
 
 local function open(context, id)
@@ -65,6 +72,25 @@ local function place_squads(context, arena_data, wave)
 	end
 end
 
+local function place_throne_actors(context, index)
+		
+		context:slot(rasputin.arena_throne.actor_squads[index].actor):bind_combatant_to_squad()
+
+		local counts = context:squad(mission.Squad[rasputin.arena_throne.actor_squads[index].squad]):counts()
+		counts:set(1, rasputin.arena_throne.actor_squads[index].count)
+		
+		context:slot(rasputin.arena_throne.actor_squads[index].actor):run_atoms{
+			atoms = {{kind = "trivial"}},
+			spawn = true,
+		}
+		
+		context:slot(mission.Slot[rasputin.arena_throne.actor_squads[index].squad]):assign_combat_objective{
+			objective = context:slot(mission.Slot.FINALE_OBJECTIVE),
+			task_group = mission.TaskGroup.FINALE_OBJECTIVE["GROUP_" .. rasputin.arena_throne.actor_squads[index].default_group],
+		}
+		--context:squad(mission.Squad[rasputin.arena_throne.actor_squads[index].squad]):place{counts = counts}
+end
+
 local function flatten_squad_entries(list, out, wave_keys)
     if list[1] ~= nil then
         -- flat arena.squads array (existing arenas)
@@ -85,9 +111,13 @@ local function flatten_squad_entries(list, out, wave_keys)
     end
 end
 
-local function squads_of_fight(arena)
+local function squads_of_fight(arena, check_wave)
     local entries = {}
-    flatten_squad_entries(arena.squads, entries, arena.WAVE_KEYS)
+	if check_wave then
+		flatten_squad_entries(arena.squads, entries, check_wave)
+	else
+		flatten_squad_entries(arena.squads, entries, arena.WAVE_KEYS)
+	end
 	local squads = {}
     for _, entry in ipairs(entries) do
         table.insert(squads, mission.Squad[entry.squad])
@@ -108,9 +138,10 @@ local graph = flow.new{
             return event.entered == true
                 and event.held_region_index == shared.glacier_region.region_index
         end},
+		--[[
 		{id = "arrive_miniheat_area", observe = function(_, _, event)
             return event.region_index == shared.miniheat_region.region_index
-        end},
+        end},]]
 		{id = "arrive_bray_area", observe = function(_, _, event)
             return event.region_index == shared.bray_region.region_index
         end},
@@ -169,7 +200,7 @@ local graph = flow.new{
 		trigger_fact("at_machine_god", rasputin.at_machine_god),
 	},
 	steps = {
-		{id = "arrive", await = flow.fact("arrived"), await = flow.fact("at_intro_directive"), run = function(context)
+		{id = "arrive", await = flow.fact("arrived"), run = function(context)
 			context:set_variable("alt_reinforce", false)
 			arm(context, glacier.at_intro_directive)
 			arm(context, glacier.at_endphase)
@@ -178,14 +209,31 @@ local graph = flow.new{
 			arm(context, glacier.at_goto_bray_left)
 			arm(context, glacier.at_dropships_right)
 			arm(context, glacier.at_dropships_left)
-			context:slot(shared.music):set_music_section{section = 0}
+			activate(context, glacier.o_seraph_tower_0)
+			activate(context, glacier.o_seraph_tower_1)
+			activate(context, glacier.o_seraph_tower_2)
+			activate(context, glacier.o_seraph_tower_3)
+			activate(context, glacier.o_seraph_tower_4)
+			activate(context, glacier.o_javelin_floor0_80F73E47)
+			activate(context, glacier.o_javelin_floor1_80F73E47)
+			activate(context, glacier.o_javelin_floor2_80F73E47)
+			activate(context, glacier.o_javelin_floor3_80F73E47)
+			activate(context, glacier.o_javelin_floor4_80F73E47)
+			arm(context, bray.at_seed_props)
+			arm(context, bray.at_bypass_right)
+			arm(context, bray.at_bypassed_left)
+			arm(context, bray.at_activate_boss_waypoint)
+			arm(context, bray.at_start_balcony_monitor)
 		end},
-		{id = "at_intro_directive", after = {"arrive"}, run = function(context)
-            context:slot(shared.dialog):play_dialogue_cue{cue = glacier.line_open}
+		{id = "opening_dialog", after = {"arrive"}, await = flow.fact("at_intro_directive"), run = function(context)
+			context:slot(shared.music):set_music_section{section = 0}
+			context:start_timer("end_intro_music", 23000)
+		end},
+		{id = "at_intro_directive", after = {"opening_dialog"}, await = flow.fact("arrive_bray_area"), run = function(context)
+			context:slot(shared.dialog):play_dialogue_cue{cue = glacier.line_open}
 			context:start_timer("directive_delay", 3500)
         end},
-		{id = "arrive_bray_area", after = {"at_intro_directive"}, await = flow.fact("arrive_bray_area")},
-		{id = "arm_bray", after = {"arrive_bray_area"}, await = flow.any(flow.fact("at_dropships_right"), flow.fact("at_dropships_left")), run = function(context)
+		{id = "arrive_bray_area", after = {"at_intro_directive"}, await = flow.any(flow.fact("at_dropships_right"), flow.fact("at_dropships_left")), run = function(context)
 			arm(context, glacier.at_dropships_right)
 			arm(context, glacier.at_dropships_left)
 			arm(context, bray.at_seed_props)
@@ -199,11 +247,6 @@ local graph = flow.new{
 			activate(context, bray.o_seraph_tower_2)
 			activate(context, bray.o_seraph_tower_3)
 			activate(context, bray.o_seraph_tower_4)
-			activate(context, bray.o_avoidance_0)
-			activate(context, bray.o_avoidance_1)
-			activate(context, bray.o_avoidance_2)
-			activate(context, bray.o_avoidance_3)
-			activate(context, bray.o_avoidance_4)
 			activate(context, bray.o_javelin_floor0_80F739EA)
 			activate(context, bray.o_javelin_floor1_80F739EA)
 			activate(context, bray.o_javelin_floor2_80F739EA)
@@ -229,30 +272,31 @@ local graph = flow.new{
 			power_off(context, bray.d_screen_bank_2_6)
 			power_off(context, bray.d_screen_bank_2_7)
 			power_off(context, bray.d_screen_bank_2_8)
-			context:slot(shared.music):set_music_section{section = 1}
-			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_goto_bray_168)
 		end},
-		{id = "at_dropships", after = {"arm_bray"}, run = function(context)
+		{id = "at_dropships", after = {"arrive_bray_area"}, run = function(context)
 			context:slot(shared.music):set_music_section{section = 2}
 			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_goto_bray_179)
-			place_squads(context, bray.arena, "squad_b")
-			place_squads(context, bray.arena, "squad_c")
+			place_squads(context, bray.arena_court, "squad_b")
+			place_squads(context, bray.arena_court, "squad_c")
 			context:start_timer("dropship_a_delay", 1500)
 		end},
 		{id = "at_seed_props", after = {"at_dropships"}, await = flow.any(flow.fact("at_seed_props"), flow.fact("at_dropships_left"))},
 		{id = "spawn_bray", after = {"at_seed_props"}, run = function(context)
-			place_squads(context, bray.arena, "squad_intro")
-			place_squads(context, bray.arena, "squad_boss")
+			place_squads(context, bray.arena_court, "squad_intro")
+			place_squads(context, bray.arena_boss)
+		end, await = function(context)
+			return context:cohort{squads = squads_of_fight(bray.arena_court)}.cleared
 		end},
 		{id = "at_activate_boss_waypoint", after = {"spawn_bray"}, await = flow.fact("at_activate_boss_waypoint")},
 		{id = "update_bray_waypoint", after = {"at_activate_boss_waypoint"}, run = function(context)
 			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_slot_0015)
 		end, await = function(context)
-			return context:cohort{squads = squads_of_fight(bray.arena)}.cleared
+			return context:cohort{squads = squads_of_fight(bray.arena_boss)}.cleared
 		end},
 		{id = "futurescapes_cleared", after = {"update_bray_waypoint"}, await = flow.fact("at_signal_ana"), run = function(context)
 			arm(context, bray.at_signal_ana)
 			arm(context, bray.at_end_phase)
+			context:slot(shared.music):set_music_section{section = 3}
 			show(context, shared.goal_secure_bray_FF11C73B, bray.np_activate_console)
 		end},
 		{id = "at_signal_ana", after = {"futurescapes_cleared"}, await = flow.fact("at_bray_end_phase"), run = function(context)
@@ -281,12 +325,13 @@ local graph = flow.new{
 		end},
 		{id = "aurora_dialog", after = {"at_locate_entrance"}, await = flow.fact("at_end_phase"), run = function(context)
 			context:slot(shared.music):set_music_section{section = 5}
+			show(context, shared.goal_goto_bray, miniras.goto_rasputin_nav)
 			context:slot(miniras.sequence_locate_entrane):play_sequence()
 			context:slot(shared.dialog):play_dialogue_cue{cue = miniras.line_sensor_15}
-			show(context, shared.goal_goto_bray, miniras.goto_rasputin_nav)
 		end},
 		{id = "at_end_phase", after = {"aurora_dialog"}, run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = miniras.line_sensor_18}
+			context:slot(shared.music):set_music_section{section = 12}
 			show(context, shared.goal_ascend_F9396C1F, miniras.alt_nav)
 		end},
 		{id = "arrive_rasputin_area", after = {"at_end_phase"}, await = flow.fact("arrive_rasputin_area")},
@@ -319,17 +364,14 @@ local graph = flow.new{
 		{id = "at_spawn_lower_encounters", after = {"armed_rasputin_triggers"}, await = flow.fact("at_mus_hive_attack"), run = function(context)
 			place_squads(context, rasputin.arena_elevator, "lower_encounter")
 		end},
-		{id = "at_mus_hive_attacks", after = {"at_spawn_lower_encounters"}, await = flow.fact("at_elevator_spawn_wizards"), run = function(context)
+		{id = "at_mus_hive_attacks", after = {"at_spawn_lower_encounters"}, await = flow.fact("at_elevator_seed_props"), run = function(context)
 			context:slot(shared.music):set_music_section{section = 6}
 		end},
-		{id = "at_elevator_spawn_wizards", after = {"at_mus_hive_attacks"}, await = flow.fact("at_elevator_spawn_melee"), run = function(context)
+		{id = "at_elevator_seed_props", after = {"at_mus_hive_attacks"}, await = flow.fact("at_elevator_spawn_melee"), run = function(context)
 			place_squads(context, rasputin.arena_elevator, "elevator_wizard")
 			context:start_timer("wizard_2_delay", 1000)
 		end},
-		{id = "at_elevator_spawn_melee", after = {"at_elevator_spawn_wizards"}, await = flow.fact("at_ascension_elevator"), run = function(context)
-			place_squads(context, rasputin.arena_elevator, "elevator_melee")
-		end},
-		{id = "at_ascension_elevator", after = {"at_elevator_spawn_melee"}, await = flow.fact("at_spawn_overrides_off"), run = function(context)
+		{id = "at_ascension_elevator", after = {"at_elevator_seed_props"}, await = flow.fact("at_spawn_overrides_off"), run = function(context)
 			place_squads(context, rasputin.arena_pipes, "pipes_front")
 		end},
 		{id = "at_spawn_overrides_off", after = {"at_ascension_elevator"}, await = flow.any(flow.fact("at_hive_music_end"), flow.fact("at_left_hive_music_end")), run = function(context)
@@ -352,6 +394,7 @@ local graph = flow.new{
 		
 		{id = "at_spawn_spear_intro", after = {"at_ascension_cable_2"}, await = flow.fact("at_hook_trooper_fallback"), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_22}
+			context:start_timer("spear_music_delay", 5000)
 			context:start_timer("spear_delay", 7000)
 		end},
 		{id = "at_hook_trooper_fallback", after = {"at_spawn_spear_intro"}, await = flow.fact("at_hook_spawn_thrall"), run = function(context)
@@ -359,42 +402,21 @@ local graph = flow.new{
 			activate(context, rasputin.o_javelin_spawner_upper)
 		end},
 		{id = "at_throne_spawn_encounter", after = {"at_hook_trooper_fallback"}, run = function(context)
-			place_squads(context, rasputin.arena_throne, "assault_trooper_wave1")
-			place_squads(context, rasputin.arena_throne, "assault_boomer")
 			place_squads(context, rasputin.arena_throne, "assault_sniper")
+			place_squads(context, rasputin.arena_throne, "assault_boomer")
+			place_squads(context, rasputin.arena_throne, "assault_trooper_wave1")
 			place_squads(context, rasputin.arena_throne, "assault_crusader_wave1")
-			--[[
-				On start
-				assault_trooper_wave1
-				assault_boomer
-				assault_sniper
-				assault_crusader_wave1
-				
-				On assault_trooper_wave1 dead
-				assault_thrall
-				
-				On assault_boomer and assault_crusader_wave1 dead
-				assault_trooper_wave2
-				
-				On assault_trooper_wave2 and assault_sniper dead
-				assault_crusader_wave2
-				assault_ultra
-			]]
+			context:start_timer("throne_encounter_logic", 1000)
 		end, await = function(context)
 			return context:cohort{squads = squads_of_fight(rasputin.arena_throne)}.cleared
 		end},
 		{id = "at_machine_god", after = {"at_throne_spawn_encounter"}, await = flow.fact("at_machine_god"), run = function(context)
-			context:slot(shared.hard_wipes):set_darkness_zone{enabled = false}
-			context:slot(shared.music):set_music_section{section = 9}
-			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_24}
-			open(context, rasputin.d_door_1)
 		end},
-		--[[
-			At final directive TV
-				local key = context:select_state(mission.states.STATE_80F6A028_0003_0001_80F6A01F)
-				context:set_variable("move_request", key.value)
-				context:slot(Slot.PF_CINEMATIC_BOOKEND_CINEMATIC):set_cinematic_active{active = true}
-		]]
+		{id = "bookend_cinematic", after = {"at_machine_god"}, run = function(context)
+			local key = context:select_state(shared.outro_state_region)
+			context:set_variable("move_request", key.value)
+			context:slot(shared.bookend_cinematic):set_cinematic_active{active = true}
+		end},
 	},
 }
 
@@ -440,7 +462,7 @@ return {
 	
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_landing) then
-			context:start_timer("rasputin_spear_door_delay", 2000)
+			context:start_timer("rasputin_spear_door_delay", 1000)
 			arm(context, rasputin.at_hook_trooper_fallback)
 		end
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_lower) then
@@ -452,17 +474,56 @@ return {
 	end,
 
 	on_event_timer_elapsed = function(context, state, event)
+	
+		if event.timer_name == "end_intro_music" then
+			context:slot(shared.music):set_music_section{section = 1}
+		end
+		
 		if event.timer_name == "directive_delay" then
 			show(context, shared.goal_goto_bray, glacier.navpoint)
-            context:slot(shared.dialog):play_dialogue_cue{cue = glacier.line_open_cont}
+			context:slot(shared.dialog):play_dialogue_cue{cue = glacier.line_open_cont}
 		end
 		
 		if event.timer_name == "dropship_a_delay" then
-			place_squads(context, bray.arena, "squad_a")
+			place_squads(context, bray.arena_court, "squad_a")
+			context:start_timer("court_encounter_logic", 1000)
+		end
+		
+		if event.timer_name == "court_encounter_logic" then
+			local alt_reinforce = state:variable("alt_reinforce")
+			if context:cohort{squads = squads_of_fight(bray.arena_court, {"squad_a"})}.cleared == true
+			and not state:variable("courtyard/reinf_a_placed") then
+				context:set_variable("courtyard/reinf_a_placed", true)
+				if alt_reinforce ~= true then
+					place_squads(context, bray.arena_reinforce, "squad_reinforce_a1")
+				else
+					place_squads(context, bray.arena_reinforce, "squad_reinforce_a1_alt")
+				end
+				place_squads(context, bray.arena_reinforce, "squad_reinforce_a2")
+			end
+			if context:cohort{squads = squads_of_fight(bray.arena_court, {"squad_b"})}.cleared == true
+			and not state:variable("courtyard/reinf_bc_placed") then
+				context:set_variable("courtyard/reinf_bc_placed", true)
+				if alt_reinforce ~= true then
+					place_squads(context, bray.arena_reinforce, "squad_reinforce_b")
+					place_squads(context, bray.arena_reinforce, "squad_reinforce_c")
+				else
+					place_squads(context, bray.arena_reinforce, "squad_reinforce_b_alt")
+					place_squads(context, bray.arena_reinforce, "squad_reinforce_c_alt")						
+				end		
+			end
+			
+			if context:cohort{squads = squads_of_fight(bray.arena_court)}.cleared ~= true then
+				context:start_timer("court_encounter_logic", 1000)
+			else
+				show(context, shared.goal_secure_bray_CC40FDF7, bray.np_slot_0015)
+			end
 		end
 		
 		if event.timer_name == "ana_terminal_delay" then
 			open(context, bray.d_ana_terminal)
+			deactivate(context, bray.o_large_nutblocker)
+			deactivate(context, bray.o_large_nutblocker_2)
 		end
 		
 		if event.timer_name == "bray_poweron_delay" then
@@ -495,11 +556,15 @@ return {
 		
 		if event.timer_name == "wizard_2_delay" then
 			place_squads(context, rasputin.arena_elevator, "elevator_wizard_delayed")
+			place_squads(context, rasputin.arena_elevator, "elevator_melee")
 		end
-
+		
+		if event.timer_name == "spear_music_delay" then
+			context:slot(shared.music):set_music_section{section = 8}
+		end
+		
 		if event.timer_name == "spear_delay" then
 			context:slot(rasputin.sequence_javelin_audio):play_sequence()
-			context:slot(shared.music):set_music_section{section = 8}
 			activate(context, rasputin.o_javelin_spawner_landing)
 			activate(context, rasputin.o_javelin_vfx)
 			context:start_timer("spear_dialog_delay", 2000)
@@ -522,34 +587,40 @@ return {
 		if event.timer_name == "respawn_spear_upper" then
 			activate(context, rasputin.o_javelin_spawner_upper)
 		end
-	end,
-	
-	on_event_entity_died = function(context, state, event)
-		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_A_1) and event.alive_count == 0 then
-			if state:variable("alt_reinforce") ~= true then
-				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_A_1")
-			else
-				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_A_1_ALT")
+		
+		
+		if event.timer_name == "throne_encounter_logic" then
+			if context:cohort{squads = squads_of_fight(rasputin.arena_throne, {"assault_trooper_wave1"})}.cleared == true
+			and not state:variable("throne_arena/thralls_placed") then
+				context:set_variable("throne_arena/thralls_placed", true)
+				place_squads(context, rasputin.arena_throne, "assault_thrall")
 			end
-		end
-		
-		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_A_2) and event.alive_count == 0 then
-			place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_A_2")
-		end
-		
-		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_B) and event.alive_count == 0 then
-			if state:variable("alt_reinforce") ~= true then
-				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_B")
-			else
-				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_B_ALT")
+			if context:cohort{squads = squads_of_fight(rasputin.arena_throne, {"assault_boomer", "assault_crusader_wave1"})}.cleared == true
+			and not state:variable("throne_arena/trooper_wave2_placed") then
+				context:set_variable("throne_arena/trooper_wave2_placed", true)
+				place_squads(context, rasputin.arena_throne, "assault_trooper_wave2")
 			end
-		end
-		
-		if lib.is_slot(context, event, mission.Slot.COURTYARD_SQUAD_C) and event.alive_count == 0 then
-			if state:variable("alt_reinforce") ~= true then
-				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_C")
+			if context:cohort{squads = squads_of_fight(rasputin.arena_throne, {"assault_trooper_wave1", "assault_boomer", "assault_crusader_wave1", "assault_trooper_wave2"})}.cleared == true
+			and not state:variable("throne_arena/final_wave_placed") then
+				context:set_variable("throne_arena/final_wave_placed", true)
+				place_squads(context, rasputin.arena_throne, "assault_crusader_wave2")
+				place_squads(context, rasputin.arena_throne, "assault_ultra")
+			end
+			for i, entry in ipairs(squads_of_fight(rasputin.arena_throne)) do
+				if context:cohort{squads = {entry}}.cleared then
+					context:set_variable(rasputin.arena_throne.id .. ".cleared.dbg." .. i-1, true)
+				end
+			end
+			
+			if context:cohort{squads = squads_of_fight(rasputin.arena_throne)}.cleared ~= true then
+				context:start_timer("throne_encounter_logic", 1000)
 			else
-				place_squads(context, bray.arena_reinforce, "REINFORCE_SQUAD_C_ALT")
+				context:slot(shared.hard_wipes):set_darkness_zone{enabled = false}
+				deactivate(context, rasputin.o_javelin_spawner_lower)
+				deactivate(context, rasputin.o_javelin_spawner_upper)
+				context:slot(shared.music):set_music_section{section = 10}
+				context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_24}
+				open(context, rasputin.d_door_1)
 			end
 		end
 	end,

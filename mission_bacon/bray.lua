@@ -75,45 +75,33 @@ return function(mission)
 		
 		d_rasputin_door = lib.one(Slot.D_RASPUTIN_DOOR, "rasputin door"),
 		
-		arena = {
+		arena_court = {
 			WAVE_KEYS = {
-				"squad_intro",
-				"squad_a", "squad_reinforce_a1", "squad_reinforce_a1_alt", "squad_reinforce_a2",
-				"squad_b", "squad_reinforce_b", "squad_reinforce_b_alt",
-				"squad_c", "squad_reinforce_c", "squad_reinforce_c_alt",
-				"squad_boss",
+				"squad_intro", "squad_a",
+				"squad_b", "squad_c",
 			},
 			squads = {
 				squad_intro = {
 					{squad = "INTRO_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 6}, -- Intro guys that jump
-					{squad = "INTRO_SQUAD_B", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 9}, -- Psion
+					{squad = "INTRO_SQUAD_B", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 4}, -- Psion
 					{squad = "INTRO_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 10}, -- Psion
 					{squad = "INTRO_SQUAD_D", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 11}, -- Psion
 				},
 				squad_a = {
 					{squad = "COURTYARD_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Legionary
-					{squad = "COURTYARD_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99}, -- Phalanx
-					{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99}, -- Legionary
+					{squad = "COURTYARD_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Phalanx
+					{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Legionary
 				},
 				squad_b = {
-					{squad = "COURTYARD_SQUAD_B", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 12}, -- Legionary
-					{squad = "COURTYARD_SQUAD_B_1", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 99}, -- Legionary
+					{squad = "COURTYARD_SQUAD_B", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Legionary
+					{squad = "COURTYARD_SQUAD_B_1", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3}, -- Legionary
 				},
 				squad_c = {
 					{squad = "COURTYARD_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 15}, -- Incendior
 					{squad = "COURTYARD_SQUAD_C_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 18}, -- Incendior
 				},
-				squad_boss = {
-					{squad = "INTERIOR_SQUAD_BOSS", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 10}, -- boss
-					{squad = "INTERIOR_SQUAD_A", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 0}, -- legionary
-					{squad = "INTERIOR_SQUAD_B", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 1}, -- incendior
-					{squad = "INTERIOR_SQUAD_C", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 5}, -- legionary, phalanx
-					{squad = "INTERIOR_SQUAD_D", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 7}, -- psion
-					{squad = "INTERIOR_SQUAD_E", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 6}, -- legionary, psion
-				},
 			},
 		},
-		
 		arena_reinforce = {
 			WAVE_KEYS = {
 				"squad_reinforce_a1", "squad_reinforce_a1_alt",
@@ -123,27 +111,65 @@ return function(mission)
 			},
 			squads = {
 				squad_reinforce_a1 = {
-					{squad = "REINFORCE_SQUAD_A_1", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
+					{squad = "REINFORCE_SQUAD_A_1", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0}, -- count = 2
 				},
 				squad_reinforce_a1_alt = {
 					{squad = "REINFORCE_SQUAD_A_1_ALT", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 0},
 				},
 				squad_reinforce_a2 = {
-					{squad = "REINFORCE_SQUAD_A_2", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 4},
+					{squad = "REINFORCE_SQUAD_A_2", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3},
 				},
 				squad_reinforce_b = {
-					{squad = "REINFORCE_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 19},
+					{squad = "REINFORCE_SQUAD_B", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 17},
 				},
 				squad_reinforce_b_alt = {
-					{squad = "REINFORCE_SQUAD_B_ALT", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 19},
+					{squad = "REINFORCE_SQUAD_B_ALT", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 17},
 				},
 				squad_reinforce_c = {
-					{squad = "REINFORCE_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 17},
+					{squad = "REINFORCE_SQUAD_C", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 19},
 				},
 				squad_reinforce_c_alt = {
-					{squad = "REINFORCE_SQUAD_C_ALT", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 17},
+					{squad = "REINFORCE_SQUAD_C_ALT", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 19},
 				},
 			},
 		},
+	arena_boss = {
+			squads = {
+				{squad = "INTERIOR_SQUAD_BOSS", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 10}, -- boss
+				{squad = "INTERIOR_SQUAD_A", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 0}, -- legionary
+				{squad = "INTERIOR_SQUAD_B", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 1}, -- incendior
+				{squad = "INTERIOR_SQUAD_C", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 5}, -- legionary, phalanx
+				{squad = "INTERIOR_SQUAD_D", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 7}, -- psion
+				{squad = "INTERIOR_SQUAD_E", count = 1, default_objective = "BOSS_OBJECTIVE", default_group = 6}, -- legionary, psion
+			},
+		},
+		
 	}
 end
+--[[
+MAIN_OBJECTIVE_80F6A0E6
+Group:
+	0: Can chase player, prefers to wait inside futurescapes
+	1: Only futurescapes lobby
+	2: Courtyard, right side near stairs
+	3: Courtyard and back of bridge
+	4: Middle of bridge and left of intro group
+	
+	5: Platform left of intro group
+	6: Intro squad front
+	7: Intro squad back
+	8: Courtyard, towards futurescapes lobby
+	9: Platform left of intro group
+	
+	10: Left of intro group
+	11: Front of platform left of intro group
+	12: Middle of courtyard
+	13: Middle of bridge
+	14: Only futurescapes lobby
+	
+	15: Courtyard, towards futurescapes lobby
+	16: Courtyard, right side near stairs
+	17: Middle of courtyard
+	18: Courtyard, towards futurescapes lobby
+	19: Middle of courtyard
+]]
