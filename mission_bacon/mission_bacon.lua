@@ -43,6 +43,13 @@ local function open(context, id)
 	}
 end
 
+local function close_device(context, id)
+    context:set_variable("closed/" .. id, true)
+    context:slot(id):transition{
+		transition = context.sdk.device_transitions.close,
+	}
+end
+
 local function power_on(context, id)
     context:set_variable("powered_on/" .. id, true)
     context:slot(id):transition{
@@ -68,6 +75,16 @@ local function place_squads(context, arena_data, wave)
 			objective = context:slot(mission.Slot[default_objective]),
 			task_group = mission.TaskGroup[default_objective]["GROUP_" .. sq.default_group]
 		}
+		squad:place{counts = counts}
+	end
+end
+
+local function remove_squads(context, arena_data, wave)
+	local squad_data = wave and arena_data.squads[wave] or arena_data.squads
+	for _, sq in ipairs(squad_data) do
+		local squad = context:squad(mission.Squad[sq.squad])
+		local counts = squad:counts()
+		for index = 1, counts.count do counts:set(index, 0) end
 		squad:place{counts = counts}
 	end
 end
@@ -310,7 +327,7 @@ local graph = flow.new{
 			context:squad(bray.scene_ana_squad):place{}
 			context:scene(bray.scene_ana_power_up):send_event{key = bray.scene_ana_power_up_key}
 			context:start_timer("ana_terminal_delay", 18000)
-			context:start_timer("bray_poweron_delay", 36000)
+			context:start_timer("bray_poweron_secondary_delay", 36000)
 			context:start_timer("door_open_delay", 55000)
 		end},
 		{id = "at_bray_end_phase", after = {"at_signal_ana"}, run = function(context)
@@ -318,6 +335,7 @@ local graph = flow.new{
 		end},
 		{id = "arrive_miniras_area", after = {"at_bray_end_phase"}, await = flow.fact("arrive_miniras_area")},
 		{id = "at_locate_entrance", after = {"arrive_miniras_area"}, await = flow.fact("at_locate_entrance"), run = function(context)
+			context:slot(shared.music):set_music_section{section = 12}
 			arm(context, miniras.at_locate_entrance)
 			arm(context, miniras.at_end_phase)
 			open(context, miniras.door)
@@ -397,7 +415,8 @@ local graph = flow.new{
 			context:start_timer("spear_music_delay", 5000)
 			context:start_timer("spear_delay", 7000)
 		end},
-		{id = "at_hook_trooper_fallback", after = {"at_spawn_spear_intro"}, await = flow.fact("at_hook_spawn_thrall"), run = function(context)
+		{id = "throne_arena_checkpoint", after = {"at_spawn_spear_intro"}, checkpoint = true, reset_facts = {"at_hook_trooper_fallback", "at_throne_spawn_encounter"}},
+		{id = "at_hook_trooper_fallback", after = {"throne_arena_checkpoint"}, await = flow.fact("at_hook_spawn_thrall"), run = function(context)
 			activate(context, rasputin.o_javelin_spawner_lower)
 			activate(context, rasputin.o_javelin_spawner_upper)
 		end},
@@ -413,9 +432,7 @@ local graph = flow.new{
 		{id = "at_machine_god", after = {"at_throne_spawn_encounter"}, await = flow.fact("at_machine_god"), run = function(context)
 		end},
 		{id = "bookend_cinematic", after = {"at_machine_god"}, run = function(context)
-			local key = context:select_state(shared.outro_state_region)
-			context:set_variable("move_request", key.value)
-			context:slot(shared.bookend_cinematic):set_cinematic_active{active = true}
+			context:start_timer("bookend_start_delay", 3000)
 		end},
 	},
 }
@@ -524,9 +541,22 @@ return {
 			open(context, bray.d_ana_terminal)
 			deactivate(context, bray.o_large_nutblocker)
 			deactivate(context, bray.o_large_nutblocker_2)
+			context:start_timer("bray_poweron_delay", 8000)
 		end
 		
 		if event.timer_name == "bray_poweron_delay" then
+			power_on(context, bray.d_screen_bank_2_0)
+			power_on(context, bray.d_screen_bank_2_1)
+			power_on(context, bray.d_screen_bank_2_2)
+			power_on(context, bray.d_screen_bank_2_3)
+			power_on(context, bray.d_screen_bank_2_4)
+			power_on(context, bray.d_screen_bank_2_5)
+			power_on(context, bray.d_screen_bank_2_6)
+			power_on(context, bray.d_screen_bank_2_7)
+			power_on(context, bray.d_screen_bank_2_8)
+		end
+		
+		if event.timer_name == "bray_poweron_secondary_delay" then
 			power_on(context, bray.d_door_lights)
 			power_on(context, bray.d_screen_bank_1_0)
 			power_on(context, bray.d_screen_bank_1_1)
@@ -538,15 +568,6 @@ return {
 			power_on(context, bray.d_screen_bank_1_7)
 			power_on(context, bray.d_screen_bank_1_8)
 			power_on(context, bray.d_screen_bank_1_9)
-			power_on(context, bray.d_screen_bank_2_0)
-			power_on(context, bray.d_screen_bank_2_1)
-			power_on(context, bray.d_screen_bank_2_2)
-			power_on(context, bray.d_screen_bank_2_3)
-			power_on(context, bray.d_screen_bank_2_4)
-			power_on(context, bray.d_screen_bank_2_5)
-			power_on(context, bray.d_screen_bank_2_6)
-			power_on(context, bray.d_screen_bank_2_7)
-			power_on(context, bray.d_screen_bank_2_8)
 		end
 		
 		if event.timer_name == "door_open_delay" then
@@ -588,6 +609,14 @@ return {
 			activate(context, rasputin.o_javelin_spawner_upper)
 		end
 		
+		if event.timer_name == "bookend_start_delay" then
+			context:slot(shared.goals):clear_directives()
+			context:complete_mission{}
+			local key = context:select_state(shared.outro_state_region)
+			context:set_variable("move_request", key.value)
+			context:slot(shared.bookend_cinematic):set_cinematic_active{active = true}
+		end
+		
 		
 		if event.timer_name == "throne_encounter_logic" then
 			if context:cohort{squads = squads_of_fight(rasputin.arena_throne, {"assault_trooper_wave1"})}.cleared == true
@@ -623,5 +652,43 @@ return {
 				open(context, rasputin.d_door_1)
 			end
 		end
+	end,
+	
+	on_event_fireteam_state = function(context, state, event)
+		local wiped = event.dead_count > 0 and event.alive_count == 0 and event.unknown_count == 0
+		if not wiped or state:variable("wipe.request") ~= nil then return end
+		local key = context:restart_checkpoint{region = shared.rasputin_region.region_index, spawn_set_hash = 0x80CDF71C}
+		context:set_variable("wipe.request", key.value)
+	end,
+	
+	on_event_effect_result = function(context, state, event)
+		local request = state:variable("wipe.request")
+		if request == nil or event.request_key.value ~= request then return end
+		context:clear_variable("wipe.request")
+		if event.outcome ~= "transport_staged" then return end
+		-- the new attempt has started; release the client's wait
+		context:restart_checkpoint{
+			region = shared.rasputin_region.region_index, spawn_set_hash = 0x80CDF71C, release_request = request,
+		}
+		remove_squads(context, rasputin.arena_lower_gate)
+		remove_squads(context, rasputin.arena_throne, "assault_sniper")
+		remove_squads(context, rasputin.arena_throne, "assault_boomer")
+		remove_squads(context, rasputin.arena_throne, "assault_trooper_wave1")
+		remove_squads(context, rasputin.arena_throne, "assault_crusader_wave1")
+		remove_squads(context, rasputin.arena_throne, "assault_thrall")
+		remove_squads(context, rasputin.arena_throne, "assault_trooper_wave2")
+		remove_squads(context, rasputin.arena_throne, "assault_crusader_wave2")
+		remove_squads(context, rasputin.arena_throne, "assault_ultra")
+		close_device(context, rasputin.d_javelin_door)
+		activate(context, rasputin.o_javelin_spawner_landing)
+		context:slot(shared.hard_wipes):set_darkness_zone{enabled = false}
+		place_squads(context, rasputin.arena_lower_gate)
+		arm(context, rasputin.at_hook_spawn_thrall)
+		arm(context, rasputin.at_hook_spawn_thrall_1)
+		arm(context, rasputin.at_throne_spawn_encounter)
+		arm(context, rasputin.at_spawn_lower_enemies_gate)
+		arm(context, rasputin.at_ascension_left)
+		arm(context, rasputin.at_throne_wake_combatants)
+		arm(context, rasputin.at_machine_god)
 	end,
 }

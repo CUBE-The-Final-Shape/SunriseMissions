@@ -90,7 +90,7 @@ return function(mission)
 				squad_a = {
 					{squad = "COURTYARD_SQUAD_A", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Legionary
 					{squad = "COURTYARD_SQUAD_A_1", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Phalanx
-					{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Legionary
+					{squad = "COURTYARD_SQUAD_A_2", count = 1, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 3}, -- Legionary
 				},
 				squad_b = {
 					{squad = "COURTYARD_SQUAD_B", count = 2, default_objective = "MAIN_OBJECTIVE_80F6A0E6", default_group = 13}, -- Legionary

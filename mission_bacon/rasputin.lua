@@ -144,7 +144,7 @@ return function(mission)
 					{squad = "THRONE_ASSAULT_TROOPER_SQUAD_D", count = 2, default_group = 2}, -- 2x acolyte, right side spawn
 				},
 				assault_crusader_wave2 = {
-					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_C", count = 1, default_group = 12}, -- 1x knight, left side spawn
+					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_C", count = 1, default_group = 2}, -- 1x knight, left side spawn
 					{squad = "THRONE_ASSAULT_CRUSADER_SQUAD_D", count = 1, default_group = 3}, -- 1x knight, right side spawn -- Failed
 				},
 				assault_ultra = {
