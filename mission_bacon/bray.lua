@@ -16,13 +16,18 @@ return function(mission)
 		np_activate_console = lib.one(Slot.NP_ACTIVATE_CONSOLE, "activate console navpoint"),
 		np_slot_0014 = lib.one(Slot.SLOT_0014_80F6A179, "slot 0014 navpoint"),
 
+		at_dropships_right = lib.one(Slot.PT_SPAWN_DROPSHIPS_RIGHT, "dropships right trigger"),
+		at_dropships_left = lib.one(Slot.PT_SPAWN_DROPSHIPS_LEFT, "dropships left trigger"),
 		at_seed_props = lib.one(Slot.PT_SEED_PROPS, "seed props trigger"),
+		at_sniper_fallback = lib.one(Slot.PT_SNIPER_FALLBACK, "sniper fallback trigger"),
 		at_bypass_right = lib.one(Slot.PT_BYPASS_RIGHT, "bypass right trigger"),
 		at_bypassed_left = lib.one(Slot.PT_BYPASSED_LEFT, "bypassed left trigger"),
-		at_activate_boss_waypoint = lib.one(Slot.PT_ACTIVATE_BOSS_WAYPOINT, "activate boss waypoint trigger"),
 		at_start_balcony_monitor = lib.one(Slot.PT_START_BALCONY_MONITOR, "start balcony monitor trigger"),
+		at_goto_bray_right = lib.one(Slot.PT_GOTO_BRAY_RIGHT, "goto bray right trigger"),
+		at_goto_bray_left = lib.one(Slot.PT_GOTO_BRAY_LEFT, "goto bray left trigger"),
 		at_signal_ana = lib.one(Slot.PT_SIGNAL_ANA, "signal ana trigger"),
 		at_end_phase = lib.one(Slot.PT_END_PHASE_80F6A179, "end phase trigger"),
+		at_activate_boss_waypoint = lib.one(Slot.PT_ACTIVATE_BOSS_WAYPOINT, "activate boss waypoint trigger"),
 
 		o_mini_ras_door = lib.one(Slot.O_MINI_RAS_DOOR, "mini ras door"),
 		o_seraph_tower_0 = lib.one(Slot.O_SERAPH_TOWER0_80F739EA, "seraph tower 0"),
@@ -74,7 +79,7 @@ return function(mission)
 		d_ana_terminal = lib.one(Slot.D_ANA_TERMINAL, "ana terminal"),
 		
 		d_rasputin_door = lib.one(Slot.D_RASPUTIN_DOOR, "rasputin door"),
-		
+
 		arena_court = {
 			WAVE_KEYS = {
 				"squad_intro", "squad_a",
@@ -146,6 +151,11 @@ return function(mission)
 		
 	}
 end
+--[[
+	Area entered: M_ENGAGEMENT_SENSOR_80F6A0E6
+	Ana scene: M_ENGAGEMENT_SENSOR_80F6A15A
+]]
+
 --[[
 MAIN_OBJECTIVE_80F6A0E6
 Group:

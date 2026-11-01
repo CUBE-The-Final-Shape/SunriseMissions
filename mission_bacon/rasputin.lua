@@ -13,31 +13,34 @@ return function(mission)
 		line_sensor_23 = lib.one(mission.DialogueCue.M_DIALOG_SENSOR_80F6A396.CUE_23, "sensor line 23"),
 		line_sensor_24 = lib.one(mission.DialogueCue.M_DIALOG_SENSOR_80F6A396.CUE_24, "sensor line 24"),
 
-		at_spawn_lower_encounters = lib.one(Slot.PT_SPAWN_LOWER_ENCOUNTERS, "spawn lower encounters trigger"),
-		at_mus_hive_attack = lib.one(Slot.PT_MUS_HIVE_ATTACK, "hive attack music trigger"),
-		at_elevator_seed_props = lib.one(Slot.PT_ELEVATOR_SEED_PROPS, "elevator seed props trigger"),
-		at_elevator_spawn_wizards = lib.one(Slot.PT_ELEVATOR_SPAWN_WIZARDS, "elevator spawn wizards trigger"),
-		at_elevator_spawn_melee = lib.one(Slot.PT_ELEVATOR_SPAWN_MELEE, "elevator spawn melee trigger"),
-		at_ascension_elevator = lib.one(Slot.PT_ASCENSION_ELEVATOR, "ascension elevator trigger"),
-		at_spawn_overrides_off = lib.one(Slot.PT_SPAWN_OVERRIDES_OFF, "spawn overrides off trigger"),
+		at_pipes_seed_props = lib.one(Slot.PT_PIPES_SEED_PROPS, "pipes seed props trigger"),
 		at_pipes_spawn_back = lib.one(Slot.PT_PIPES_SPAWN_BACK, "pipes spawn back trigger"),
+		at_spawn_spear_intro = lib.one(Slot.PT_SPAWN_SPEAR_INTRO, "spawn spear intro trigger"),
+		at_spawn_spear_intro_alt = lib.one(Slot.PT_SPAWN_SPEAR_INTRO_ALT, "spawn spear intro alt trigger"),
+		at_hook_spawn_thrall = lib.one(Slot.PT_HOOK_SPAWN_THRALL, "hook spawn thrall trigger"),
+		at_hook_spawn_thrall_1 = lib.one(Slot.PT_HOOK_SPAWN_THRALL_1, "hook spawn thrall 1 trigger"),
+		at_hook_trooper_fallback = lib.one(Slot.PT_HOOK_TROOPER_FALLBACK, "hook trooper fallback trigger"),
+		at_throne_spawn_encounter = lib.one(Slot.PT_THRONE_SPAWN_ENCOUNTER, "throne spawn encounter trigger"),
+		at_throne_wake_combatants = lib.one(Slot.PT_THRONE_WAKE_COMBATANTS, "throne wake combatants trigger"),
+		at_spawn_overrides_off = lib.one(Slot.PT_SPAWN_OVERRIDES_OFF, "spawn overrides off trigger"),
 		at_spawn_overrides_on = lib.one(Slot.PT_SPAWN_OVERRIDES_ON, "spawn overrides on trigger"),
+		at_spawn_lower_encounters = lib.one(Slot.PT_SPAWN_LOWER_ENCOUNTERS, "spawn lower encounters trigger"),
+		at_spawn_lower_enemies_gate = lib.one(Slot.PT_SPAWN_LOWER_ENEMIES_GATE, "spawn lower enemies gate trigger"),
+		at_elevator_spawn_melee = lib.one(Slot.PT_ELEVATOR_SPAWN_MELEE, "elevator spawn melee trigger"),
+		at_elevator_spawn_wizards = lib.one(Slot.PT_ELEVATOR_SPAWN_WIZARDS, "elevator spawn wizards trigger"),
+		at_elevator_seed_props = lib.one(Slot.PT_ELEVATOR_SEED_PROPS, "elevator seed props trigger"),
+		at_spawn_javelin = lib.one(Slot.PT_SPAWN_JAVELIN, "spawn javelin trigger"),
+		at_spawn_javelin_alt = lib.one(Slot.PT_SPAWN_JAVELIN_ALT, "spawn javelin alt trigger"),
+		at_mus_hive_attack = lib.one(Slot.PT_MUS_HIVE_ATTACK, "hive attack music trigger"),
+		at_ascension_elevator = lib.one(Slot.PT_ASCENSION_ELEVATOR, "ascension elevator trigger"),
 		at_hive_music_end = lib.one(Slot.PT_HIVE_MUSIC_END, "hive music end trigger"),
 		at_ascension_cable = lib.one(Slot.PT_ASCENSION_CABLE, "ascension cable trigger"),
 		at_ascension_cable_2 = lib.one(Slot.PT_ASCENSION_CABLE_2, "ascension cable 2 trigger"),
-		at_spawn_spear_intro = lib.one(Slot.PT_SPAWN_SPEAR_INTRO, "spawn spear intro trigger"),
 		at_left_hive_music_end = lib.one(Slot.PT_LEFT_HIVE_MUSIC_END, "left hive music end trigger"),
 		at_left_ascension_cable = lib.one(Slot.PT_LEFT_ASCENSION_CABLE, "left ascension cable trigger"),
 		at_left_ascension_cable_2 = lib.one(Slot.PT_LEFT_ASCENSION_CABLE_2, "left ascension cable 2 trigger"),
-		at_spawn_spear_intro_alt = lib.one(Slot.PT_SPAWN_SPEAR_INTRO_ALT, "spawn spear intro alt trigger"),
-		at_hook_trooper_fallback = lib.one(Slot.PT_HOOK_TROOPER_FALLBACK, "hook trooper fallback trigger"),
-		at_hook_spawn_thrall = lib.one(Slot.PT_HOOK_SPAWN_THRALL, "hook spawn thrall trigger"),
-		at_hook_spawn_thrall_1 = lib.one(Slot.PT_HOOK_SPAWN_THRALL_1, "hook spawn thrall 1 trigger"),
-		at_throne_spawn_encounter = lib.one(Slot.PT_THRONE_SPAWN_ENCOUNTER, "throne spawn encounter trigger"),
-		at_spawn_lower_enemies_gate = lib.one(Slot.PT_SPAWN_LOWER_ENEMIES_GATE, "spawn lower enemies gate trigger"),
-		at_ascension_left = lib.one(Slot.PT_ASCENSION_LEFT, "ascension left trigger"),
-		at_throne_wake_combatants = lib.one(Slot.PT_THRONE_WAKE_COMBATANTS, "throne wake combatants trigger"),
 		at_machine_god = lib.one(Slot.PT_MACHINE_GOD, "machine god trigger"),
+		at_ascension_left = lib.one(Slot.PT_ASCENSION_LEFT, "ascension left trigger"),
 
 		o_javelin_hint = lib.one(Slot.O_JAVELIN_HINT, "javelin hint"),
 		o_javelin_spawner_landing = lib.one(Slot.O_JAVELIN_SPAWNER_LANDING, "javelin spawner landing"),
@@ -155,6 +158,13 @@ return function(mission)
 		},
 	}
 end
+
+--[[
+	Area entered: M_ENGAGEMENT_SENSOR_80F6A334
+	Javelin pickup: M_ENGAGEMENT_SENSOR_80F6A34D
+	Throne fight: M_ENGAGEMENT_SENSOR_80F72B32
+]]
+
 --[[
 FINALE_OBJECTIVE
 Group:

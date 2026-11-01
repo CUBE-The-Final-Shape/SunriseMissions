@@ -21,14 +21,18 @@ local function show(context, directive, marker, audience)
 end
 
 -- Arm a trigger and remember it, so its first report can disarm it.
-local function arm(context, id)
-    context:set_variable("armed/" .. id, true)
-    context:slot(id):fire_trigger()
+local function arm(context, id_list)
+	for _, id in ipairs(id_list) do
+		context:set_variable("armed/" .. id, true)
+		context:slot(id):fire_trigger()
+	end
 end
 
-local function activate(context, id)
-    context:set_variable("activated/" .. id, true)
-    context:slot(id):set_object_active{active = true}
+local function activate(context, id_list)
+	for _, id in ipairs(id_list) do
+		context:set_variable("activated/" .. id, true)
+		context:slot(id):set_object_active{active = true}
+	end
 end
 
 local function deactivate(context, id)
@@ -50,18 +54,22 @@ local function close_device(context, id)
 	}
 end
 
-local function power_on(context, id)
-    context:set_variable("powered_on/" .. id, true)
-    context:slot(id):transition{
-		transition = context.sdk.device_transitions.power_on,
-	}
+local function power_on(context, id_list)
+	for _, id in ipairs(id_list) do
+		context:set_variable("powered_on/" .. id, true)
+		context:slot(id):transition{
+			transition = context.sdk.device_transitions.power_on,
+		}
+	end
 end
 
-local function power_off(context, id)
-    context:set_variable("powered_off/" .. id, true)
-    context:slot(id):transition{
-		transition = context.sdk.device_transitions.power_off,
-	}
+local function power_off(context, id_list)
+	for _, id in ipairs(id_list) do
+		context:set_variable("powered_off/" .. id, true)
+		context:slot(id):transition{
+			transition = context.sdk.device_transitions.power_off,
+		}
+	end
 end
 
 local function place_squads(context, arena_data, wave)
@@ -174,11 +182,11 @@ local graph = flow.new{
 		trigger_fact("at_intro_directive", glacier.at_intro_directive),
 		trigger_fact("at_endphase", glacier.at_endphase),
 		trigger_fact("at_endphase_alt", glacier.at_endphase_alt),
-		trigger_fact("at_goto_bray_right", glacier.at_goto_bray_right),
-		trigger_fact("at_goto_bray_left", glacier.at_goto_bray_left),
-		trigger_fact("at_dropships_right", glacier.at_dropships_right),
-		trigger_fact("at_dropships_left", glacier.at_dropships_left),
 		
+		trigger_fact("at_goto_bray_right", bray.at_goto_bray_right),
+		trigger_fact("at_goto_bray_left", bray.at_goto_bray_left),
+		trigger_fact("at_dropships_right", bray.at_dropships_right),
+		trigger_fact("at_dropships_left", bray.at_dropships_left),
 		trigger_fact("at_seed_props", bray.at_seed_props),
 		trigger_fact("at_bypass_right", bray.at_bypass_right),
 		trigger_fact("at_bypassed_left", bray.at_bypassed_left),
@@ -215,32 +223,16 @@ local graph = flow.new{
 		trigger_fact("at_ascension_left", rasputin.at_ascension_left),
 		trigger_fact("at_throne_wake_combatants", rasputin.at_throne_wake_combatants),
 		trigger_fact("at_machine_god", rasputin.at_machine_god),
+		trigger_fact("at_spawn_javelin", rasputin.at_spawn_javelin),
+		trigger_fact("at_spawn_javelin_alt", rasputin.at_spawn_javelin_alt),
 	},
 	steps = {
 		{id = "arrive", await = flow.fact("arrived"), run = function(context)
 			context:set_variable("alt_reinforce", false)
-			arm(context, glacier.at_intro_directive)
-			arm(context, glacier.at_endphase)
-			arm(context, glacier.at_endphase_alt)
-			arm(context, glacier.at_goto_bray_right)
-			arm(context, glacier.at_goto_bray_left)
-			arm(context, glacier.at_dropships_right)
-			arm(context, glacier.at_dropships_left)
-			activate(context, glacier.o_seraph_tower_0)
-			activate(context, glacier.o_seraph_tower_1)
-			activate(context, glacier.o_seraph_tower_2)
-			activate(context, glacier.o_seraph_tower_3)
-			activate(context, glacier.o_seraph_tower_4)
-			activate(context, glacier.o_javelin_floor0_80F73E47)
-			activate(context, glacier.o_javelin_floor1_80F73E47)
-			activate(context, glacier.o_javelin_floor2_80F73E47)
-			activate(context, glacier.o_javelin_floor3_80F73E47)
-			activate(context, glacier.o_javelin_floor4_80F73E47)
-			arm(context, bray.at_seed_props)
-			arm(context, bray.at_bypass_right)
-			arm(context, bray.at_bypassed_left)
-			arm(context, bray.at_activate_boss_waypoint)
-			arm(context, bray.at_start_balcony_monitor)
+			arm(context, {glacier.at_intro_directive, glacier.at_endphase, glacier.at_endphase_alt})
+			activate(context, {glacier.o_seraph_tower_0, glacier.o_seraph_tower_1, glacier.o_seraph_tower_2, glacier.o_seraph_tower_3,
+							   glacier.o_seraph_tower_4, glacier.o_javelin_floor0_80F73E47, glacier.o_javelin_floor1_80F73E47, glacier.o_javelin_floor2_80F73E47,
+							   glacier.o_javelin_floor3_80F73E47, glacier.o_javelin_floor4_80F73E47})
 		end},
 		{id = "opening_dialog", after = {"arrive"}, await = flow.fact("at_intro_directive"), run = function(context)
 			context:slot(shared.music):set_music_section{section = 0}
@@ -251,48 +243,20 @@ local graph = flow.new{
 			context:start_timer("directive_delay", 3500)
         end},
 		{id = "arrive_bray_area", after = {"at_intro_directive"}, await = flow.any(flow.fact("at_dropships_right"), flow.fact("at_dropships_left")), run = function(context)
-			arm(context, glacier.at_dropships_right)
-			arm(context, glacier.at_dropships_left)
-			arm(context, bray.at_seed_props)
-			arm(context, bray.at_bypass_right)
-			arm(context, bray.at_bypassed_left)
-			arm(context, bray.at_activate_boss_waypoint)
-			arm(context, bray.at_start_balcony_monitor)
-			activate(context, bray.o_mini_ras_door)
-			activate(context, bray.o_seraph_tower_0)
-			activate(context, bray.o_seraph_tower_1)
-			activate(context, bray.o_seraph_tower_2)
-			activate(context, bray.o_seraph_tower_3)
-			activate(context, bray.o_seraph_tower_4)
-			activate(context, bray.o_javelin_floor0_80F739EA)
-			activate(context, bray.o_javelin_floor1_80F739EA)
-			activate(context, bray.o_javelin_floor2_80F739EA)
-			activate(context, bray.o_javelin_floor3_80F739EA)
-			activate(context, bray.o_javelin_floor4_80F739EA)
-			power_off(context, bray.d_door_lights)
-			power_off(context, bray.d_screen_bank_1_0)
-			power_off(context, bray.d_screen_bank_1_1)
-			power_off(context, bray.d_screen_bank_1_2)
-			power_off(context, bray.d_screen_bank_1_3)
-			power_off(context, bray.d_screen_bank_1_4)
-			power_off(context, bray.d_screen_bank_1_5)
-			power_off(context, bray.d_screen_bank_1_6)
-			power_off(context, bray.d_screen_bank_1_7)
-			power_off(context, bray.d_screen_bank_1_8)
-			power_off(context, bray.d_screen_bank_1_9)
-			power_off(context, bray.d_screen_bank_2_0)
-			power_off(context, bray.d_screen_bank_2_1)
-			power_off(context, bray.d_screen_bank_2_2)
-			power_off(context, bray.d_screen_bank_2_3)
-			power_off(context, bray.d_screen_bank_2_4)
-			power_off(context, bray.d_screen_bank_2_5)
-			power_off(context, bray.d_screen_bank_2_6)
-			power_off(context, bray.d_screen_bank_2_7)
-			power_off(context, bray.d_screen_bank_2_8)
+			arm(context, {bray.at_dropships_right, bray.at_dropships_left, bray.at_seed_props, bray.at_bypass_right,
+						  bray.at_bypassed_left, bray.at_activate_boss_waypoint, bray.at_start_balcony_monitor})
+			activate(context, {bray.o_mini_ras_door, bray.o_seraph_tower_0, bray.o_seraph_tower_1, bray.o_seraph_tower_2,
+							   bray.o_seraph_tower_3, bray.o_seraph_tower_4, bray.o_javelin_floor0_80F739EA, bray.o_javelin_floor1_80F739EA,
+							   bray.o_javelin_floor2_80F739EA, bray.o_javelin_floor3_80F739EA, bray.o_javelin_floor4_80F739EA})
+			power_off(context, {bray.d_door_lights, bray.d_screen_bank_1_0, bray.d_screen_bank_1_1, bray.d_screen_bank_1_2,
+								bray.d_screen_bank_1_3, bray.d_screen_bank_1_4, bray.d_screen_bank_1_5, bray.d_screen_bank_1_6,
+								bray.d_screen_bank_1_7, bray.d_screen_bank_1_8, bray.d_screen_bank_1_9, bray.d_screen_bank_2_0,
+								bray.d_screen_bank_2_1, bray.d_screen_bank_2_2, bray.d_screen_bank_2_3, bray.d_screen_bank_2_4,
+								bray.d_screen_bank_2_5, bray.d_screen_bank_2_6, bray.d_screen_bank_2_7, bray.d_screen_bank_2_8})
+			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_goto_bray_179, mission.Slot.M_ENGAGEMENT_SENSOR_80F6A0E6)
 		end},
 		{id = "at_dropships", after = {"arrive_bray_area"}, run = function(context)
 			context:slot(shared.music):set_music_section{section = 2}
-			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_goto_bray_179)
 			place_squads(context, bray.arena_court, "squad_b")
 			place_squads(context, bray.arena_court, "squad_c")
 			context:start_timer("dropship_a_delay", 1500)
@@ -306,22 +270,17 @@ local graph = flow.new{
 		end},
 		{id = "at_activate_boss_waypoint", after = {"spawn_bray"}, await = flow.fact("at_activate_boss_waypoint")},
 		{id = "update_bray_waypoint", after = {"at_activate_boss_waypoint"}, run = function(context)
-			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_slot_0015)
+			show(context, shared.goal_secure_bray_CC40FDF7, bray.np_slot_0015, mission.Slot.M_ENGAGEMENT_SENSOR_80F6A0E6)
 		end, await = function(context)
 			return context:cohort{squads = squads_of_fight(bray.arena_boss)}.cleared
 		end},
 		{id = "futurescapes_cleared", after = {"update_bray_waypoint"}, await = flow.fact("at_signal_ana"), run = function(context)
-			arm(context, bray.at_signal_ana)
-			arm(context, bray.at_end_phase)
+			arm(context, {bray.at_signal_ana, bray.at_end_phase})
 			context:slot(shared.music):set_music_section{section = 3}
-			show(context, shared.goal_secure_bray_FF11C73B, bray.np_activate_console)
+			show(context, shared.goal_secure_bray_FF11C73B, bray.np_activate_console, mission.Slot.M_ENGAGEMENT_SENSOR_80F6A15A)
 		end},
 		{id = "at_signal_ana", after = {"futurescapes_cleared"}, await = flow.fact("at_bray_end_phase"), run = function(context)
-			activate(context, bray.o_start_vignette)
-			activate(context, bray.o_large_nutblocker)
-			activate(context, bray.o_large_nutblocker_2)
-			activate(context, bray.o_small_nutblocker)
-			activate(context, bray.o_small_nutblocker_2)
+			activate(context, {bray.o_start_vignette, bray.o_large_nutblocker, bray.o_large_nutblocker_2, bray.o_small_nutblocker, bray.o_small_nutblocker_2})
 			context:slot(shared.music):set_music_section{section = 4}
 			context:scene(bray.scene_ana_power_up):activate{}
 			context:squad(bray.scene_ana_squad):place{}
@@ -336,8 +295,7 @@ local graph = flow.new{
 		{id = "arrive_miniras_area", after = {"at_bray_end_phase"}, await = flow.fact("arrive_miniras_area")},
 		{id = "at_locate_entrance", after = {"arrive_miniras_area"}, await = flow.fact("at_locate_entrance"), run = function(context)
 			context:slot(shared.music):set_music_section{section = 12}
-			arm(context, miniras.at_locate_entrance)
-			arm(context, miniras.at_end_phase)
+			arm(context, {miniras.at_locate_entrance, miniras.at_end_phase})
 			open(context, miniras.door)
 			show(context, shared.goal_goto_bray, miniras.initial_nav)
 		end},
@@ -354,42 +312,28 @@ local graph = flow.new{
 		end},
 		{id = "arrive_rasputin_area", after = {"at_end_phase"}, await = flow.fact("arrive_rasputin_area")},
 		{id = "armed_rasputin_triggers", after = {"arrive_rasputin_area"}, await = flow.fact("at_spawn_lower_encounters"), run = function(context)
-			arm(context, rasputin.at_spawn_lower_encounters)
-			arm(context, rasputin.at_mus_hive_attack)
-			arm(context, rasputin.at_elevator_seed_props)
-			arm(context, rasputin.at_elevator_spawn_wizards)
-			arm(context, rasputin.at_elevator_spawn_melee)
-			arm(context, rasputin.at_ascension_elevator)
-			arm(context, rasputin.at_spawn_overrides_off)
-			arm(context, rasputin.at_pipes_spawn_back)
-			arm(context, rasputin.at_spawn_overrides_on)
-			arm(context, rasputin.at_hive_music_end)
-			arm(context, rasputin.at_ascension_cable)
-			arm(context, rasputin.at_ascension_cable_2)
-			arm(context, rasputin.at_spawn_spear_intro)
-			arm(context, rasputin.at_left_hive_music_end)
-			arm(context, rasputin.at_left_ascension_cable)
-			arm(context, rasputin.at_left_ascension_cable_2)
-			arm(context, rasputin.at_spawn_spear_intro_alt)
-			arm(context, rasputin.at_hook_spawn_thrall)
-			arm(context, rasputin.at_hook_spawn_thrall_1)
-			arm(context, rasputin.at_throne_spawn_encounter)
-			arm(context, rasputin.at_spawn_lower_enemies_gate)
-			arm(context, rasputin.at_ascension_left)
-			arm(context, rasputin.at_throne_wake_combatants)
-			arm(context, rasputin.at_machine_god)
+			arm(context, {rasputin.at_spawn_lower_encounters, rasputin.at_mus_hive_attack, rasputin.at_elevator_seed_props, rasputin.at_elevator_spawn_wizards,
+						  rasputin.at_elevator_spawn_melee, rasputin.at_ascension_elevator, rasputin.at_spawn_overrides_off, rasputin.at_pipes_spawn_back,
+						  rasputin.at_spawn_overrides_on, rasputin.at_hive_music_end, rasputin.at_ascension_cable, rasputin.at_ascension_cable_2,
+						  rasputin.at_spawn_spear_intro, rasputin.at_left_hive_music_end, rasputin.at_left_ascension_cable, rasputin.at_left_ascension_cable_2,
+						  rasputin.at_spawn_spear_intro_alt, rasputin.at_hook_spawn_thrall, rasputin.at_hook_spawn_thrall_1, rasputin.at_throne_spawn_encounter,
+						  rasputin.at_spawn_lower_enemies_gate, rasputin.at_ascension_left, rasputin.at_throne_wake_combatants, rasputin.at_machine_god,
+						  rasputin.at_spawn_javelin, rasputin.at_spawn_javelin_alt})
 		end},
 		{id = "at_spawn_lower_encounters", after = {"armed_rasputin_triggers"}, await = flow.fact("at_mus_hive_attack"), run = function(context)
 			place_squads(context, rasputin.arena_elevator, "lower_encounter")
 		end},
-		{id = "at_mus_hive_attacks", after = {"at_spawn_lower_encounters"}, await = flow.fact("at_elevator_seed_props"), run = function(context)
+		{id = "at_mus_hive_attacks", after = {"at_spawn_lower_encounters"}, await = flow.fact("at_elevator_spawn_wizards"), run = function(context)
 			context:slot(shared.music):set_music_section{section = 6}
 		end},
-		{id = "at_elevator_seed_props", after = {"at_mus_hive_attacks"}, await = flow.fact("at_elevator_spawn_melee"), run = function(context)
+		{id = "at_elevator_spawn_wizards", after = {"at_mus_hive_attacks"}, await = flow.fact("at_elevator_spawn_melee"), run = function(context)
 			place_squads(context, rasputin.arena_elevator, "elevator_wizard")
 			context:start_timer("wizard_2_delay", 1000)
 		end},
-		{id = "at_ascension_elevator", after = {"at_elevator_seed_props"}, await = flow.fact("at_spawn_overrides_off"), run = function(context)
+		{id = "at_elevator_spawn_melee", after = {"at_elevator_spawn_wizards"}, await = flow.fact("at_ascension_elevator"), run = function(context)
+			place_squads(context, rasputin.arena_elevator, "elevator_melee")
+		end},
+		{id = "at_ascension_elevator", after = {"at_elevator_spawn_melee"}, await = flow.fact("at_spawn_overrides_off"), run = function(context)
 			place_squads(context, rasputin.arena_pipes, "pipes_front")
 		end},
 		{id = "at_spawn_overrides_off", after = {"at_ascension_elevator"}, await = flow.any(flow.fact("at_hive_music_end"), flow.fact("at_left_hive_music_end")), run = function(context)
@@ -405,20 +349,19 @@ local graph = flow.new{
 			place_squads(context, rasputin.arena_spear_intro)
 		end},
 		
-		{id = "at_ascension_cable_2", after = {"at_ascension_cable"}, await = flow.any(flow.fact("at_spawn_spear_intro"), flow.fact("at_spawn_spear_intro_alt")), run = function(context)
+		{id = "at_ascension_cable_2", after = {"at_ascension_cable"}, await = flow.any(flow.fact("at_spawn_javelin"), flow.fact("at_spawn_javelin_alt")), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_21}
 			place_squads(context, rasputin.arena_lower_gate)
 		end},
 		
-		{id = "at_spawn_spear_intro", after = {"at_ascension_cable_2"}, await = flow.fact("at_hook_trooper_fallback"), run = function(context)
+		{id = "at_spawn_javelin", after = {"at_ascension_cable_2"}, await = flow.fact("at_hook_trooper_fallback"), run = function(context)
 			context:slot(shared.dialog):play_dialogue_cue{cue = rasputin.line_sensor_22}
-			context:start_timer("spear_music_delay", 5000)
-			context:start_timer("spear_delay", 7000)
+			context:slot(shared.music):set_music_section{section = 8}
+			context:start_timer("spear_delay", 3000)
 		end},
-		{id = "throne_arena_checkpoint", after = {"at_spawn_spear_intro"}, checkpoint = true, reset_facts = {"at_hook_trooper_fallback", "at_throne_spawn_encounter"}},
+		{id = "throne_arena_checkpoint", after = {"at_spawn_javelin"}, checkpoint = true, reset_facts = {"at_hook_trooper_fallback", "at_throne_spawn_encounter"}},
 		{id = "at_hook_trooper_fallback", after = {"throne_arena_checkpoint"}, await = flow.fact("at_hook_spawn_thrall"), run = function(context)
-			activate(context, rasputin.o_javelin_spawner_lower)
-			activate(context, rasputin.o_javelin_spawner_upper)
+			activate(context, {rasputin.o_javelin_spawner_lower, rasputin.o_javelin_spawner_upper})
 		end},
 		{id = "at_throne_spawn_encounter", after = {"at_hook_trooper_fallback"}, run = function(context)
 			place_squads(context, rasputin.arena_throne, "assault_sniper")
@@ -432,7 +375,7 @@ local graph = flow.new{
 		{id = "at_machine_god", after = {"at_throne_spawn_encounter"}, await = flow.fact("at_machine_god"), run = function(context)
 		end},
 		{id = "bookend_cinematic", after = {"at_machine_god"}, run = function(context)
-			context:start_timer("bookend_start_delay", 3000)
+			context:start_timer("bookend_start_delay", 2500)
 		end},
 	},
 }
@@ -448,7 +391,8 @@ return {
 	},
 
     on_start = function(context, state) graph:advance(context, state) end,
-    on_load = function(context, state) graph:advance(context, state) end,
+    on_load = function(context, state) graph:advance(context, state)
+	context:start_timer("spear_delay", 3000)end,
 
     on_event_client_state_changed = function(context, state, event)
         if event.entered == true then handle(context, state, event) end
@@ -460,14 +404,12 @@ return {
     on_event_player_trigger = function(context, state, event)
         local slot = event.slot
 		
-		if lib.is_slot(context, event, glacier.at_dropships_left) then
+		if lib.is_slot(context, event, bray.at_dropships_left) then
 			context:set_variable("alt_reinforce", true)
 		end
 		
 		if lib.is_slot(context, event, rasputin.at_pipes_spawn_back) then
-			context:slot(rasputin.at_pipes_spawn_back):disarm_trigger()
 			place_squads(context, rasputin.arena_pipes, "pipes_back")
-			return
 		end
 		
         if slot ~= nil and state:variable("armed/" .. slot.id) == true then
@@ -480,7 +422,8 @@ return {
 	on_event_object_interacted = function(context, state, event)
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_landing) then
 			context:start_timer("rasputin_spear_door_delay", 1000)
-			arm(context, rasputin.at_hook_trooper_fallback)
+			arm(context, {rasputin.at_hook_trooper_fallback})
+			show(context, shared.goal_ascend_F9396C1F, miniras.alt_nav, mission.Slot.M_ENGAGEMENT_SENSOR_80F72B32)
 		end
 		if lib.is_slot(context, event, rasputin.o_javelin_spawner_lower) then
 			context:start_timer("respawn_spear_lower", 16000)
@@ -497,7 +440,7 @@ return {
 		end
 		
 		if event.timer_name == "directive_delay" then
-			show(context, shared.goal_goto_bray, glacier.navpoint)
+			show(context, shared.goal_goto_bray, glacier.navpoint, mission.Slot.M_ENGAGEMENT_SENSOR_80F6A19A)
 			context:slot(shared.dialog):play_dialogue_cue{cue = glacier.line_open_cont}
 		end
 		
@@ -545,29 +488,15 @@ return {
 		end
 		
 		if event.timer_name == "bray_poweron_delay" then
-			power_on(context, bray.d_screen_bank_2_0)
-			power_on(context, bray.d_screen_bank_2_1)
-			power_on(context, bray.d_screen_bank_2_2)
-			power_on(context, bray.d_screen_bank_2_3)
-			power_on(context, bray.d_screen_bank_2_4)
-			power_on(context, bray.d_screen_bank_2_5)
-			power_on(context, bray.d_screen_bank_2_6)
-			power_on(context, bray.d_screen_bank_2_7)
-			power_on(context, bray.d_screen_bank_2_8)
+			power_on(context, {bray.d_screen_bank_2_0, bray.d_screen_bank_2_1, bray.d_screen_bank_2_2, bray.d_screen_bank_2_3,
+							   bray.d_screen_bank_2_4, bray.d_screen_bank_2_7, bray.d_screen_bank_2_6, bray.d_screen_bank_2_5,
+							   bray.d_screen_bank_2_8})
 		end
 		
 		if event.timer_name == "bray_poweron_secondary_delay" then
-			power_on(context, bray.d_door_lights)
-			power_on(context, bray.d_screen_bank_1_0)
-			power_on(context, bray.d_screen_bank_1_1)
-			power_on(context, bray.d_screen_bank_1_2)
-			power_on(context, bray.d_screen_bank_1_3)
-			power_on(context, bray.d_screen_bank_1_4)
-			power_on(context, bray.d_screen_bank_1_5)
-			power_on(context, bray.d_screen_bank_1_6)
-			power_on(context, bray.d_screen_bank_1_7)
-			power_on(context, bray.d_screen_bank_1_8)
-			power_on(context, bray.d_screen_bank_1_9)
+			power_on(context, {bray.d_door_lights, bray.d_screen_bank_1_0, bray.d_screen_bank_1_1, bray.d_screen_bank_1_2,
+							   bray.d_screen_bank_1_3, bray.d_screen_bank_1_4, bray.d_screen_bank_1_5, bray.d_screen_bank_1_6,
+							   bray.d_screen_bank_1_7, bray.d_screen_bank_1_8, bray.d_screen_bank_1_9})
 		end
 		
 		if event.timer_name == "door_open_delay" then
@@ -577,17 +506,11 @@ return {
 		
 		if event.timer_name == "wizard_2_delay" then
 			place_squads(context, rasputin.arena_elevator, "elevator_wizard_delayed")
-			place_squads(context, rasputin.arena_elevator, "elevator_melee")
-		end
-		
-		if event.timer_name == "spear_music_delay" then
-			context:slot(shared.music):set_music_section{section = 8}
 		end
 		
 		if event.timer_name == "spear_delay" then
 			context:slot(rasputin.sequence_javelin_audio):play_sequence()
-			activate(context, rasputin.o_javelin_spawner_landing)
-			activate(context, rasputin.o_javelin_vfx)
+			activate(context, {rasputin.o_javelin_spawner_landing, rasputin.o_javelin_vfx})
 			context:start_timer("spear_dialog_delay", 2000)
 		end
 		
@@ -602,11 +525,11 @@ return {
 		end
 		
 		if event.timer_name == "respawn_spear_lower" then
-			activate(context, rasputin.o_javelin_spawner_lower)
+			activate(context, {rasputin.o_javelin_spawner_lower})
 		end
 		
 		if event.timer_name == "respawn_spear_upper" then
-			activate(context, rasputin.o_javelin_spawner_upper)
+			activate(context, {rasputin.o_javelin_spawner_upper})
 		end
 		
 		if event.timer_name == "bookend_start_delay" then
@@ -680,15 +603,18 @@ return {
 		remove_squads(context, rasputin.arena_throne, "assault_crusader_wave2")
 		remove_squads(context, rasputin.arena_throne, "assault_ultra")
 		close_device(context, rasputin.d_javelin_door)
-		activate(context, rasputin.o_javelin_spawner_landing)
+		activate(context, {rasputin.o_javelin_spawner_landing})
 		context:slot(shared.hard_wipes):set_darkness_zone{enabled = false}
 		place_squads(context, rasputin.arena_lower_gate)
-		arm(context, rasputin.at_hook_spawn_thrall)
-		arm(context, rasputin.at_hook_spawn_thrall_1)
-		arm(context, rasputin.at_throne_spawn_encounter)
-		arm(context, rasputin.at_spawn_lower_enemies_gate)
-		arm(context, rasputin.at_ascension_left)
-		arm(context, rasputin.at_throne_wake_combatants)
-		arm(context, rasputin.at_machine_god)
+		arm(context, {rasputin.at_hook_spawn_thrall, rasputin.at_hook_spawn_thrall_1, rasputin.at_throne_spawn_encounter, rasputin.at_spawn_lower_enemies_gate,
+					  rasputin.at_ascension_left, rasputin.at_throne_wake_combatants, rasputin.at_machine_god})
+	end,
+	
+	on_event_cinematic_terminated = function(context, state, event)
+    -- the cinematic ended, or its start was refused
+	end,
+	
+	on_event_cinematic_skip_requested = function(context, state, event)
+		-- a player asked to skip
 	end,
 }

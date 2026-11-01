@@ -19,3 +19,6 @@ return function(mission)
 		sequence_locate_entrane = lib.one(Slot.SE_RASPUTIN_ALERT_AUDIO, "entrance audio"),
 	}
 end
+--[[
+	Area entered: M_ENGAGEMENT_SENSOR_80F6A1CF
+]]

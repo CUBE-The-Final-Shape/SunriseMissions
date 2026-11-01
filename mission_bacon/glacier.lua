@@ -12,10 +12,6 @@ return function(mission)
 		at_intro_directive = lib.one(Slot.PT_INTRO_DIRECTIVE, "intro directive trigger"),
 		at_endphase = lib.one(Slot.PT_ENDPHASE, "endphase trigger"),
 		at_endphase_alt = lib.one(Slot.PT_ENDPHASE_ALT, "endphase alt trigger"),
-		at_goto_bray_right = lib.one(Slot.PT_GOTO_BRAY_RIGHT, "goto bray right trigger"),
-		at_goto_bray_left = lib.one(Slot.PT_GOTO_BRAY_LEFT, "goto bray left trigger"),
-		at_dropships_right = lib.one(Slot.PT_SPAWN_DROPSHIPS_RIGHT, "dropships right trigger"),
-		at_dropships_left = lib.one(Slot.PT_SPAWN_DROPSHIPS_LEFT, "dropships left trigger"),
 		
 		o_seraph_tower_0 = lib.one(Slot.O_SERAPH_TOWER0_80F73E47, "seraph tower 0"),
 		o_seraph_tower_1 = lib.one(Slot.O_SERAPH_TOWER1_80F73E47, "seraph tower 1"),
@@ -29,3 +25,7 @@ return function(mission)
 		o_javelin_floor4_80F73E47 = lib.one(Slot.O_JAVELIN_FLOOR4_80F73E47, "javelin floor 4"),
 	}
 end
+--[[
+	Intro dialog: M_ENGAGEMENT_SENSOR_80F6A19A
+	Going left side: M_ENGAGEMENT_SENSOR_80F6A1B8
+]]
